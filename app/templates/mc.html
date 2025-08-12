@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+
+{% block title %}minecraf{% endblock %}
+
+{% block content %}
+
+<pre id="rcon-response">
+
+</pre>
+<input id="mc-input" size="47" placeholder="type a command..."/><button id="mc-cmd" type="button" onclick="rconCommand()">send</button>
+<hr />
+Visit
+<a href="https://github.com/OwenCochell/mctools#minecraft-connection-tools">mc tools</a>
+for more info
+{% endblock %}
+
+{% block rightsidebar %}
+<div id="rcon-query">
+  <button id="mc-connect" onclick="runBaseRconQuery()">ping</button>
+  <p id="rcon-motd"></p>
+  <p id="rcon-plugins"></p>
+  <p id="rcon-version"></p>
+  <table id="rcon-query-players">
+  </table>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+  var ansi_esc = new RegExp(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/, "g");
+  var commandList = [];
+  var queryData = {};
+  var prevCommand = "";
+  
+  function getCommandList() {
+    $.get("{{ url_for('mc_bp.list') }}")
+      .done(function(data) {
+        commandList = data;
+      }).fail(function(err) {
+        console.warn("RCON init failed: ", err);
+      });
+  }
+  
+  function runBaseRconQuery() {
+    $.get("{{ url_for('mc_bp.rconQuery') }}")
+      .done(function(data) {
+        queryData = data;
+        // show motd
+        $("#rcon-motd").text(data.motd.replace(ansi_esc,''));
+        // plugins and version
+        $("#rcon-plugins").text(data.plugins);
+        $("#rcon-version").text(data.version);
+        
+        // build players list
+        $("#rcon-query-players").empty();
+        if(data.numplayers === "0") {
+          $("#rcon-query-players").text("No players connected.");
+        } else {
+          let i = 0;
+          let max = parseInt(data.numplayers,10);
+          for(i; i < max; i++) {
+            let thisRow = $("<tr>");
+            // create a row that will display the player's name
+            let playerName = data.players[i].replace(ansi_esc,'');
+            let nameCell = $("<td>").text(playerName);
+            
+            let kickButton = $("<button>").addClass("rcon-kick").text("K").data("playerName",playerName);
+            let actionCell = $("<td>").append(kickButton);
+            
+            thisRow.append(nameCell);
+            thisRow.append(actionCell);
+            // append it to the players list
+            $("#rcon-query-players").append(thisRow);
+          }
+        }
+      }).fail(function(err) {
+        console.warn("RCON query failed: ", err);
+      });
+  }
+  
+  function rconCommand() {
+    let cmd = $("#mc-input").val();
+    
+    $.post("{{ url_for('mc_bp.rconCommand') }}",
+      { 
+        "command": cmd
+      }
+    ).done(function(data) {
+      $("#rcon-response").text(data.replace(ansi_esc,''));
+      $("#mc-input").attr("placeholder",cmd);
+      $("#mc-input").val("");
+      prevCommand = cmd;
+    }).fail(function (err) {
+      console.warn("RCON Command failed: ",err);
+    });
+  }
+
+  function kickPlayer(playerName) {
+    $.post("{{ url_for('mc_bp.rconCommand') }}",
+      { 
+        "command": "/kick " + playerName
+      }
+    ).done(function(data) {
+      // display player kicked message
+      $("#rcon-response").text(data.replace(ansi_esc,''));
+      // remove from list
+      $("button.rcon-kick").parents("tr").remove();
+      // if 0 players left, print "no players"
+      if($("#rcon-query-players tr").length === 0) {
+        $("#rcon-query-players").text("No players connected.");
+      }
+    }).fail(function (err) {
+      console.warn("RCON Command failed: ",err);
+    });
+  }
+
+/* END of Functions */
+
+$(document).ready(function() {
+  getCommandList();
+  
+  runBaseRconQuery();
+  
+  
+  $("#mc-input").on("keyup",function(e) {
+    if(e.which === 13) { // on enter key up
+      e.preventDefault();
+      rconCommand(); // call command fn as if user pressed send
+    }
+  });
+  
+  $("#mc-input").keydown(function(e) {
+    if (e.keyCode === 38) { // on up^^ key
+      e.preventDefault();
+      $("#mc-input").val(prevCommand);
+    }
+  });
+  
+  $("#rcon-query-players").on("click", "button.rcon-kick",function(e) {
+    e.preventDefault();
+    kickPlayer($(this).data("playerName"));
+  });
+});
+</script>
+{% endblock %}

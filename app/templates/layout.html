@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My BlAg{% endblock %}</title>
+    
+    <!-- favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='img/site.webmanifest') }}">
+    <!-- jquery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- JqueryUI -->
+    <script src="{{ url_for('static', filename='js/jquery-ui-1.14.0.custom/jquery-ui.min.js') }}" ></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='js/jquery-ui-1.14.0.custom/jquery-ui.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='js/jquery-ui-1.14.0.custom/jquery-ui.structure.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='js/jquery-ui-1.14.0.custom/jquery-ui.theme.min.css') }}">
+    <!-- using `weight: 100, optical size: 20, dark mode and filled icons` -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,100,0,200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@24,300,1,0" />
+    <!-- END EXTERNAL IMPORTS -->
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    {% block js %}
+    {% endblock%}
+</head>
+<body>
+  <!-- Main container -->
+  <div class="container">
+    <!-- Image banner at the top -->
+    <header>
+        <img id="banner" />
+    </header>
+
+    <div class="main-content">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <ul>
+                <li><a href="{{ url_for('main_bp.index') }}">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a href="{{ url_for('mc_bp.index') }}">minecraf</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main content area -->
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+        
+        <div id="right-sidebar">
+          {% block rightsidebar %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 My Blaorg</p>
+    </footer>
+  </div>
+</body>
+</html>

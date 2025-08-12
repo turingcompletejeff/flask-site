@@ -1,0 +1,85 @@
+{
+/advancement (grant|revoke)
+/attribute   (get|base|modifier)
+/execute (run|if|unless|as|at|store|positioned|rotated|facing|align|anchored|in|summon|on)
+/bossbar (add|remove|list|set|get)
+/clear []
+/clone (|from)
+/damage   []
+/data (merge|get|remove|modify)
+/datapack (enable|disable|list)
+/debug (start|stop|function)
+/defaultgamemode 
+/difficulty [peaceful|easy|normal|hard]
+/effect (clear|give)
+/me 
+/enchant   []
+/experience (add|set|query)
+/xp -> experience
+/fill    [replace|keep|outline|hollow|destroy]
+/fillbiome    [replace]
+/forceload (add|remove|query)
+/function  [|with]
+/gamemode  []
+/gamerule (announceAdvancements|blockExplosionDropDecay|commandBlockOutput|commandModificationBlockLimit|disableElytraMovementCheck|disableRaids|doDaylightCycle|doEntityDrops|doFireTick|doImmediateRespawn|doInsomnia|doLimitedCrafting|doMobLoot|doMobSpawning|doPatrolSpawning|doTileDrops|doTraderSpawning|doVinesSpread|doWardenSpawning|doWeatherCycle|drowningDamage|enderPearlsVanishOnDeath|fallDamage|fireDamage|forgiveDeadPlayers|freezeDamage|globalSoundEvents|keepInventory|lavaSourceConversion|logAdminCommands|maxCommandChainLength|maxCommandForkCount|maxEntityCramming|mobExplosionDropDecay|mobGriefing|naturalRegeneration|playersNetherPortalCreativeDelay|playersNetherPortalDefaultDelay|playersSleepingPercentage|projectilesCanBreakBlocks|randomTickSpeed|reducedDebugInfo|sendCommandFeedback|showDeathMessages|snowAccumulationHeight|spawnChunkRadius|spawnRadius|spectatorsGenerateChunks|tntExplosionDropDecay|universalAnger|waterSourceConversion)
+/give   []
+/help []
+/item (replace|modify)
+/kick  []
+/kill []
+/list [uuids]
+/locate (structure|biome|poi)
+/loot (replace|insert|give|spawn)
+/msg  
+/tell -> msg
+/w -> msg
+/particle  []
+/place (feature|jigsaw|structure|template)
+/playsound  [master|music|record|weather|block|hostile|neutral|player|ambient|voice]
+/random (value|roll|reset)
+/reload
+/recipe (give|take)
+/return (|fail|run)
+/ride  (mount|dismount)
+/say 
+/schedule (function|clear)
+/scoreboard (objectives|players)
+/seed
+/setblock   [destroy|keep|replace]
+/spawnpoint []
+/setworldspawn []
+/spectate []
+/spreadplayers 
+   (|under)
+/stopsound  [*|master|music|record|weather|block|hostile|neutral|player|ambient|voice]
+/summon  []
+/tag  (add|remove|list)
+/team (list|add|remove|empty|join|leave|modify)
+/teammsg 
+/tm -> teammsg
+/teleport (||)
+/tp -> teleport
+/tellraw  
+/tick (query|rate|step|sprint|unfreeze|freeze)
+/time (set|add|query)
+/title  (clear|reset|title|subtitle|actionbar|times)
+/trigger  [add|set]
+/weather (clear|rain|thunder)
+/worldborder (add|set|center|damage|get|warning)
+/jfr (start|stop)
+/ban-ip  []
+/banlist [ips|players]
+/ban  []
+/deop 
+/op 
+/pardon 
+/pardon-ip 
+/perf (start|stop)
+/save-all [flush]
+/save-off
+/save-on
+/setidletimeout 
+/stop
+/transfer  []
+/whitelist (on|off|list|add|remove|reload)
+}
