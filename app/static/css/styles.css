@@ -27,6 +27,58 @@ body, html {
     margin-bottom: -17px;
 }
 
+.flash-messages {
+	position: fixed;
+	top: 20px;
+	left: 20px;
+
+	padding: 12px 20px;
+	margin-bottom: 15px;
+	border: 1px solid transparent;
+
+	z-index: 9999; /* ensures this element is on top */
+}
+
+.flash-messages .alert {
+	margin-bottom: 10px;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+	padding: 12px 20px;
+	border-radius: 4px;
+	font-weight: bold;
+	transition: opacity 0.5s ease, transform 0.5s ease; /* fade / slide anim */
+}
+
+.alert-success {
+	background-color: rgba(212, 237, 218, 0.85); /* light green */
+	color: rgba(21, 87, 36, 1);
+	border-color: rgba(195, 230, 203, 1);
+}
+
+.alert-warning {
+	background-color: rgba(255, 243, 205, 0.85); /* light yellow */
+	color: rgba(102, 77, 3, 1);
+	border-color: rgba(255, 236, 181, 1);
+}
+
+.alert-danger {
+	background-color: rgba(248, 215, 218, 0.85); /* light red */
+	color: rgba(114, 28, 36, 1);
+	border-color: rgba(245, 198, 203, 1);
+}
+
+.alert-info {
+	background-color: rgba(209, 236, 241, 0.85); /* light blue */
+	color: rgba(13, 60, 97, 1);
+	border-color: rgba(190, 229, 235, 1);
+}
+
+.flash-messages .close-btn {
+	position: relative;
+	top: 0px;
+	right: -5px;
+	cursor: pointer;
+}
+
 /* Main content area */
 .main-content {
     display: flex;

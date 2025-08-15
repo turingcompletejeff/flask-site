@@ -9,3 +9,4 @@ class Config:
   RCON_PASS = os.environ.get('RCON_PASS')
   RCON_HOST = os.environ.get('MC_HOST')
   RCON_PORT = os.environ.get('MC_PORT')
+  SECRET_KEY = os.environ.get('SECRET_KEY')
