@@ -1,4 +1,6 @@
-# Route to view a single blog post
+from flask_login import login_required
+
+#Route to view a single blog post
 @main_bp.route('/post/<int:post_id>')
 def view_post(post_id):
     # Query the specific blog post by ID
@@ -7,6 +9,7 @@ def view_post(post_id):
 
 # Route to create a new blog post
 @main_bp.route('/new', methods=['GET', 'POST'])
+@login_required
 def new_post():
     form = BlogPostForm()
     if form.validate_on_submit():
@@ -24,6 +27,7 @@ def new_post():
 
 # Route to edit an existing blog post
 @main_bp.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_post(post_id):
     post = BlogPost.query.get_or_404(post_id)
     form = BlogPostForm()
@@ -45,6 +49,7 @@ def edit_post(post_id):
 
 # Route to delete a blog post
 @main_bp.route('/post/<int:post_id>/delete', methods=['POST'])
+@login_required
 def delete_post(post_id):
     post = BlogPost.query.get_or_404(post_id)
     db.session.delete(post)

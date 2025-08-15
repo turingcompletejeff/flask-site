@@ -5,9 +5,13 @@
 {% block content %}
   <div class="blog-post-strip">
     <h1>blag</h1>
+
+    {% if current_user.is_authenticated %}
     <div class="blog-post-add">
       <span class="material-symbols-outlined hover-add"></span>
     </div>
+    {% endif %}
+    
     {% for post in blog_posts %}
         <div class="blog-post">
           <div class="blog-post-header">

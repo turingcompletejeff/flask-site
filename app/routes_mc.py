@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask_login import current_user
 from app import db, rcon
 from app.models import MinecraftCommand
 from config import Config
@@ -7,6 +8,12 @@ import socket
 
 # Create a blueprint for main routes
 mc_bp = Blueprint('mc_bp', __name__)
+
+@mc_bp.before_request
+def require_login():
+    if not current_user.is_authenticated:
+        flash("you must be logged in to access this page.", "warning")
+        return redirect(url_for('auth.login'))
 
 def rconConnect():
     global rcon

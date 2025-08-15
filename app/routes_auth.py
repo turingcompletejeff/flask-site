@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_login import login_user, logout_user, login_required
 from app import db
 from app.models import User
 
@@ -12,10 +13,11 @@ def login():
 
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
-            flash('Login succesful','success')
+            login_user(user)
+            flash(f"welcome, {user.username}",'success')
             return redirect(url_for('main_bp.index'))
         else:
-            flash('Invalid username or password', 'danger')
+            flash('invalid username or password', 'danger')
 
     return render_template('login.html')
 
@@ -36,3 +38,10 @@ def register():
             flash('Account created!','success')
             return redirect(url_for('auth.login'))
     return render_template('register.html')
+
+@auth.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("logged out", "info")
+    return redirect(url_for('main_bp.index'))
