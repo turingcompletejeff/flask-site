@@ -10,3 +10,4 @@ class Config:
   RCON_HOST = os.environ.get('MC_HOST')
   RCON_PORT = os.environ.get('MC_PORT')
   SECRET_KEY = os.environ.get('SECRET_KEY')
+  REGISTRATION_ENABLED = os.environ.get('REGISTRATION_ENABLED', 'True') == 'True'

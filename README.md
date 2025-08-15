@@ -64,6 +64,8 @@ DB_PASSWORD=
 RCON_PASS=
 MC_HOST=
 MC_PORT=
+SECRET_KEY=
+REGISTRATION_ENABLED=
 -------------
 
 In app.py (or elsewhere), load it with:

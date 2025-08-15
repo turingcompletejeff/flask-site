@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required
 from app import db
 from app.models import User
@@ -19,10 +19,14 @@ def login():
         else:
             flash('invalid username or password', 'danger')
 
-    return render_template('login.html')
+    return render_template('login.html', registration_enabled=current_app.config['REGISTRATION_ENABLED'])
 
 @auth.route('/register', methods=['GET','POST'])
 def register():
+    if not current_app.config.get('REGISTRATION_ENABLED', True):
+        flash("registration is temporarily disabled.","warning")
+        return redirect(url_for('main_bp.index'))
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
