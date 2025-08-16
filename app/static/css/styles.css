@@ -6,6 +6,14 @@ body, html {
     background-color: hsl(145, 50%, 10%);
 }
 
+a {
+  color: hsl(85, 80%, 80%);
+}
+
+a:visited {
+  color: hsl(20, 80%, 80%);
+}
+
 /* Container for the entire page */
 #main-container {
     display: flex;
@@ -95,7 +103,7 @@ body, html {
 .content {
   margin-left: 8px;
   background-color: hsl(145, 30%, 25%,81%);
-  color: hsl(145, 50%, 5%);
+  color: hsl(145, 50%, 90%);
   padding: 16px;
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
   flex-grow: 2;
