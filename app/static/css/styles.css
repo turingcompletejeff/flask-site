@@ -33,7 +33,7 @@ body, html {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: inset -3px -4px 10px 10px hsl(124 35% 10%);
+    box-shadow: inset 0px -7px 14px 5px hsl(124 35% 10%);
     background-blend-mode: hard-light;
 }
 
