@@ -28,9 +28,9 @@
 </head>
 <body>
   <!-- Main container -->
-  <div class="container">
+  <div id="main-container">
     <!-- Image banner at the top -->
-    <header>
+    <header id="main-header">
         <img id="banner" />
 	{% with messages = get_flashed_messages(with_categories=true) %}
 	  {% if messages %}
@@ -77,7 +77,7 @@
     </div>
 
     <!-- Footer -->
-    <footer>
+    <footer id="main-footer">
         <p>&copy; 2024 My Blaorg</p>
     </footer>
   </div>
