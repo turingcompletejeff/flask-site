@@ -7,11 +7,19 @@ body, html {
 }
 
 a {
-  color: hsl(85, 80%, 80%);
+  color: hsl(85, 80%, 60%);
 }
 
 a:visited {
-  color: hsl(20, 80%, 80%);
+  color: hsl(20, 80%, 60%);
+}
+
+.content a {
+  color: hsl(85, 80%, 25%);
+}
+
+.content a:visited {
+  color: hsl(20, 80%, 45%);
 }
 
 /* Container for the entire page */
