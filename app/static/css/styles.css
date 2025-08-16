@@ -55,30 +55,27 @@ body, html {
 	border-radius: 4px;
 	font-weight: bold;
 	transition: opacity 0.5s ease, transform 0.5s ease; /* fade / slide anim */
+  color: hsl(120 96% 92%);
 }
 
 .alert-success {
-	background-color: rgba(212, 237, 218, 0.85); /* light green */
-	color: rgba(21, 87, 36, 1);
-	border-color: rgba(195, 230, 203, 1);
+	background-color: hsl(161 100% 17%);
+	border-color: hsl(161 100% 37%);
 }
 
 .alert-warning {
-	background-color: rgba(255, 243, 205, 0.85); /* light yellow */
-	color: rgba(102, 77, 3, 1);
-	border-color: rgba(255, 236, 181, 1);
+	background-color: hsl(53 100% 15%);
+	border-color: hsl(53 100% 35%);
 }
 
 .alert-danger {
-	background-color: rgba(248, 215, 218, 0.85); /* light red */
-	color: rgba(114, 28, 36, 1);
-	border-color: rgba(245, 198, 203, 1);
+	background-color: hsl(7 51% 41%);
+	border-color: hsl(7 51% 61%);
 }
 
 .alert-info {
-	background-color: rgba(209, 236, 241, 0.85); /* light blue */
-	color: rgba(13, 60, 97, 1);
-	border-color: rgba(190, 229, 235, 1);
+	background-color: hsl(217 54% 44%);
+	border-color: hsl(217 54% 64%);
 }
 
 .flash-messages .close-btn {
@@ -157,6 +154,10 @@ body, html {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
+    border-style: ridge;
+    border-width: medium;
+    border-radius: 8px;
+    border-color: hsl(205, 95%, 70%);
 }
 
 .blog-post-header {
@@ -198,10 +199,19 @@ body, html {
   font-weight: bold;
 }
 
+.blog-header {
+  display: inline-flex;
+}
+
 .blog-post-add {
+  display: inline-flex;
   cursor: pointer;
-  width: 30px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
+}
+
+.blog-post-add.material-symbols-outlined {
+  font-size: 35px;
 }
 
 .hover-add::before {
