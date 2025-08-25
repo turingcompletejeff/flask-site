@@ -80,8 +80,8 @@
 {% block endjs %}
   <script>
     // --- configuration: adjust only if you changed the Flask routes below ---
-    const ITEMS_ENDPOINT = "/media/api/items";              // returns array of items
-    const HLS_ENDPOINT   = (id) => `/media/api/hls/${id}`;  // returns { hls_url, subtitles: [...] }
+    const ITEMS_ENDPOINT = "/tv/api/items";              // returns array of items
+    const HLS_ENDPOINT   = (id) => `/tv/api/hls/${id}`;  // returns { hls_url, subtitles: [...] }
 
     const state = { all: [], filtered: [] };
     const grid = document.getElementById("grid");

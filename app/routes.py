@@ -15,6 +15,6 @@ def index():
     return render_template('index.html', blog_posts=blog_posts)
 
 
-@main_bp.route('/thetv')
+@main_bp.route('/tv')
 def thetv():
     return render_template('library.html')

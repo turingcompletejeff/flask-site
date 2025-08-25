@@ -5,7 +5,7 @@ import json
 from urllib.parse import quote
 from config import Config
 
-media_api = Blueprint('media_api',__name__,url_prefix="/media/api")
+media_api = Blueprint('media_api',__name__,url_prefix="/tv/api")
 
 def j_headers(token):
     return {"X-Emby-Token": token}
@@ -34,7 +34,7 @@ def list_items():
     for it in data:
         item_id = it.get("Id")
         # Prefer Primary image; fallback to Thumb
-        thumb_url = (f"/tv/Items/{item_id}/Images/Primary"
+        thumb_url = (f"/media/Items/{item_id}/Images/Primary"
                      f"?w=400&quality=90")  # served via a lightweight proxy route (optional)
 
         items.append({
