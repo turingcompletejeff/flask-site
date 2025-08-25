@@ -38,7 +38,57 @@
   
   <!-- hls.js (needed for non-Safari browsers) -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  
+{% endblock %}
+
+{% block content %}
+
+<main>
+  <!-- Player / Now Playing -->
+  <section class="panel" id="playerPanel">
+    <h2 id="nowTitle">Nothing playing</h2>
+    <div id="playerWrap">
+      <video id="player" controls playsinline></video>
+    </div>
+    <div class="meta" id="nowMeta" style="display:none;">
+      <img id="nowThumb" alt="">
+      <div class="info">
+        <div class="title" id="nowName"></div>
+        <div class="sub" id="nowSub"></div>
+        <div class="desc" id="nowDesc"></div>
+      </div>
+    </div>
+    <div class="controls" id="subtitleBar" style="display:none;">
+      <label for="subs">Subtitles:</label>
+      <select id="subs"></select>
+      <button class="btn" id="stopBtn">Stop</button>
+    </div>
+  </section>
+
+  <!-- Library Grid -->
+  <section class="panel">
+    <h2>Library</h2>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" style="display:none;">No items match your search.</div>
+  </section>
+</main>
+
+{% endblock %}
+
+{% block endjs %}
   <script>
+    // --- configuration: adjust only if you changed the Flask routes below ---
+    const ITEMS_ENDPOINT = "/media/api/items";              // returns array of items
+    const HLS_ENDPOINT   = (id) => `/media/api/hls/${id}`;  // returns { hls_url, subtitles: [...] }
+
+    const state = { all: [], filtered: [] };
+    const grid = document.getElementById("grid");
+    const empty = document.getElementById("empty");
+
+    const video = document.getElementById("player");
+    let hls = null;
+    
+    
     function render(items) {
       grid.innerHTML = "";
       if (!items.length) { empty.style.display = "block"; return; }
@@ -167,17 +217,6 @@
     }
     
     document.addEventListener('DOMContentLoaded', () => {
-      // --- configuration: adjust only if you changed the Flask routes below ---
-      const ITEMS_ENDPOINT = "/media/api/items";              // returns array of items
-      const HLS_ENDPOINT   = (id) => `/media/api/hls/${id}`;  // returns { hls_url, subtitles: [...] }
-
-      const state = { all: [], filtered: [] };
-      const grid = document.getElementById("grid");
-      const empty = document.getElementById("empty");
-
-      const video = document.getElementById("player");
-      let hls = null;
-      
       document.getElementById("stopBtn").onclick = stopPlayback;
 
       fetchItems().catch(err => {
@@ -190,38 +229,4 @@
 
     
   </script>
-{% endblock %}
-
-{% block content %}
-
-<main>
-  <!-- Player / Now Playing -->
-  <section class="panel" id="playerPanel">
-    <h2 id="nowTitle">Nothing playing</h2>
-    <div id="playerWrap">
-      <video id="player" controls playsinline></video>
-    </div>
-    <div class="meta" id="nowMeta" style="display:none;">
-      <img id="nowThumb" alt="">
-      <div class="info">
-        <div class="title" id="nowName"></div>
-        <div class="sub" id="nowSub"></div>
-        <div class="desc" id="nowDesc"></div>
-      </div>
-    </div>
-    <div class="controls" id="subtitleBar" style="display:none;">
-      <label for="subs">Subtitles:</label>
-      <select id="subs"></select>
-      <button class="btn" id="stopBtn">Stop</button>
-    </div>
-  </section>
-
-  <!-- Library Grid -->
-  <section class="panel">
-    <h2>Library</h2>
-    <div id="grid" class="grid"></div>
-    <div id="empty" class="empty" style="display:none;">No items match your search.</div>
-  </section>
-</main>
-
 {% endblock %}
