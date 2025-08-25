@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 import requests
+import json
 from urllib.parse import quote
 from config import Config
 
@@ -63,6 +64,9 @@ def hls_for_item(item_id):
     payload = {
         "UserId": user_id,
         "StartTimeTicks": 0,
+        "EnableDirectPlay": True,
+        "EnableDirectStream": True,
+        "EnableTranscoding": False,
         "IsPlayback": True,
         "AutoOpenLiveStream": False,
         "MediaSourceId": item_id,
@@ -72,6 +76,8 @@ def hls_for_item(item_id):
     resp = requests.post(playback_info_url, headers=headers, json=payload, timeout=10)
     info = resp.json()
 
+    print(json.dumps(info,indent=2))
+
     # Extract mediaSourceId
     media_source = info["MediaSources"][0]
     media_source_id = media_source["Id"]
@@ -80,6 +86,7 @@ def hls_for_item(item_id):
     hls_url = (
         f"{Config.JELLYFIN_URL}/Videos/{item_id}/master.m3u8"
         f"?api_key={quote(token)}&mediaSourceId={media_source_id}"
+        f"&AudioCodec=AAC"
     )
 
     # Extract subtitles directly from PlaybackInfo
@@ -87,7 +94,7 @@ def hls_for_item(item_id):
     for s in media_source.get("MediaStreams", []):
         if s.get("Type") == "Subtitle":
             sid = s.get("Index")
-            fmt = "srt"  # or use s.get("Codec", "srt").lower()
+            fmt = s.get("Codec", "srt").lower()
             url = (
                 f"{Config.JELLYFIN_URL}/Videos/{item_id}/{sid}/Subtitles/{fmt}/stream.{fmt}"
                 f"?api_key={quote(token)}"
