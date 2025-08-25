@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from flask_login import login_user, logout_user, login_required
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
+from flask_login import login_user, logout_user, login_required, current_user
 import requests
 from urllib.parse import quote
+from config import Config
 
 media_api = Blueprint('media_api',__name__,url_prefix="/media/api")
 
@@ -32,7 +33,7 @@ def list_items():
     for it in data:
         item_id = it.get("Id")
         # Prefer Primary image; fallback to Thumb
-        thumb_url = (f"/media/proxy/Items/{item_id}/Images/Primary"
+        thumb_url = (f"/tv/Items/{item_id}/Images/Primary"
                      f"?w=400&quality=90")  # served via a lightweight proxy route (optional)
 
         items.append({
@@ -54,9 +55,23 @@ def hls_for_item(item_id):
     Returns a per-user tokenized HLS master URL and optional subtitle tracks.
     """
     token = current_user.jellyfin_session_token
+    user_id = current_user.jellyfin_user_id
+
+    # Fetch mediaSourceId
+    resp = requests.post(
+        f"{Config.JELLYFIN_URL}/Items/{item_id}/PlaybackInfo",
+        headers=j_headers(token),
+        json={"UserId": user_id, "StartTimeTicks": 0}
+    )
+    info = resp.json()
+    media_source_id = info["MediaSources"][0]["Id"]
 
     # Option A (simple): always use master.m3u8
-    hls_url = f"{Config.JELLYFIN_URL}/Videos/{item_id}/master.m3u8?api_key={quote(token)}"
+    hls_url = (
+            f"{Config.JELLYFIN_URL}/Videos/{item_id}/master.m3u8"
+            f"?api_key={quote(token)}&mediaSourceId={media_source_id}"
+    )
+              
 
     # Optionally enumerate external subtitles
     subs = []
@@ -68,7 +83,7 @@ def hls_for_item(item_id):
             if s.get("Type") == "Subtitle":
                 # Build a direct subtitle stream URL
                 sid = s.get("Index")
-                fmt = (s.get("Codec") or "vtt").lower()
+                fmt = "srt" # (s.get("Codec") or "vtt").lower()
                 # Jellyfin supports /Subtitles/{Format}/stream.{Format}
                 url = f"{Config.JELLYFIN_URL}/Videos/{item_id}/{sid}/Subtitles/{fmt}/stream.{fmt}?api_key={quote(token)}"
                 subs.append({"label": s.get("DisplayTitle") or s.get("Language") or "Subtitles", "lang": s.get("Language"), "url": url})

@@ -12,4 +12,4 @@ class Config:
   SECRET_KEY = os.environ.get('SECRET_KEY')
   REGISTRATION_ENABLED = os.environ.get('REGISTRATION_ENABLED', 'True') == 'True'
   JELLYFIN_API = os.environ.get('JELLYFIN_API_KEY')
-  JELLYFIN_URL = "http://127.0.0.1/tv"
+  JELLYFIN_URL = "http://localhost/tv"

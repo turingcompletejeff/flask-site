@@ -27,6 +27,8 @@ def create_app():
     app.register_blueprint(blogpost_bp)
     from app.routes_mc import mc_bp
     app.register_blueprint(mc_bp)
+    from app.routes_tv import media_api
+    app.register_blueprint(media_api)
     
     # init global.... RCON object
     app.rcon = rcon

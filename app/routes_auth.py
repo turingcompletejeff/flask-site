@@ -3,7 +3,9 @@ from flask_login import login_user, logout_user, login_required
 import uuid
 from app import db
 from app.models import User
+from config import Config
 import logging
+import requests
 
 auth = Blueprint('auth',__name__)
 logger = logging.getLogger(__name__)
@@ -29,9 +31,9 @@ def login():
                     return redirect(url_for('main_bp.index'))
 
             logger.info('grabbing new jellyfin token')
-            token = get_jellyfin_session_token(u)
+            token = get_jellyfin_session_token(user)
             if token:
-                u.jellyfin_session_token = token
+                user.jellyfin_session_token = token
                 logger.info('committing to db')
                 db.session.commit()
             else:
@@ -86,7 +88,7 @@ def create_jellyfin_user(flask_user):
     }
     r = requests.post(url, json=data, headers=headers)
 
-    if r.status_code = 200:
+    if r.status_code == 200:
         user_data = r.json()
         flask_user.jellyfin_user_id = user_data["Id"]
         db.session.commit()
