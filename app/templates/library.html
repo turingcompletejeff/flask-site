@@ -39,18 +39,6 @@
   <!-- hls.js (needed for non-Safari browsers) -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
-    // --- configuration: adjust only if you changed the Flask routes below ---
-    const ITEMS_ENDPOINT = "/media/api/items";              // returns array of items
-    const HLS_ENDPOINT   = (id) => `/media/api/hls/${id}`;  // returns { hls_url, subtitles: [...] }
-
-    const state = { all: [], filtered: [] };
-    const grid = document.getElementById("grid");
-    const search = document.getElementById("search");
-    const empty = document.getElementById("empty");
-
-    const video = document.getElementById("player");
-    let hls = null;
-
     function render(items) {
       grid.innerHTML = "";
       if (!items.length) { empty.style.display = "block"; return; }
@@ -177,16 +165,32 @@
         alert("Could not start playback.");
       }
     }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      // --- configuration: adjust only if you changed the Flask routes below ---
+      const ITEMS_ENDPOINT = "/media/api/items";              // returns array of items
+      const HLS_ENDPOINT   = (id) => `/media/api/hls/${id}`;  // returns { hls_url, subtitles: [...] }
 
-    document.getElementById("stopBtn").onclick = stopPlayback;
-    search.addEventListener("input", () => filterList(search.value));
+      const state = { all: [], filtered: [] };
+      const grid = document.getElementById("grid");
+      const search = document.getElementById("search");
+      const empty = document.getElementById("empty");
 
-    fetchItems().catch(err => {
-      console.error(err);
-      grid.innerHTML = "";
-      empty.style.display = "block";
-      empty.textContent = "Failed to load library.";
+      const video = document.getElementById("player");
+      let hls = null;
+      
+      document.getElementById("stopBtn").onclick = stopPlayback;
+      search.addEventListener("input", () => filterList(search.value));
+
+      fetchItems().catch(err => {
+        console.error(err);
+        grid.innerHTML = "";
+        empty.style.display = "block";
+        empty.textContent = "Failed to load library.";
+      });
     });
+
+    
   </script>
 {% endblock %}
 
