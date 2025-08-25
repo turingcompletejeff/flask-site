@@ -1,9 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>My Library</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+{% extends "layout.html" %}
+
+{% block title %}tv{% endblock %}
+
+{% block js %}
   <style>
     :root { --gap: 12px; --radius: 12px; --shadow: 0 6px 20px rgba(0,0,0,.08); }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background:#0b0d10; color:#eef2f8; }
@@ -36,12 +35,162 @@
     .year { opacity:.65; font-size:12px; }
     .empty { padding:20px; opacity:.7; }
   </style>
-</head>
-<body>
-<header>
-  <h1>My Library</h1>
-  <input id="search" type="search" placeholder="Search titles…" />
-</header>
+  
+  <!-- hls.js (needed for non-Safari browsers) -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    // --- configuration: adjust only if you changed the Flask routes below ---
+    const ITEMS_ENDPOINT = "/media/api/items";              // returns array of items
+    const HLS_ENDPOINT   = (id) => `/media/api/hls/${id}`;  // returns { hls_url, subtitles: [...] }
+
+    const state = { all: [], filtered: [] };
+    const grid = document.getElementById("grid");
+    const search = document.getElementById("search");
+    const empty = document.getElementById("empty");
+
+    const video = document.getElementById("player");
+    let hls = null;
+
+    function render(items) {
+      grid.innerHTML = "";
+      if (!items.length) { empty.style.display = "block"; return; }
+      empty.style.display = "none";
+      for (const it of items) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img class="thumb" src="${it.thumb_url}" alt="${it.name}" loading="lazy">
+          <div class="label">
+            <span title="${it.name}">${it.name}</span>
+            <span class="year">${it.year || ""}</span>
+          </div>`;
+        card.onclick = () => playItem(it);
+        grid.appendChild(card);
+      }
+    }
+
+    function filterList(q) {
+      q = (q || "").trim().toLowerCase();
+      state.filtered = !q ? state.all : state.all.filter(it =>
+        (it.name || "").toLowerCase().includes(q)
+      );
+      render(state.filtered);
+    }
+
+    async function fetchItems() {
+      const res = await fetch(ITEMS_ENDPOINT, { credentials: "same-origin" });
+      if (!res.ok) throw new Error("Failed to load items");
+      state.all = await res.json(); // expects [{id, name, year, overview, thumb_url, runtime, type}]
+      filterList(search.value);
+    }
+
+    function setNowMeta(it) {
+      document.getElementById("nowTitle").textContent = it.name || "Now Playing";
+      document.getElementById("nowMeta").style.display = "flex";
+      document.getElementById("nowThumb").src = it.thumb_url || "";
+      document.getElementById("nowThumb").alt = it.name || "";
+      document.getElementById("nowName").textContent = it.name || "";
+      const mins = it.runtime ? Math.round(it.runtime / 60) : null;
+      document.getElementById("nowSub").textContent = [it.type, mins ? `${mins} min` : null, it.year || null].filter(Boolean).join(" • ");
+      document.getElementById("nowDesc").textContent = it.overview || "";
+    }
+
+    function clearSubs() {
+      while (video.firstChild) {
+        if (video.firstChild.nodeName === "TRACK") video.removeChild(video.firstChild);
+        else break;
+      }
+    }
+
+    function loadSubs(tracks) {
+      const bar = document.getElementById("subtitleBar");
+      const select = document.getElementById("subs");
+      select.innerHTML = "";
+      clearSubs();
+
+      if (!tracks || !tracks.length) { bar.style.display = "none"; return; }
+
+      // "Off" option
+      const optOff = document.createElement("option");
+      optOff.value = "";
+      optOff.textContent = "Off";
+      select.appendChild(optOff);
+
+      tracks.forEach((t, idx) => {
+        const track = document.createElement("track");
+        track.kind = "subtitles";
+        track.label = t.label || t.lang || `Track ${idx+1}`;
+        track.srclang = t.lang || "und";
+        track.src = t.url;
+        track.default = false;
+        video.appendChild(track);
+
+        const opt = document.createElement("option");
+        opt.value = idx.toString();
+        opt.textContent = track.label;
+        select.appendChild(opt);
+      });
+
+      select.onchange = () => {
+        const idx = select.value ? parseInt(select.value, 10) : -1;
+        for (let i = 0; i < video.textTracks.length; i++) {
+          video.textTracks[i].mode = (i === idx) ? "showing" : "disabled";
+        }
+      };
+
+      bar.style.display = "flex";
+    }
+
+    function stopPlayback() {
+      if (hls) { hls.destroy(); hls = null; }
+      video.pause();
+      video.removeAttribute("src");
+      clearSubs();
+    }
+
+    async function playItem(it) {
+      try {
+        // Ask backend for a per-user, tokenized HLS URL (and optional subtitle tracks)
+        const res = await fetch(HLS_ENDPOINT(it.id), { credentials: "same-origin" });
+        if (!res.ok) throw new Error("Failed to get stream URL");
+        const data = await res.json(); // expects { hls_url, subtitles?: [{label, lang, url}] }
+
+        stopPlayback();
+        setNowMeta(it);
+        loadSubs(data.subtitles || []);
+
+        const hlsUrl = data.hls_url;
+
+        if (window.Hls && Hls.isSupported()) {
+          hls = new Hls();
+          hls.loadSource(hlsUrl);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = hlsUrl;
+          video.addEventListener("loadedmetadata", () => video.play().catch(()=>{}), { once:true });
+        } else {
+          alert("HLS is not supported in this browser.");
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Could not start playback.");
+      }
+    }
+
+    document.getElementById("stopBtn").onclick = stopPlayback;
+    search.addEventListener("input", () => filterList(search.value));
+
+    fetchItems().catch(err => {
+      console.error(err);
+      grid.innerHTML = "";
+      empty.style.display = "block";
+      empty.textContent = "Failed to load library.";
+    });
+  </script>
+{% endblock %}
+
+{% block content %}
 
 <main>
   <!-- Player / Now Playing -->
@@ -73,157 +222,4 @@
   </section>
 </main>
 
-<!-- hls.js (needed for non-Safari browsers) -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<script>
-  // --- configuration: adjust only if you changed the Flask routes below ---
-  const ITEMS_ENDPOINT = "/media/api/items";              // returns array of items
-  const HLS_ENDPOINT   = (id) => `/media/api/hls/${id}`;  // returns { hls_url, subtitles: [...] }
-
-  const state = { all: [], filtered: [] };
-  const grid = document.getElementById("grid");
-  const search = document.getElementById("search");
-  const empty = document.getElementById("empty");
-
-  const video = document.getElementById("player");
-  let hls = null;
-
-  function render(items) {
-    grid.innerHTML = "";
-    if (!items.length) { empty.style.display = "block"; return; }
-    empty.style.display = "none";
-    for (const it of items) {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <img class="thumb" src="${it.thumb_url}" alt="${it.name}" loading="lazy">
-        <div class="label">
-          <span title="${it.name}">${it.name}</span>
-          <span class="year">${it.year || ""}</span>
-        </div>`;
-      card.onclick = () => playItem(it);
-      grid.appendChild(card);
-    }
-  }
-
-  function filterList(q) {
-    q = (q || "").trim().toLowerCase();
-    state.filtered = !q ? state.all : state.all.filter(it =>
-      (it.name || "").toLowerCase().includes(q)
-    );
-    render(state.filtered);
-  }
-
-  async function fetchItems() {
-    const res = await fetch(ITEMS_ENDPOINT, { credentials: "same-origin" });
-    if (!res.ok) throw new Error("Failed to load items");
-    state.all = await res.json(); // expects [{id, name, year, overview, thumb_url, runtime, type}]
-    filterList(search.value);
-  }
-
-  function setNowMeta(it) {
-    document.getElementById("nowTitle").textContent = it.name || "Now Playing";
-    document.getElementById("nowMeta").style.display = "flex";
-    document.getElementById("nowThumb").src = it.thumb_url || "";
-    document.getElementById("nowThumb").alt = it.name || "";
-    document.getElementById("nowName").textContent = it.name || "";
-    const mins = it.runtime ? Math.round(it.runtime / 60) : null;
-    document.getElementById("nowSub").textContent = [it.type, mins ? `${mins} min` : null, it.year || null].filter(Boolean).join(" • ");
-    document.getElementById("nowDesc").textContent = it.overview || "";
-  }
-
-  function clearSubs() {
-    while (video.firstChild) {
-      if (video.firstChild.nodeName === "TRACK") video.removeChild(video.firstChild);
-      else break;
-    }
-  }
-
-  function loadSubs(tracks) {
-    const bar = document.getElementById("subtitleBar");
-    const select = document.getElementById("subs");
-    select.innerHTML = "";
-    clearSubs();
-
-    if (!tracks || !tracks.length) { bar.style.display = "none"; return; }
-
-    // "Off" option
-    const optOff = document.createElement("option");
-    optOff.value = "";
-    optOff.textContent = "Off";
-    select.appendChild(optOff);
-
-    tracks.forEach((t, idx) => {
-      const track = document.createElement("track");
-      track.kind = "subtitles";
-      track.label = t.label || t.lang || `Track ${idx+1}`;
-      track.srclang = t.lang || "und";
-      track.src = t.url;
-      track.default = false;
-      video.appendChild(track);
-
-      const opt = document.createElement("option");
-      opt.value = idx.toString();
-      opt.textContent = track.label;
-      select.appendChild(opt);
-    });
-
-    select.onchange = () => {
-      const idx = select.value ? parseInt(select.value, 10) : -1;
-      for (let i = 0; i < video.textTracks.length; i++) {
-        video.textTracks[i].mode = (i === idx) ? "showing" : "disabled";
-      }
-    };
-
-    bar.style.display = "flex";
-  }
-
-  function stopPlayback() {
-    if (hls) { hls.destroy(); hls = null; }
-    video.pause();
-    video.removeAttribute("src");
-    clearSubs();
-  }
-
-  async function playItem(it) {
-    try {
-      // Ask backend for a per-user, tokenized HLS URL (and optional subtitle tracks)
-      const res = await fetch(HLS_ENDPOINT(it.id), { credentials: "same-origin" });
-      if (!res.ok) throw new Error("Failed to get stream URL");
-      const data = await res.json(); // expects { hls_url, subtitles?: [{label, lang, url}] }
-
-      stopPlayback();
-      setNowMeta(it);
-      loadSubs(data.subtitles || []);
-
-      const hlsUrl = data.hls_url;
-
-      if (window.Hls && Hls.isSupported()) {
-        hls = new Hls();
-        hls.loadSource(hlsUrl);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(()=>{}));
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = hlsUrl;
-        video.addEventListener("loadedmetadata", () => video.play().catch(()=>{}), { once:true });
-      } else {
-        alert("HLS is not supported in this browser.");
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Could not start playback.");
-    }
-  }
-
-  document.getElementById("stopBtn").onclick = stopPlayback;
-  search.addEventListener("input", () => filterList(search.value));
-
-  fetchItems().catch(err => {
-    console.error(err);
-    grid.innerHTML = "";
-    empty.style.display = "block";
-    empty.textContent = "Failed to load library.";
-  });
-</script>
-</body>
-</html>
+{% endblock %}
