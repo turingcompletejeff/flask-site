@@ -78,7 +78,7 @@ def create_jellyfin_user(flask_user):
     if not flask_user.jellyfin_device_id:
         flask_user.jellyfin_device_id = str(uuid.uuid4())
 
-    url = f"{JELLYFIN_URL}/Users/New"
+    url = f"{Config.JELLYFIN_URL}/Users/New"
     headers = {"X-Emby-Token": Config.JELLYFIN_API}
     data = {
             "Name": flask_user.username,
@@ -97,7 +97,7 @@ def get_jellyfin_session_token(user):
     """
     Authenticates the user with jellyfin and returns the session token.
     """
-    url = f"{JELLYFIN_URL}/Users/AuthenticateByName"
+    url = f"{Config.JELLYFIN_URL}/Users/AuthenticateByName"
     headers = {
             "X-Emby-Authorization": (
                 f'MediaBrowser Client="FlaskMediaPortal", '
