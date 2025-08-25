@@ -10,6 +10,9 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
+    jellyfin_user_id = Column(String(36))
+    jellyfin_session_token = Column(String(128))
+    jellyfin_device_id = Column(String(36))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

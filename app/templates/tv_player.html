@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block title %}tv{% endblock %}
+
+{% block content %}
+<video id="player" controls autoplay style="width:100%; max-width:800px;"></video>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+const video = document.getElementById('player');
+const hlsUrl = "{{ hls_url }}";
+if (Hls.isSupported()) {
+    const hls = new Hls();
+    hls.loadSource(hlsUrl);
+    hls.attachMedia(video);
+} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = hlsUrl;
+}
+</script>
+{% endblock %}
