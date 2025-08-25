@@ -6,10 +6,9 @@
   <style>
     :root { --gap: 12px; --radius: 12px; --shadow: 0 6px 20px rgba(0,0,0,.08); }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background:#0b0d10; color:#eef2f8; }
-    header { padding: 20px; display:flex; align-items:center; gap:12px; position:sticky; top:0; backdrop-filter:saturate(1.2) blur(8px); background:rgba(11,13,16,.7); z-index:5; }
     h1 { font-size: 20px; margin:0; font-weight:700; letter-spacing:.2px; }
     #search { flex:1; padding:12px 14px; border-radius: 10px; border:1px solid #263040; background:#121820; color:#e7edf7; }
-    main { display:grid; grid-template-columns: 1.2fr .8fr; gap: var(--gap); padding: 16px 20px 40px; }
+    /* main { display:grid; grid-template-columns: 1.2fr .8fr; gap: var(--gap); padding: 16px 20px 40px; } */
     @media (max-width: 980px) { main{ grid-template-columns: 1fr; } }
     /* Player panel */
     .panel { background:#0f141b; border:1px solid #1e2734; border-radius: var(--radius); box-shadow: var(--shadow); overflow:hidden; }
@@ -43,7 +42,7 @@
 
 {% block content %}
 
-<main>
+<main style="width:1080px;">
   <!-- Player / Now Playing -->
   <section class="panel" id="playerPanel">
     <h2 id="nowTitle">Nothing playing</h2>
@@ -64,6 +63,10 @@
       <button class="btn" id="stopBtn">Stop</button>
     </div>
   </section>
+</main>
+{% endblock %}
+
+{% block rightsidebar %}
 
   <!-- Library Grid -->
   <section class="panel">
@@ -71,7 +74,6 @@
     <div id="grid" class="grid"></div>
     <div id="empty" class="empty" style="display:none;">No items match your search.</div>
   </section>
-</main>
 
 {% endblock %}
 
