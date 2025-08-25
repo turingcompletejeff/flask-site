@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_from_directory
 from app import db
 from app.models import BlogPost
 #from app.forms import BlogPostForm
@@ -15,3 +15,6 @@ def index():
     return render_template('index.html', blog_posts=blog_posts)
 
 
+@main_bp.route('/.well-known/pki-validation/<path:path>')
+def send_fileauth(path):
+    return send_from_directory('pki-validation',path)
