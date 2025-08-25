@@ -57,35 +57,45 @@ def hls_for_item(item_id):
     token = current_user.jellyfin_session_token
     user_id = current_user.jellyfin_user_id
 
-    # Fetch mediaSourceId
-    resp = requests.post(
-        f"{Config.JELLYFIN_URL}/Items/{item_id}/PlaybackInfo",
-        headers=j_headers(token),
-        json={"UserId": user_id, "StartTimeTicks": 0}
-    )
+    # Fetch PlaybackInfo (includes MediaSources & MediaStreams)
+    playback_info_url = f"{Config.JELLYFIN_URL}/Items/{item_id}/PlaybackInfo"
+    headers = j_headers(token)
+    payload = {
+        "UserId": user_id,
+        "StartTimeTicks": 0,
+        "IsPlayback": True,
+        "AutoOpenLiveStream": False,
+        "MediaSourceId": item_id,
+        "MaxStreamingBitrate": 140000000
+    }
+
+    resp = requests.post(playback_info_url, headers=headers, json=payload, timeout=10)
     info = resp.json()
-    media_source_id = info["MediaSources"][0]["Id"]
 
-    # Option A (simple): always use master.m3u8
+    # Extract mediaSourceId
+    media_source = info["MediaSources"][0]
+    media_source_id = media_source["Id"]
+
+    # Construct HLS master URL
     hls_url = (
-            f"{Config.JELLYFIN_URL}/Videos/{item_id}/master.m3u8"
-            f"?api_key={quote(token)}&mediaSourceId={media_source_id}"
+        f"{Config.JELLYFIN_URL}/Videos/{item_id}/master.m3u8"
+        f"?api_key={quote(token)}&mediaSourceId={media_source_id}"
     )
-              
 
-    # Optionally enumerate external subtitles
+    # Extract subtitles directly from PlaybackInfo
     subs = []
-    # Ask Jellyfin for media info (to find subtitle tracks)
-    r = requests.get(f"{Config.JELLYFIN_URL}/Items/{item_id}", headers=j_headers(token), timeout=10)
-    if r.ok:
-        streams = r.json().get("MediaStreams", [])
-        for s in streams:
-            if s.get("Type") == "Subtitle":
-                # Build a direct subtitle stream URL
-                sid = s.get("Index")
-                fmt = "srt" # (s.get("Codec") or "vtt").lower()
-                # Jellyfin supports /Subtitles/{Format}/stream.{Format}
-                url = f"{Config.JELLYFIN_URL}/Videos/{item_id}/{sid}/Subtitles/{fmt}/stream.{fmt}?api_key={quote(token)}"
-                subs.append({"label": s.get("DisplayTitle") or s.get("Language") or "Subtitles", "lang": s.get("Language"), "url": url})
+    for s in media_source.get("MediaStreams", []):
+        if s.get("Type") == "Subtitle":
+            sid = s.get("Index")
+            fmt = "srt"  # or use s.get("Codec", "srt").lower()
+            url = (
+                f"{Config.JELLYFIN_URL}/Videos/{item_id}/{sid}/Subtitles/{fmt}/stream.{fmt}"
+                f"?api_key={quote(token)}"
+            )
+            subs.append({
+                "label": s.get("DisplayTitle") or s.get("Language") or "Subtitles",
+                "lang": s.get("Language"),
+                "url": url
+            })
 
     return jsonify({"hls_url": hls_url, "subtitles": subs})
