@@ -7,7 +7,7 @@
     <h1 class="blog-header">blag</h1>
 
     {% if current_user.is_authenticated %}
-    <div class="blog-post-add">
+    <div id="blog-post-add">
       <span class="material-symbols-outlined hover-add"></span>
     </div>
     {% endif %}
@@ -39,4 +39,45 @@
         <p>No posts available.</p>
     {% endfor %}
   </div>
+{% endblock %}
+
+{% block endjs %}
+{% if current_user.is_authenticated %}
+<script>
+  $(document).ready(function() {
+    // add post
+    $("#blog-post-add").on('click', function() {
+      // create a new blog post div
+      let postDiv = $("div").addClass("blog-post");
+      let headerDiv = $("div").addClass("blog-post-header");
+      let titleTag = $("h2");
+      let hrTag = $("hr");
+      let contentTag = $("p");
+      
+      // with blank inputs for an image, a title, and content
+      let formTag = $("form").attr("method","post");
+      let imageInput = $("input").attr("type","file").attr("id","blog-img-input")
+                        .attr("name","portrait");
+      let titleInput = $("input").attr("type","text").attr("id","blog-title-input")
+                        .attr("name","title");
+      let contentInput = $("input").attr("type","text").attr("id","blog-content-input")
+                          .attr("name","content");
+      
+      let submitButton = $("button").attr("type","submit");
+      
+      // assemble divs
+      titleTag.append(titleInput);
+      headerDiv.append(imageInput).append(titleTag);
+      // FIXME --> append a cancel or delete button
+      contentTag.append(contentInput);
+      postDiv.append(headerDiv).append(hrTag).append(contentTag)
+             .append(hrTag).append(submitButton);
+    });
+    
+    // delete post
+    
+    // edit post
+  });
+</script>
+{% endif %}
 {% endblock %}

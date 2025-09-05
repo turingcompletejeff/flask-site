@@ -220,14 +220,14 @@ a:visited {
   display: inline-flex;
 }
 
-.blog-post-add {
+#blog-post-add {
   display: inline-flex;
   cursor: pointer;
   width: 35px;
   height: 35px;
 }
 
-.blog-post-add .material-symbols-outlined {
+#blog-post-add .material-symbols-outlined {
   font-size: 35px;
 }
 
