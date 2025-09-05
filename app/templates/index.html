@@ -18,7 +18,7 @@
             <img class="blog-thumbnail" 
                  src="{{ url_for('main_bp.uploaded_file', filename=post.thumbnail) }}" />
             <h2>{{ post.title }}</h2>
-            <div class="blog-post-delete">
+            <div class="blog-post-delete" data-id="{{ post.id }}">
               <span class="material-symbols-outlined hover-delete"></span>
             </div>
           </div>
@@ -93,6 +93,13 @@
     });
     
     // delete post
+    $(".blog-post-delete").on('click', function() {
+      $.post("{{ url_for('blogpost_bp.delete_post') }}", $(this).data("id"), function() {
+        $(this).remove();
+      }).fail(function() {
+        alert("error deleting post");
+      });
+    });
     
     // edit post
   });

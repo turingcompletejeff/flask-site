@@ -60,3 +60,13 @@ def new_post():
     print(form.errors)
     flash("post invalid","error")
     return redirect(url_for("main_bp.index"))
+
+# Route to delete a blog post
+@main_bp.route('/post/<int:post_id>/delete', methods=['POST'])
+@login_required
+def delete_post(post_id):
+    post = BlogPost.query.get_or_404(post_id)
+    db.session.delete(post)
+    db.session.commit()
+    flash('post deleted!', 'success')
+    return redirect(url_for('main_bp.index'))
