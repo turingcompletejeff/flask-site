@@ -16,7 +16,7 @@
         <div class="blog-post">
           <div class="blog-post-header">
             <img class="blog-thumbnail" 
-                 src="{{ url_for('uploaded_file', filename=post.thumbnail) }}" />
+                 src="{{ url_for('main_bp.uploaded_file', filename=post.thumbnail) }}" />
             <h2>{{ post.title }}</h2>
             <div class="blog-post-delete">
               <span class="material-symbols-outlined">delete</span>
@@ -58,7 +58,12 @@
       
       // with blank inputs for an image, a title, and content
       let formTag = $("<form>").attr("method","post")
-                     .attr("action", "{{ url_for('blogpost_bp.new_post') }}" );
+                     .attr("action", "{{ url_for('blogpost_bp.new_post') }}" )
+	             .attr("enctype","multipart/form-data");
+
+      let csrfTag = $("<input>").attr("type","hidden").attr("name","csrf_token")
+	             .val("{{ csrf_token() }}");
+
       let imageLabel = $("<label>").attr("name","portrait").text("image:");
       let imageInput = $("<input>").attr("type","file").attr("id","blog-img-input")
                         .attr("name","portrait");
@@ -78,6 +83,8 @@
       // FIXME --> append a cancel or delete button
       contentTag.append(contentInput);
       
+      formTag.append(csrfTag);
+
       formTag.append(headerDiv).append(hrTag).append(contentTag)
              .append(hrTag).append(submitButton);
       

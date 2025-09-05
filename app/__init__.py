@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_wtf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 #from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -7,12 +8,15 @@ from config import Config
 db = SQLAlchemy()
 rcon = None
 #migrate = Migrate()
+csrf = CSRFProtect()
 login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
+    # enable CSRF globally
+    csrf.init_app(app)
     # Initialize Flask extensions
     db.init_app(app)
     #migrate.init_app(app, db)

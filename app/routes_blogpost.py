@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 from app import db
 from app.models import BlogPost
+from app.forms import BlogPostForm
 
 # Create a blueprint for main routes
 blogpost_bp = Blueprint('blogpost_bp', __name__)
@@ -35,7 +36,7 @@ def new_post():
             portrait_file.save(file_path)
             
             # create thumbnail
-            imp = Image.open(file_path)
+            img = Image.open(file_path)
             img.thumbnail((300,300))
             thumb_path = os.path.join(
                 current_app.config['BLOG_POST_UPLOAD_FOLDER'],f"thumb_{filename}"
@@ -56,5 +57,6 @@ def new_post():
         flash("post created!", "success")
         return redirect(url_for("main_bp.index"))
     
+    print(form.errors)
     flash("post invalid","error")
     return redirect(url_for("main_bp.index"))

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_from_directory
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_from_directory, current_app
 from app import db
 from app.models import BlogPost
 #from app.forms import BlogPostForm
@@ -15,6 +15,6 @@ def index():
     return render_template('index.html', blog_posts=blog_posts)
 
 
-@app.route('/uploads/blog-posts/<filename>')
+@main_bp.route('/uploads/blog-posts/<filename>')
 def uploaded_file(filename):
     return send_from_directory(current_app.config['BLOG_POST_UPLOAD_FOLDER'], filename)
