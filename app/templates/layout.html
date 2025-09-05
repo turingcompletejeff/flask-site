@@ -35,6 +35,31 @@
         }
       }
     });
+
+    <!-- global JS flash message support -->
+    function addFlashMessage(category, message) {
+  let flashContainer = $(".flash-messages");
+  if (flashContainer.length === 0) {
+    // if container doesn’t exist, create it
+    $("body").prepend('<div class="flash-messages"></div>');
+    flashContainer = $(".flash-messages");
+  }
+
+  let alertDiv = $(`
+    <div class="alert alert-${category}">
+      ${message}
+      <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+    </div>
+  `);
+
+  flashContainer.append(alertDiv);
+
+  // Auto-dismiss after a few seconds
+  setTimeout(() => {
+    alertDiv.fadeOut(500, function() { $(this).remove(); });
+  }, 3000);
+}
+
   </script>
 
     {% block js %}

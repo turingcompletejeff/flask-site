@@ -101,8 +101,9 @@
 		button.parents(".blog-post").fadeOut(400,function() {
 			$(this).remove();
 		});
+		addFlashMessage("success","post deleted");
       }).fail(function() {
-        alert("error deleting post");
+        addFlashMessage("danger","error deleting post");
       });
     });
     
