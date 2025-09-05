@@ -48,22 +48,22 @@
     // add post
     $("#blog-post-add").on('click', function() {
       // create a new blog post div
-      let postDiv = $("div").addClass("blog-post");
-      let headerDiv = $("div").addClass("blog-post-header");
-      let titleTag = $("h2");
-      let hrTag = $("hr");
-      let contentTag = $("p");
+      let postDiv = $("<div>").addClass("blog-post");
+      let headerDiv = $("<div>").addClass("blog-post-header");
+      let titleTag = $("<h2>");
+      let hrTag = $("<hr>");
+      let contentTag = $("<p>");
       
       // with blank inputs for an image, a title, and content
-      let formTag = $("form").attr("method","post");
-      let imageInput = $("input").attr("type","file").attr("id","blog-img-input")
+      let formTag = $("<form>").attr("method","post");
+      let imageInput = $("<input>").attr("type","file").attr("id","blog-img-input")
                         .attr("name","portrait");
-      let titleInput = $("input").attr("type","text").attr("id","blog-title-input")
+      let titleInput = $("<input>").attr("type","text").attr("id","blog-title-input")
                         .attr("name","title");
-      let contentInput = $("input").attr("type","text").attr("id","blog-content-input")
-                          .attr("name","content");
+      let contentInput = $("<input>").attr("type","text")
+                          .attr("id","blog-content-input").attr("name","content");
       
-      let submitButton = $("button").attr("type","submit");
+      let submitButton = $("<button>").attr("type","submit");
       
       // assemble divs
       titleTag.append(titleInput);
@@ -72,6 +72,8 @@
       contentTag.append(contentInput);
       postDiv.append(headerDiv).append(hrTag).append(contentTag)
              .append(hrTag).append(submitButton);
+             
+      $(".blog-post:first").before(postDiv);
     });
     
     // delete post
