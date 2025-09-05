@@ -57,7 +57,7 @@
       
       // with blank inputs for an image, a title, and content
       let formTag = $("<form>").attr("method","post")
-                     .action( {{ url_for('blogpost_bp.new_post') }} );
+                     .attr("action", "{{ url_for('blogpost_bp.new_post') }}" );
       let imageLabel = $("<label>").attr("name","portrait").text("image:");
       let imageInput = $("<input>").attr("type","file").attr("id","blog-img-input")
                         .attr("name","portrait");
