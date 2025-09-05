@@ -10,7 +10,7 @@ main_bp = Blueprint('main_bp', __name__)
 @main_bp.route('/')
 def index():
     # Query all blog posts in descending order by date
-    blog_posts = BlogPost.query.order_by(BlogPost.date_posted.desc()).all()
+    blog_posts = BlogPost.query.order_by(BlogPost.date_posted.desc(),BlogPost.id.desc()).all()
     
     return render_template('index.html', blog_posts=blog_posts)
 
