@@ -1,5 +1,8 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required
+import os
+from werkzeug.utils import secure_filename
+from PIL import Image
 from app import db
 from app.models import BlogPost
 
@@ -19,23 +22,39 @@ def view_post(post_id):
 def new_post():
     form = BlogPostForm()
     
-    # save portrait to uploads dir
-    
-    # downsize & save a thumbnail to the same dir
-    
-    # only commit the name(s) to the db...
-    
-    
     if form.validate_on_submit():
-        # Create a new blog post object
+        portrait_file = form.portrait.data
+        filename = None
+        
+        if portrait_file:
+            # ensure a safe filename
+            filename = secure_filename(portrait_file.filename)
+            file_path = os.path.join(current_app.config['BLOG_POST_UPLOAD_FOLDER'], filename)
+            
+            # save original
+            portrait_file.save(file_path)
+            
+            # create thumbnail
+            imp = Image.open(file_path)
+            img.thumbnail((300,300))
+            thumb_path = os.path.join(
+                current_app.config['BLOG_POST_UPLOAD_FOLDER'],f"thumb_{filename}"
+            )
+            img.save(thumb_path)
+        
+        # create blog post object
         post = BlogPost(
             title=form.title.data,
             content=form.content.data,
-            portrait=form.portrait.data # FIXME pull the name from the file data
+            portrait=filename,
+            thumbnail=f"thumb_{filename}"
         )
-        # Add the new post to the database
+        
         db.session.add(post)
         db.session.commit()
-        flash('Your post has been created!', 'success')
-        return redirect(url_for('main_bp.index'))
-    return render_template('new_post.html', form=form)
+
+        flash("post created!", "success")
+        return redirect(url_for("main_bp.index"))
+    
+    flash("post invalid","error")
+    return redirect(url_for("main_bp.index"))

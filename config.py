@@ -11,3 +11,5 @@ class Config:
   RCON_PORT = os.environ.get('MC_PORT')
   SECRET_KEY = os.environ.get('SECRET_KEY')
   REGISTRATION_ENABLED = os.environ.get('REGISTRATION_ENABLED', 'True') == 'True'
+  BLOG_POST_UPLOAD_FOLDER = os.path.join(os.getcwd(),'uploads/blog-posts')
+  MAX_CONTENT_LENGTH = 15 * 1024 * 1024 # 15MB limit
