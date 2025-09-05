@@ -51,23 +51,28 @@
       let postDiv = $("<div>").addClass("blog-post");
       let headerDiv = $("<div>").addClass("blog-post-header");
       let titleTag = $("<h2>");
+      let brTag = $("<br>");
       let hrTag = $("<hr>");
       let contentTag = $("<p>");
       
       // with blank inputs for an image, a title, and content
       let formTag = $("<form>").attr("method","post");
+      let imageLabel = $("<label>").attr("name","portrait").text("image:");
       let imageInput = $("<input>").attr("type","file").attr("id","blog-img-input")
                         .attr("name","portrait");
+      let titleLabel = $("<label>").attr("name","title").text("title:");
       let titleInput = $("<input>").attr("type","text").attr("id","blog-title-input")
                         .attr("name","title");
-      let contentInput = $("<input>").attr("type","text")
+      let contentInput = $("<textarea>").attr("rows","10").attr("cols","50")
+                          .attr("placeholder","write the next big thing...")
                           .attr("id","blog-content-input").attr("name","content");
       
-      let submitButton = $("<button>").attr("type","submit");
+      let submitButton = $("<button>").attr("type","submit").text("add");
       
       // assemble divs
       titleTag.append(titleInput);
-      headerDiv.append(imageInput).append(titleTag);
+      headerDiv.append(imageLabel).append(imageInput).append(brTag)
+               .append(titleLabel).append(titleTag);
       // FIXME --> append a cancel or delete button
       contentTag.append(contentInput);
       postDiv.append(headerDiv).append(hrTag).append(contentTag)
