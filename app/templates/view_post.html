@@ -7,7 +7,9 @@
 <div class="blog-post">
     <h2>{{ post.title }}</h2>
     <p>{{ post.content |safe}}</p>
+    {% if post.portrait %}
     <img class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}" />
+    {% endif %}
     <hr />
     <div class="blog-post-timestamps">
       <small >Posted on {{ post.date_posted.strftime('%Y-%m-%d') }}</small>

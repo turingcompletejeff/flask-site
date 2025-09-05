@@ -26,6 +26,7 @@ def new_post():
     if form.validate_on_submit():
         portrait_file = form.portrait.data
         filename = None
+        thumbnailname = None
         
         if portrait_file:
             # ensure a safe filename
@@ -36,10 +37,11 @@ def new_post():
             portrait_file.save(file_path)
             
             # create thumbnail
+            thumbnailname = f"thumb_{filename}"
             img = Image.open(file_path)
             img.thumbnail((300,300))
             thumb_path = os.path.join(
-                current_app.config['BLOG_POST_UPLOAD_FOLDER'],f"thumb_{filename}"
+                current_app.config['BLOG_POST_UPLOAD_FOLDER'],thumbnailname
             )
             img.save(thumb_path)
         
@@ -48,7 +50,7 @@ def new_post():
             title=form.title.data,
             content=form.content.data,
             portrait=filename,
-            thumbnail=f"thumb_{filename}"
+            thumbnail=thumbnailname
         )
         
         db.session.add(post)
