@@ -94,8 +94,13 @@
     
     // delete post
     $(".blog-post-delete").on('click', function() {
-      $.post("{{ url_for('blogpost_bp.delete_post') }}", $(this).data("id"), function() {
-        $(this).remove();
+	let button = $(this);
+
+	$.post("{{ url_for('blogpost_bp.delete_post') }}", 
+		   { id: $(this).data("id") }, function() {
+		button.parents(".blog-post").fadeOut(400,function() {
+			$(this).remove();
+		});
       }).fail(function() {
         alert("error deleting post");
       });

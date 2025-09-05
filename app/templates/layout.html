@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}My BlAg{% endblock %}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
@@ -23,6 +24,19 @@
     <!-- END EXTERNAL IMPORTS -->
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <!-- Global AJAX CSRF setup -->
+  <script>
+    $.ajaxSetup({
+      beforeSend: function(xhr, settings) {
+        let csrfToken = $("meta[name=csrf-token]").attr("content");
+        if (csrfToken) {
+          xhr.setRequestHeader("X-CSRFToken", csrfToken);
+        }
+      }
+    });
+  </script>
+
     {% block js %}
     {% endblock%}
 </head>
