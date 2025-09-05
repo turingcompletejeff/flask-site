@@ -222,6 +222,8 @@ a:visited {
 
 #blog-post-add {
   display: inline-flex;
+  position: relative;
+  top: 6px;
   cursor: pointer;
   width: 35px;
   height: 35px;
@@ -237,6 +239,24 @@ a:visited {
 
 .hover-add:hover::before {
   content: "add_circle";
+}
+
+.blog-post-delete {
+	cursor: pointer;
+	width: 48px;
+	height: 48px;
+}
+
+.hover-delete {
+	font-size: 48px;
+}
+
+.hover-delete::before {
+	content: "delete";
+}
+
+.hover-delete:hover::before {
+	content: "delete_forever";
 }
 
 pre {
