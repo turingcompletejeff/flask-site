@@ -20,9 +20,11 @@
                  src="{{ url_for('main_bp.uploaded_file', filename=post.thumbnail) }}" />
 	    {% endif %}
             <h2>{{ post.title }}</h2>
+	    {% if current_user.is_authenticated %}
             <div class="blog-post-delete" data-id="{{ post.id }}">
               <span class="material-symbols-outlined hover-delete"></span>
             </div>
+	    {% endif %}
           </div>
             
           <hr />
