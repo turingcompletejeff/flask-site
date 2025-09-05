@@ -56,7 +56,8 @@
       let contentTag = $("<p>");
       
       // with blank inputs for an image, a title, and content
-      let formTag = $("<form>").attr("method","post");
+      let formTag = $("<form>").attr("method","post")
+                     .action( {{ url_for('blogpost_bp.new_post') }} );
       let imageLabel = $("<label>").attr("name","portrait").text("image:");
       let imageInput = $("<input>").attr("type","file").attr("id","blog-img-input")
                         .attr("name","portrait");
@@ -75,8 +76,11 @@
                .append(titleLabel).append(titleTag);
       // FIXME --> append a cancel or delete button
       contentTag.append(contentInput);
-      postDiv.append(headerDiv).append(hrTag).append(contentTag)
+      
+      formTag.append(headerDiv).append(hrTag).append(contentTag)
              .append(hrTag).append(submitButton);
+      
+      postDiv.append(formTag);
              
       $(".blog-post:first").before(postDiv);
     });
