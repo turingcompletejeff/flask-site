@@ -3,9 +3,8 @@ body, html {
   margin: 0;
   padding: 0;
   background-color: hsl(145, 50%, 10%);
-  font-family: "Texturina", serif;
-  font-optical-sizing: auto;
-  font-weight: 360;
+  font-family: "Share Tech Mono", monospace;
+  font-weight: 400;
   font-style: normal;
 }
 
