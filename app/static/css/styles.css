@@ -277,8 +277,12 @@ ul[aria-label]::before {
 	content: "delete_forever";
 }
 
-.delete-confirm::before {
+.blog-post-delete::before {
   content: "confirm?";
+  transform: translateX(-120%);
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  margin-right: 8px;
 }
 
 .delete-confirm {
@@ -291,10 +295,14 @@ ul[aria-label]::before {
 	padding: 12px 20px;
 	border-radius: 4px;
 	font-weight: bold;
-	transition: transform 0.5s ease; /* slide anim */
   color: hsl(120 96% 92%);
   width: 100px;
   height: 20px;
+}
+
+.blog-post-delete.delete-confirm::before {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 .blog-post-edit {
