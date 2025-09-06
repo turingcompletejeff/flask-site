@@ -102,18 +102,26 @@
     // delete post
     $(".blog-post-delete").on('click', function() {
       let button = $(this);
-
-      $.post("{{ url_for('blogpost_bp.delete_post') }}", 
-           { id: button.data("id") }, function() {
-        
-        button.parents(".blog-post").fadeOut(400,function() {
-            $(this).remove();
-        });
       
-        addFlashMessage("success","post deleted");
-      }).fail(function() {
-        addFlashMessage("danger","error deleting post");
-      });
+      if(button.hasClass("delete-confirm")) {
+        // delete the post for real
+        $.post("{{ url_for('blogpost_bp.delete_post') }}", 
+             { id: button.data("id") }, function() {
+          
+          button.parents(".blog-post").fadeOut(400,function() {
+              $(this).remove();
+          });
+        
+          addFlashMessage("success","post deleted");
+        }).fail(function() {
+          addFlashMessage("danger","error deleting post");
+        });
+      } else {
+        // slide out to a confirm button, avoiding accidental clicks
+        button.addClass("delete-confirm");
+      }
+
+      
     });
     
   });

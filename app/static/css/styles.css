@@ -277,6 +277,23 @@ ul[aria-label]::before {
 	content: "delete_forever";
 }
 
+.delete-confirm::before {
+  content: "confirm?";
+}
+
+.delete-confirm {
+  background-color: hsl(7 51% 41%);
+	border-color: hsl(7 51% 61%);
+  margin-bottom: 10px;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+	padding: 12px 20px;
+	border-radius: 4px;
+	font-weight: bold;
+	transition: transform 0.5s ease; /* slide anim */
+  color: hsl(120 96% 92%);
+  width: 50px;
+}
+
 .blog-post-edit {
   cursor: pointer;
   width: 48px;
