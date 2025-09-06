@@ -5,6 +5,7 @@
 {% block content %}
 
 <div class="blog-post">
+    <div class="blog-post-header">
     <h2>{{ post.title }}</h2>
     {% if current_user.is_authenticated %}
           <a class="blog-post-edit" href="{{ url_for('blogpost_bp.edit_post', post_id=post.id) }}">
@@ -14,6 +15,7 @@
             <span class="material-symbols-outlined hover-delete"></span>
           </div>
     {% endif %}
+    </div>
     <div>{{ post.content |safe}}</div>
     {% if post.portrait %}
     <img class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}" />
