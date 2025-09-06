@@ -12,7 +12,7 @@ def index():
     # Query all blog posts in descending order by date
     blog_posts = BlogPost.query.order_by(BlogPost.date_posted.desc(),BlogPost.id.desc()).all()
     
-    return render_template('index.html', blog_posts=blog_posts)
+    return render_template('index.html', blog_posts=blog_posts, current_page="blog")
 
 
 @main_bp.route('/uploads/blog-posts/<filename>')

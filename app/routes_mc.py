@@ -25,7 +25,7 @@ def rconConnect():
 # Home page
 @mc_bp.route('/mc')
 def index():
-    return render_template('mc.html')
+    return render_template('mc.html', current_page="minecraf")
 
 @mc_bp.route('/mc/init')
 def rconInit():

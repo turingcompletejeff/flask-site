@@ -97,11 +97,11 @@
 		<li><a href="{{ url_for('auth.login') }}">login</a></li>
 		{% endif %}
 		<hr />
-                <li><a href="{{ url_for('main_bp.index') }}">blog</a></li>
-                <li><a href="#">about</a></li>
-                <li><a href="#">contact</a></li>
+                <li class="{% if current_page == 'blog' %}selected{% endif %}"><a href="{{ url_for('main_bp.index') }}">blog</a></li>
+                <li class="{% if current_page == 'about' %}selected{% endif %}"><a href="#">about</a></li>
+                <li class="{% if current_page == 'contact' %}selected{% endif %}"><a href="#">contact</a></li>
 		{% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('mc_bp.index') }}">minecraf</a></li>
+                <li class="{% if current_page == 'minecraf' %}selected{% endif %}"><a href="{{ url_for('mc_bp.index') }}">minecraf</a></li>
 		{% endif %}
             </ul>
         </nav>
