@@ -282,6 +282,7 @@ ul[aria-label]::before {
   transform: translateX(-120%);
   opacity: 0;
   margin-right: 8px;
+  display: none;
 }
 
 .delete-confirm {
@@ -302,6 +303,7 @@ ul[aria-label]::before {
 .blog-post-delete.delete-confirm::before {
   transform: translateX(0);
   opacity: 1;
+  display: block;
 }
 
 .blog-post-edit {
