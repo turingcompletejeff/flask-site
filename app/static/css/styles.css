@@ -324,8 +324,11 @@ pre {
 
 
 /* ---- sidebar toggle button ---- */
+/*#sidebar-toggle {
+	display: none;
+}*/
 
-@media (max-width: 768px) {
+/*@media (max-width: 600px) {*/
   /* Sidebar becomes off-canvas */
   .sidebar {
     position: fixed;
@@ -371,9 +374,5 @@ pre {
     cursor: pointer;
     z-index: 1100;
   }
-}
+/*}*/
 
-/* Hide toggle button on desktop */
-#sidebar-toggle {
-  display: none;
-}
