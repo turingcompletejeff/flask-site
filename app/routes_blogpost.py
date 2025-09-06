@@ -18,7 +18,7 @@ def view_post(post_id):
     return render_template('view_post.html', post=post)
 
 # Route to create a new blog post
-@blogpost_bp.route('/new', methods=['POST'])
+@blogpost_bp.route('/post/new', methods=['POST'])
 @login_required
 def new_post():
     form = BlogPostForm()
@@ -64,7 +64,7 @@ def new_post():
     return redirect(url_for("main_bp.index"))
 
 # Route to delete a blog post
-@blogpost_bp.route('/delete', methods=['POST'])
+@blogpost_bp.route('/post/delete', methods=['POST'])
 @login_required
 def delete_post():
     post_id = request.form.get("id")
@@ -73,3 +73,25 @@ def delete_post():
     db.session.commit()
     flash('post deleted!', 'success')
     return redirect(url_for('main_bp.index'))
+
+# Route to edit an existing blog post
+@blogpost_bp.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_post(post_id):
+    post = BlogPost.query.get_or_404(post_id)
+    form = BlogPostForm()
+
+    # Populate the form with the existing post data
+    if request.method == 'GET':
+        form.title.data = post.title
+        form.content.data = post.content
+
+    # Update the post if the form is submitted and valid
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.content = form.content.data
+        db.session.commit()
+        flash('post updated!', 'success')
+        return redirect(url_for('main_bp.view_post', post_id=post.id))
+
+    return render_template('edit_post.html', form=form, post=post)

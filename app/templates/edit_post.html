@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+
+<div class="blog-post">
+  <form action="{{ url_for('blogpost_bp.new_post') }}" method="post">
+    <h2><input type="text" name="title" value="{{ post.title }}" /></h2>
+    <textarea name="content" value="{{ post.content }} />
+    
+    {% if post.portrait %}
+    <img class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}" />
+    {% endif %}
+    <hr />
+    <div class="blog-post-timestamps">
+      <button type="submit">save</button>
+      <small >Posted on {{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+      {% if post.hasEdits() %}
+      <small class="blog-post-edited">Edited on {{ post.last_updated.strftime('%Y-%m-%d %H:%M') }}</small>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{% endblock %}

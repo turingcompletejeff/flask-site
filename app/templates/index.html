@@ -21,11 +21,9 @@
 	    {% endif %}
             <h2>{{ post.title }}</h2>
 	    {% if current_user.is_authenticated %}
-            <div class="blog-post-edit" data-id="{{ post.id }}">
-              <span class="material-symbols-outlined hover-edit">
-              
-              </span>
-            </div>
+            <a class="blog-post-edit" href="{{ url_for('blogpost_bp.edit', post_id=post.id) }}">
+              <span class="material-symbols-outlined hover-edit"></span>
+            </a>
             <div class="blog-post-delete" data-id="{{ post.id }}">
               <span class="material-symbols-outlined hover-delete"></span>
             </div>
@@ -103,20 +101,21 @@
     
     // delete post
     $(".blog-post-delete").on('click', function() {
-	let button = $(this);
+      let button = $(this);
 
-	$.post("{{ url_for('blogpost_bp.delete_post') }}", 
-		   { id: $(this).data("id") }, function() {
-		button.parents(".blog-post").fadeOut(400,function() {
-			$(this).remove();
-		});
-		addFlashMessage("success","post deleted");
+      $.post("{{ url_for('blogpost_bp.delete_post') }}", 
+           { id: button.data("id") }, function() {
+        
+        button.parents(".blog-post").fadeOut(400,function() {
+            $(this).remove();
+        });
+      
+        addFlashMessage("success","post deleted");
       }).fail(function() {
         addFlashMessage("danger","error deleting post");
       });
     });
     
-    // edit post
   });
 </script>
 {% endif %}
