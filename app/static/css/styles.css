@@ -281,7 +281,6 @@ ul[aria-label]::before {
   content: "confirm?";
   transform: translateX(-120%);
   opacity: 0;
-  transition: transform 0.5s ease, opacity 0.5s ease;
   margin-right: 8px;
 }
 
