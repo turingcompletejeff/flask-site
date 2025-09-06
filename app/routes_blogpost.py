@@ -92,6 +92,6 @@ def edit_post(post_id):
         post.content = form.content.data
         db.session.commit()
         flash('post updated!', 'success')
-        return redirect(url_for('main_bp.view_post', post_id=post.id))
+        return redirect(url_for('blogpost_bp.view_post', post_id=post.id))
 
     return render_template('edit_post.html', form=form, post=post)
