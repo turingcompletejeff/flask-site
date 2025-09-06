@@ -1,18 +1,17 @@
 # flask-site
 portfolio site to host a blog and my projects
 
-------------------------------------------------------------
-📌 Features
-------------------------------------------------------------
--hosts a blog on the home page
---CRUD blog posts, text, image, HTML encoding
--minecraft page:
---connect to a minecraft server with RCON
---send commands
---list players connected
-------------------------------------------------------------
-📂 Project Structure
-------------------------------------------------------------
+# 📌 Features
+
++ hosts a blog on the home page
+   + CRUD blog posts, text, image, HTML encoding
++ minecraft page:
+   + connect to a minecraft server with RCON
+   + send commands
+   + list players connected
+
+# 📂 Project Structure
+
 flask-site/
 │
 ├── app/                # Main application package
