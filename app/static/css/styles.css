@@ -282,6 +282,8 @@ ul[aria-label]::before {
 }
 
 .delete-confirm {
+  display: flex;
+  align-items: center;
   background-color: hsl(7 51% 41%);
 	border-color: hsl(7 51% 61%);
   margin-bottom: 10px;
@@ -291,7 +293,8 @@ ul[aria-label]::before {
 	font-weight: bold;
 	transition: transform 0.5s ease; /* slide anim */
   color: hsl(120 96% 92%);
-  width: 50px;
+  width: 100px;
+  height: 20px;
 }
 
 .blog-post-edit {
