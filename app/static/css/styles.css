@@ -1,9 +1,12 @@
 /* Basic styling for layout */
 body, html {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    background-color: hsl(145, 50%, 10%);
+  margin: 0;
+  padding: 0;
+  background-color: hsl(145, 50%, 10%);
+  font-family: "Texturina", serif;
+  font-optical-sizing: auto;
+  font-weight: 360;
+  font-style: normal;
 }
 
 a {
