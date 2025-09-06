@@ -106,21 +106,24 @@ a:visited {
 .main-content {
     display: flex;
     flex: 1;
+    min-width: 0;
 }
 
 .content {
+  flex: 1 1 auto;
   margin-left: 8px;
   background-color: hsl(145, 30%, 25%,81%);
   color: hsl(145, 50%, 90%);
   padding: 16px;
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  flex-grow: 2;
   border-radius: 12px;
 }
 
 /* Sidebar menu */
 .sidebar {
-    width: 200px;
+    flex: 0 1 200px;
+    max-width: 200px;
+    min-width: 58px;
     background-color: hsl(145, 50%, 90%,85%);
     color: hsl(145, 50%, 10%);
     padding: 15px;
@@ -152,15 +155,28 @@ a:visited {
     color: #007BFF;
 }
 
+@media (max-width: 600px) {
+	.sidebar {
+		display: none;
+	}
+}
+
 /* RIGHT sidebar menu (not always visible) */
 #right-sidebar {
-  flex-grow: 1;
+  flex: 0 1 50px;
+  min-width: 0px;
 }
 
 /* Blog post container */
 .blog-post-strip {
   width: 40vw;
   overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+	.blog-post-strip {
+		width: 100%;
+	}
 }
 
 .blog-post {

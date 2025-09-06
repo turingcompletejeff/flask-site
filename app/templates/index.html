@@ -29,7 +29,7 @@
             
           <hr />
           
-          <p>{{ post.content[:70] |safe}}... <a href="{{ url_for('blogpost_bp.view_post', post_id=post.id) }}">Read more</a></p>
+          <p>{{ post.content[:255] |safe}}... <a href="{{ url_for('blogpost_bp.view_post', post_id=post.id) }}">Read more</a></p>
           
           <hr />
           <div class="blog-post-timestamps">
