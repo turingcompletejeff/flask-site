@@ -287,6 +287,10 @@ a:visited {
   content: "edit";
 }
 
+#edit-title input {
+  font-size: 22px;
+}
+
 pre {
   font-family: Consolas,"courier new";
   color: #b0b0cc;

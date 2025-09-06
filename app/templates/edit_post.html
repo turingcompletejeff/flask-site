@@ -7,7 +7,7 @@
 <div class="blog-post">
   <form action="{{ url_for('blogpost_bp.edit_post', post_id=post.id) }}" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-    <h2><input type="text" name="title" value="{{ post.title }}" /></h2>
+    <h2 id="edit-title"><input type="text" name="title" value="{{ post.title }}" /></h2>
     <textarea name="content" rows="20" cols="50">{{ post.content }}</textarea>
     
     {% if post.portrait %}
