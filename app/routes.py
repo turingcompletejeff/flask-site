@@ -9,6 +9,10 @@ main_bp = Blueprint('main_bp', __name__)
 # Home page
 @main_bp.route('/')
 def index():
+    msg = request.args.get("flash")
+    cat = request.args.get("category", "info")
+    if msg:
+        flash(msg, cat)
     # Query all blog posts in descending order by date
     blog_posts = BlogPost.query.order_by(BlogPost.date_posted.desc(),BlogPost.id.desc()).all()
     

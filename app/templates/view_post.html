@@ -47,10 +47,7 @@
               $(this).remove();
           });
           
-          addFlashMessage("success","post deleted");
-          
-          // FIXME redirect to home (?)
-          window.location.href = "{{ url_for('main_bp.index') }}";
+          window.location.href = "{{ url_for('main_bp.index') }}?flash=post+deleted&category=success";
         }).fail(function() {
           addFlashMessage("danger","error deleting post");
         });
