@@ -71,6 +71,7 @@
     <!-- Image banner at the top -->
     <header id="main-header">
         <span id="banner">&nbsp;</span>
+        <button id="sidebar-toggle">☰</button>
 	{% with messages = get_flashed_messages(with_categories=true) %}
 	  {% if messages %}
 	    <div class="flash-messages">
@@ -84,7 +85,7 @@
 	  {% endif %}
 	{% endwith %}
     </header>
-
+    <div id="overlay"></div> <!-- for overlaying the nav bar -->
     <div class="main-content">
         <!-- Sidebar -->
         <nav class="sidebar">
@@ -120,7 +121,9 @@
         <p>&copy; 2024 My Blaorg</p>
     </footer>
   </div>
+  
+  <script src="/static/js/sidebar.js"></script>
+  {% block endjs %}
+  {% endblock%}
 </body>
-{% block endjs %}
-{% endblock%}
 </html>

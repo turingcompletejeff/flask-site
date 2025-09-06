@@ -321,3 +321,59 @@ pre {
 #rcon-query-players tr:nth-child(even) {
   background-color: #5F5F5F;
 }
+
+
+/* ---- sidebar toggle button ---- */
+
+@media (max-width: 768px) {
+  /* Sidebar becomes off-canvas */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -250px;         /* hidden by default */
+    width: 250px;
+    height: 100%;
+    background-color: rgba(255,255,255,0.95);
+    box-shadow: 2px 0 8px rgba(0,0,0,0.4);
+    transition: left 0.3s ease;
+    z-index: 1000;
+    padding: 15px;
+    overflow-y: auto;
+  }
+
+  .sidebar.active {
+    left: 0;
+  }
+
+  /* Overlay only on mobile */
+  #overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    display: none;
+    z-index: 999;
+  }
+
+  #overlay.show {
+    display: block;
+  }
+
+  /* Show the toggle button on mobile */
+  #sidebar-toggle {
+    display: block;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    z-index: 1100;
+  }
+}
+
+/* Hide toggle button on desktop */
+#sidebar-toggle {
+  display: none;
+}
