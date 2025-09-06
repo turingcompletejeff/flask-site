@@ -21,6 +21,11 @@
 	    {% endif %}
             <h2>{{ post.title }}</h2>
 	    {% if current_user.is_authenticated %}
+            <div class="blog-post-edit" data-id="{{ post.id }}">
+              <span class="material-symbols-outlined hover-edit">
+              
+              </span>
+            </div>
             <div class="blog-post-delete" data-id="{{ post.id }}">
               <span class="material-symbols-outlined hover-delete"></span>
             </div>
