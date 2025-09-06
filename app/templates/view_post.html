@@ -14,7 +14,7 @@
     <div class="blog-post-timestamps">
       <small >Posted on {{ post.date_posted.strftime('%Y-%m-%d') }}</small>
       {% if post.hasEdits() %}
-      <small class="blog-post-edited">Edited on {{ post.last_updated.strftime('%Y-%m-%d %H:%M') }}</small>
+      <small class="blog-post-edited">Edited on {{ post.last_updated|localtime }}</small>
       {% endif %}
     </div>
 </div>

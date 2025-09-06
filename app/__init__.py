@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 #from flask_migrate import Migrate
 from flask_login import LoginManager
 from config import Config
+from .filters import register_filters
 
 db = SQLAlchemy()
 rcon = None
@@ -21,6 +22,9 @@ def create_app():
     db.init_app(app)
     #migrate.init_app(app, db)
     login_manager.init_app(app)
+    
+    # register timezone filter
+    register_filters(app)
 
     # Register blueprints or routes
     from app.routes import main_bp

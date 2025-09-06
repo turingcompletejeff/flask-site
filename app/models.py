@@ -1,5 +1,5 @@
 from app import db
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from sqlalchemy.dialects.postgresql import ARRAY
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -27,7 +27,7 @@ class BlogPost(db.Model):
     portrait = db.Column(db.Text, nullable=True) # URI to the portrait (larger pic) for the blog post
     themap = db.Column(db.JSON, nullable=True) # general use JSON map
     date_posted = db.Column(db.Date, nullable=False, default=datetime.now)  # Creation date
-    last_updated = db.Column(db.DateTime, nullable=True, onupdate=datetime.now)  # Last update date
+    last_updated = db.Column(db.DateTime, nullable=True, onupdate=lambda: datetime.now(timezone.utc))  # Last update date -- always store UTC
 
     def __repr__(self):
         return f'<BlogPost {self.title}>'
