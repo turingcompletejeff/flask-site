@@ -18,6 +18,15 @@ def index():
     
     return render_template('index.html', blog_posts=blog_posts, current_page="blog")
 
+# About page
+@main_bp.route('/about')
+def about():
+    return render_template('about.html', current_page="about")
+    
+# Contact form
+@main_bp.route('/contact')
+def about():
+    return render_template('contact.html', current_page="contact")
 
 @main_bp.route('/uploads/blog-posts/<filename>')
 def uploaded_file(filename):

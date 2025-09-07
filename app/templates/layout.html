@@ -101,8 +101,8 @@
 		{% endif %}
 		<hr />
                 <li class="{% if current_page == 'blog' %}selected{% endif %}"><a href="{{ url_for('main_bp.index') }}">blog</a></li>
-                <li class="{% if current_page == 'about' %}selected{% endif %}"><a href="#">about</a></li>
-                <li class="{% if current_page == 'contact' %}selected{% endif %}"><a href="#">contact</a></li>
+                <li class="{% if current_page == 'about' %}selected{% endif %}"><a href="{{ url_for('main_bp.about') }}">about</a></li>
+                <li class="{% if current_page == 'contact' %}selected{% endif %}"><a href="{{ url_for('main_bp.contact') }}">contact</a></li>
 		{% if current_user.is_authenticated %}
                 <li class="{% if current_page == 'minecraf' %}selected{% endif %}"><a href="{{ url_for('mc_bp.index') }}">minecraf</a></li>
 		{% endif %}
