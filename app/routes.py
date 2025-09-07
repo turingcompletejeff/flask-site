@@ -25,7 +25,7 @@ def about():
     
 # Contact form
 @main_bp.route('/contact')
-def about():
+def contact():
     return render_template('contact.html', current_page="contact")
 
 @main_bp.route('/uploads/blog-posts/<filename>')
