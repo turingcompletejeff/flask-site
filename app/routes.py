@@ -3,7 +3,7 @@ from app import db
 from app.models import BlogPost
 from app.forms import ContactForm
 from config import Config
-import smptlib
+import smtplib
 from email.message import EmailMessage
 
 # Create a blueprint for main routes
@@ -31,17 +31,17 @@ def about():
 def contact():
     form = ContactForm()
     
-    if form.validate_on_submit()
+    if form.validate_on_submit():
         # process the data, send an email
         message = formatContactEmail(form)
         print('dry run. attempting to send message:')
         print(message)
         print(f'from: {Config.MAIL_USER}')
         print(f'to: {Config.ADMIN_EMAIL}')
-        print('testing connection...')
-        attemptEmailConnection()
+        print('sending mail...')
+        sendAnEmail(message)
         
-        flash(f'message ~(FIXME) NOT~ sent from {form.email.data}', "success")
+        flash(f'message sent from {form.email.data}', "success")
         return redirect(url_for('main_bp.contact'))
     
     return render_template('contact.html', current_page="contact", form=form)
@@ -52,11 +52,11 @@ def uploaded_file(filename):
 
 # formats the user's form contents as an email message
 def formatContactEmail(contactForm):
-    return f'a person has contacted you from the site form:\n'
-           f'----------------------------------------------\n'
-           f'name: {contactForm.name.data}\n'
-           f'email: {contactForm.email.data}\n'
-           f'reason: {contactForm.reason.data}\n'
+    return f'a person has contacted you from the site form:\n' \
+           f'----------------------------------------------\n' \
+           f'name: {contactForm.name.data}\n' \
+           f'email: {contactForm.email.data}\n' \
+           f'reason: {contactForm.reason.data}\n' \
            f'message: {contactForm.message.data}\n'
 
 # DIRECTLY sends an email, set up from an auto mailer acct
@@ -67,7 +67,8 @@ def sendAnEmail(message):
     to_addr = [Config.ADMIN_EMAIL]
     
     # connect to SMTP
-    smtp = SMTP()
+    smtp = smtplib.SMTP()
+    smtp._host = Config.MAIL_SERVER
     smtp.connect(Config.MAIL_SERVER, Config.MAIL_PORT)
     smtp.ehlo()
     smtp.starttls()
@@ -82,14 +83,16 @@ def sendAnEmail(message):
     # attach message w/ no extra formatting
     email.set_content(message)
     
-    smtp.sendmail(email)
+    smtp.sendmail(from_addr,to_addr,email.as_string())
     smtp.quit()
 
 # tests smtp credentials for auto-mailer,server,port
 def attemptEmailConnection():
     # connect to SMTP
-    print('opening connection...')
-    smtp = SMTP()
+    print(f'opening connection... on {Config.MAIL_SERVER}:{Config.MAIL_PORT}')
+    smtp = smtplib.SMTP()
+    smtp._host = Config.MAIL_SERVER
+    smtp.set_debuglevel(100) # just for demo purpose
     smtp.connect(Config.MAIL_SERVER, Config.MAIL_PORT)
     smtp.ehlo()
     smtp.starttls()
