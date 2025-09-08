@@ -3,6 +3,22 @@ from wtforms import StringField, TextAreaField, SubmitField
 from flask_wtf.file import FileField, FileAllowed
 from wtforms.validators import DataRequired
 
+class ContactForm(FlaskForm):
+    name = StringField("name", validators=[DataRequired()])
+    email = StringField("email", validators=[DataRequired(), Email()])
+    reason = SelectField(
+        "reason for contact",
+        choices=[
+            ('informational','informational'),
+            ('personal','personal'),
+            ('hiring / recruitment','hiring'),
+            ('other','other')
+        ],
+        validators=[DataRequired()]
+    )
+    message = TextAreaField("message", validators=[DataRequired()])
+    submit = SubmitField("send")
+
 class BlogPostForm(FlaskForm):
     title = StringField("Title", validators=[DataRequired()])
     content = TextAreaField("Content", validators=[DataRequired()])

@@ -14,3 +14,8 @@ class Config:
   BLOG_POST_UPLOAD_FOLDER = os.path.join(os.getcwd(),'uploads/blog-posts')
   MAX_CONTENT_LENGTH = 15 * 1024 * 1024 # 15MB limit
   TIMEZONE = "America/New_York"
+  ADMIN_EMAIL = "turingcompletejeff@gmail.com"
+  MAIL_SERVER = "smtp.gmail.com"
+  MAIL_PORT = 587
+  MAIL_USER = os.environ.get('MAIL_USER')
+  MAIL_PW = os.environ.get('MAIL_PW')
