@@ -439,3 +439,24 @@ pre {
   }
 }
 
+.form__group {
+  margin-left: 5%;
+}
+
+.form__field {
+  margin-left: 5%;
+}
+
+textarea.form__field {
+  margin-left: 1%;
+  width: 100%;
+  height: 150px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  color: #333;
+  background-color: #f9f9f9;
+  resize: vertical; /* Allow vertical resizing */
+}
