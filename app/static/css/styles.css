@@ -338,6 +338,11 @@ ul[aria-label]::before {
   font-size: 22px;
 }
 
+#terminal-wrapper {
+	width: 50%;
+	min-width: 400px;
+}
+
 pre {
   font-family: Consolas,"courier new";
   color: #b0b0cc;
@@ -359,8 +364,17 @@ pre {
 
 #rcon-response {
   height: 420px;
-  width: 406px;
+  width: 95%;
   margin-bottom: 3px;
+}
+
+#mc-input {
+	width: 80%;
+}
+
+#mc-cmd {
+	width:15%;
+	margin-left: -7px;
 }
 
 #mc-connect {

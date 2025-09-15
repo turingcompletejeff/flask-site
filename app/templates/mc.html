@@ -4,10 +4,11 @@
 
 {% block content %}
 
-<pre id="rcon-response">
-
-</pre>
-<input id="mc-input" size="47" placeholder="type a command..."/><button id="mc-cmd" type="button" onclick="rconCommand()">send</button>
+<div id="terminal-wrapper">
+	<pre id="rcon-response">&nbsp;</pre>
+	<input id="mc-input" placeholder="type a command..."/>
+	<button id="mc-cmd" type="button" onclick="rconCommand()">send</button>
+</div>
 <hr />
 Visit
 <a href="https://github.com/OwenCochell/mctools#minecraft-connection-tools">mc tools</a>
