@@ -115,12 +115,12 @@ ul[aria-label]::before {
 /* Main content area */
 .main-content {
     display: flex;
-    flex: 1;
+    flex: 4 0 50px;
     min-width: 0;
 }
 
 .content {
-  flex: 1 1 auto;
+  flex: 2 1 500px;
   margin-left: 8px;
   background-color: hsl(145, 30%, 25%,81%);
   color: hsl(145, 50%, 90%);
@@ -175,7 +175,7 @@ ul[aria-label]::before {
 
 /* RIGHT sidebar menu (not always visible) */
 #right-sidebar {
-  flex: 0 1 50px;
+  flex: 1 1 400px;
   min-width: 0px;
 }
 
