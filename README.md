@@ -117,7 +117,7 @@ screen -S flask-site
 
 The `grun.sh` script runs the application using Gunicorn with optimized settings for production. You can detach from the screen session with `Ctrl+A, D` and reattach later with `screen -r flask-site`.
 
-For more information about Gunicorn configuration and deployment options, see the [Gunicorn documentation](https://gunicorn.readthedocs.io/).
+For more information about Gunicorn configuration and deployment options, see the [Gunicorn documentation](https://docs.gunicorn.org/en/stable/settings.html).
 
 ## 🔧 Key Components
 
