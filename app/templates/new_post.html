@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% from "macros/fields.html" import render_text_field %}
+
+{% block title %}New Post{% endblock %}
+
+{% block content %}
+<div class="blog-post-strip">
+  <h1 class="blog-header">create new post</h1>
+
+  <div class="blog-post">
+    <form action="{{ url_for('blogpost_bp.new_post') }}" method="post" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+
+      <div class="blog-post-header">
+        <div class="form__group">
+          {{ form.portrait.label(class_="form__label") }}
+          {{ form.portrait(class_="form__field", id="blog-img-input") }}
+          {%- for error in form.portrait.errors %}
+            <span class="form__error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
+        <h2>
+          <div class="form__group">
+            {{ form.title.label(class_="form__label") }}
+            {{ form.title(class_="form__field", id="blog-title-input", placeholder="Enter post title...") }}
+            {%- for error in form.title.errors %}
+              <span class="form__error">{{ error }}</span>
+            {% endfor %}
+          </div>
+        </h2>
+      </div>
+
+      <hr />
+
+      <div class="form__group">
+        {{ form.content.label(class_="form__label") }}
+        {{ form.content(class_="form__field", id="blog-content-input", rows="10", cols="50", placeholder="write the next big thing...") }}
+        {%- for error in form.content.errors %}
+          <span class="form__error">{{ error }}</span>
+        {% endfor %}
+      </div>
+
+      <hr />
+
+      <div class="blog-post-actions">
+        {{ form.submit(class_="submit-btn") }}
+        <a href="{{ url_for('main_bp.index') }}" class="cancel-btn">cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

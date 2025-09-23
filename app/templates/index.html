@@ -7,9 +7,9 @@
     <h1 class="blog-header">turing complete jeff</h1>
 
     {% if current_user.is_authenticated %}
-    <div id="blog-post-add">
+    <a href="{{ url_for('blogpost_bp.new_post') }}" id="blog-post-add">
       <span class="material-symbols-outlined hover-add"></span>
-    </div>
+    </a>
     {% endif %}
     
     {% for post in blog_posts %}
@@ -52,66 +52,19 @@
 {% if current_user.is_authenticated %}
 <script>
   $(document).ready(function() {
-    // add post
-    $("#blog-post-add").on('click', function() {
-      // create a new blog post div
-      let postDiv = $("<div>").addClass("blog-post");
-      let headerDiv = $("<div>").addClass("blog-post-header");
-      let titleTag = $("<h2>");
-      let brTag = $("<br>");
-      let hrTag = $("<hr>");
-      let contentTag = $("<p>");
-      
-      // with blank inputs for an image, a title, and content
-      let formTag = $("<form>").attr("method","post")
-                     .attr("action", "{{ url_for('blogpost_bp.new_post') }}" )
-	             .attr("enctype","multipart/form-data");
-
-      let csrfTag = $("<input>").attr("type","hidden").attr("name","csrf_token")
-	             .val("{{ csrf_token() }}");
-
-      let imageLabel = $("<label>").attr("name","portrait").text("image:");
-      let imageInput = $("<input>").attr("type","file").attr("id","blog-img-input")
-                        .attr("name","portrait");
-      let titleLabel = $("<label>").attr("name","title").text("title:");
-      let titleInput = $("<input>").attr("type","text").attr("id","blog-title-input")
-                        .attr("name","title");
-      let contentInput = $("<textarea>").attr("rows","10").attr("cols","50")
-                          .attr("placeholder","write the next big thing...")
-                          .attr("id","blog-content-input").attr("name","content");
-      
-      let submitButton = $("<button>").attr("type","submit").text("add");
-      
-      // assemble divs
-      titleTag.append(titleInput);
-      headerDiv.append(imageLabel).append(imageInput).append(brTag)
-               .append(titleLabel).append(titleTag);
-      // FIXME --> append a cancel or delete button
-      contentTag.append(contentInput);
-      
-      formTag.append(csrfTag);
-
-      formTag.append(headerDiv).append(hrTag).append(contentTag)
-             .append(hrTag).append(submitButton);
-      
-      postDiv.append(formTag);
-             
-      $(".blog-post:first").before(postDiv);
-    });
-    
     // delete post
     $(".blog-post-delete").on('click', function() {
       let button = $(this);
-      
+
       if(button.hasClass("delete-confirm")) {
         // delete the post for real
-        $.post("{{ url_for('blogpost_bp.delete_post') }}", 
+        $.post("{{ url_for('blogpost_bp.delete_post') }}",
              { id: button.data("id") }, function() {
-          
+
           button.parents(".blog-post").fadeOut(400,function() {
               $(this).remove();
           });
-        
+
           addFlashMessage("success","post deleted");
         }).fail(function() {
           addFlashMessage("danger","error deleting post");
@@ -120,10 +73,7 @@
         // slide out to a confirm button, avoiding accidental clicks
         button.addClass("delete-confirm");
       }
-
-      
     });
-    
   });
 </script>
 {% endif %}
