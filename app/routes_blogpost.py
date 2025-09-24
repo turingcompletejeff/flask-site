@@ -18,11 +18,14 @@ def view_post(post_id):
     return render_template('view_post.html', post=post)
 
 # Route to create a new blog post
-@blogpost_bp.route('/post/new', methods=['POST'])
+@blogpost_bp.route('/post/new', methods=['GET', 'POST'])
 @login_required
 def new_post():
     form = BlogPostForm()
-    
+
+    if request.method == 'GET':
+        return render_template('new_post.html', form=form)
+
     if form.validate_on_submit():
         portrait_file = form.portrait.data
         filename = None
@@ -58,10 +61,9 @@ def new_post():
 
         flash("post created!", "success")
         return redirect(url_for("main_bp.index"))
-    
-    print(form.errors)
-    flash("post invalid","error")
-    return redirect(url_for("main_bp.index"))
+
+    # If form validation fails, render the form again with errors
+    return render_template('new_post.html', form=form)
 
 # Route to delete a blog post
 @blogpost_bp.route('/post/delete', methods=['POST'])
