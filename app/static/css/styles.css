@@ -255,6 +255,7 @@ ul[aria-label]::before {
   cursor: pointer;
   width: 35px;
   height: 35px;
+  text-decoration: none;
 }
 
 #blog-post-add .material-symbols-outlined {
