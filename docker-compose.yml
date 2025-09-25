@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  flask-site:
+    build: .
+    container_name: flask-site
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Load from .env file
+      - DATABASE_TYPE=${DATABASE_TYPE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - RCON_PASS=${RCON_PASS}
+      - MC_HOST=${MC_HOST}
+      - MC_PORT=${MC_PORT}
+      - SECRET_KEY=${SECRET_KEY}
+      - REGISTRATION_ENABLED=${REGISTRATION_ENABLED}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PW=${MAIL_PW}
+    volumes:
+      # Mount uploads directory to persist user uploads
+      - ./uploads:/app/uploads
+      # Mount for development (comment out in production)
+      # - .:/app
+    networks:
+      - flask-network
+
+networks:
+  flask-network:
+    driver: bridge

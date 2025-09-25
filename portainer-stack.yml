@@ -1,0 +1,45 @@
+# Portainer Stack Configuration for Flask Site
+version: '3.8'
+
+services:
+  flask-site:
+    image: flask-site:latest
+    container_name: flask-site-prod
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Define these in Portainer's environment variables section
+      - DATABASE_TYPE=${DATABASE_TYPE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - RCON_PASS=${RCON_PASS}
+      - MC_HOST=${MC_HOST}
+      - MC_PORT=${MC_PORT}
+      - SECRET_KEY=${SECRET_KEY}
+      - REGISTRATION_ENABLED=${REGISTRATION_ENABLED}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PW=${MAIL_PW}
+    volumes:
+      # Persistent uploads directory
+      - /opt/flask-site/uploads:/app/uploads
+    networks:
+      - flask-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  flask-network:
+    driver: bridge
