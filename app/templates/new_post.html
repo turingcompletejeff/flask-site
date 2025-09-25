@@ -11,33 +11,33 @@
     <form action="{{ url_for('blogpost_bp.new_post') }}" method="post" enctype="multipart/form-data">
       {{ form.hidden_tag() }}
 
-      <div class="blog-post-header">
+      <div id="new-post-header">
         <div class="form__group">
-          {{ form.portrait.label(class_="form__label") }}
-          {{ form.portrait(class_="form__field", id="blog-img-input") }}
-          {%- for error in form.portrait.errors %}
+          {{ form.title.label(class_="form__label") }}
+          {{ form.title(class_="form__field", id="blog-title-input", placeholder="Enter post title...") }}
+          {%- for error in form.title.errors %}
             <span class="form__error">{{ error }}</span>
           {% endfor %}
         </div>
 
-        <div class="form__group">
-          {{ form.thumbnail.label(class_="form__label") }}
-          {{ form.thumbnail(class_="form__field", id="blog-thumbnail-input") }}
-          <small class="form__help">If not provided, a thumbnail will be auto-generated from your portrait image.</small>
-          {%- for error in form.thumbnail.errors %}
-            <span class="form__error">{{ error }}</span>
-          {% endfor %}
-        </div>
-
-        <h2>
+        <div class="image-fields-row">
           <div class="form__group">
-            {{ form.title.label(class_="form__label") }}
-            {{ form.title(class_="form__field", id="blog-title-input", placeholder="Enter post title...") }}
-            {%- for error in form.title.errors %}
+            {{ form.portrait.label(class_="form__label") }}
+            {{ form.portrait(class_="form__field", id="blog-img-input") }}
+            {%- for error in form.portrait.errors %}
               <span class="form__error">{{ error }}</span>
             {% endfor %}
           </div>
-        </h2>
+
+          <div class="form__group">
+            {{ form.thumbnail.label(class_="form__label") }}
+            {{ form.thumbnail(class_="form__field", id="blog-thumbnail-input") }}
+            <small class="form__help">If not provided, a thumbnail will be auto-generated from your portrait image.</small>
+            {%- for error in form.thumbnail.errors %}
+              <span class="form__error">{{ error }}</span>
+            {% endfor %}
+          </div>
+        </div>
       </div>
 
       <hr />
