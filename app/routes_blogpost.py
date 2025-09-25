@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
+import json
 from flask_login import login_required
 import os
 from werkzeug.utils import secure_filename
 from PIL import Image
+from sqlalchemy.orm.attributes import flag_modified
 from app import db
 from app.models import BlogPost
 from app.forms import BlogPostForm
@@ -61,12 +63,25 @@ def new_post():
             )
             img.save(thumb_path)
         
+        # Handle portrait resize parameters and merge with existing themap data
+        themap_data = {}
+        resize_params = None
+        if request.form.get('portrait_resize_params'):
+            try:
+                resize_params = json.loads(request.form.get('portrait_resize_params'))
+                themap_data['portrait_display'] = resize_params
+            except (json.JSONDecodeError, TypeError):
+                themap_data['portrait_display'] = {"display_mode": "auto"}
+        else:
+            themap_data['portrait_display'] = {"display_mode": "auto"}
+
         # create blog post object
         post = BlogPost(
             title=form.title.data,
             content=form.content.data,
             portrait=filename,
-            thumbnail=thumbnailname
+            thumbnail=thumbnailname,
+            themap=themap_data
         )
         
         db.session.add(post)
@@ -105,6 +120,26 @@ def edit_post(post_id):
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
+
+        # Handle portrait resize parameters and update themap data
+        if request.form.get('portrait_resize_params'):
+            try:
+                resize_params = json.loads(request.form.get('portrait_resize_params'))
+                if post.themap:
+                    # Update existing themap data
+                    post.themap['portrait_display'] = resize_params
+                    flag_modified(post, 'themap')  # Tell SQLAlchemy the JSON field was modified
+                else:
+                    # Create new themap data
+                    post.themap = {'portrait_display': resize_params}
+            except (json.JSONDecodeError, TypeError):
+                # Fallback to auto mode if JSON parsing fails
+                if post.themap:
+                    post.themap['portrait_display'] = {"display_mode": "auto"}
+                    flag_modified(post, 'themap')  # Tell SQLAlchemy the JSON field was modified
+                else:
+                    post.themap = {'portrait_display': {"display_mode": "auto"}}
+
         db.session.commit()
         flash('post updated!', 'success')
         return redirect(url_for('blogpost_bp.view_post', post_id=post.id))
