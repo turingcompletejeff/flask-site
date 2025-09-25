@@ -29,7 +29,41 @@ services:
       # - .:/app
     networks:
       - flask-network
+    depends_on:
+      - postgres
+    # Remove custom wait - let depends_on handle it
+    # command: gunicorn --workers 6 --bind 0.0.0.0:8000 --timeout 120 --keep-alive 5 run:app
+
+  postgres:
+    image: postgres:15
+    container_name: flask-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # Optional: set timezone
+      TZ: America/New_York
+    volumes:
+      # Persistent data storage
+      - postgres_data:/var/lib/postgresql/data
+      # Initialization scripts - runs only on first startup
+      - ./db-init:/docker-entrypoint-initdb.d
+    # ports:
+      # Expose for development/debugging (comment out in production)
+      # - "5433:5432"
+    networks:
+      - flask-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   flask-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

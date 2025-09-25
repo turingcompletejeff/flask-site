@@ -9,7 +9,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
+    password_hash = db.Column(db.Text, nullable=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -18,7 +18,7 @@ class User(db.Model, UserMixin):
         return check_password_hash(self.password_hash, password)
 
 class BlogPost(db.Model):
-    __tablename__ = 'blogPosts'  # Optional: specify the table name in the database
+    __tablename__ = 'blog_posts'  # Optional: specify the table name in the database
 
     id = db.Column(db.Integer, primary_key=True)  # Unique identifier for each blog post
     title = db.Column(db.Text, nullable=False)  # Title of the blog post

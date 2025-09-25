@@ -68,4 +68,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/ || exit 1
 
 # Use gunicorn as in your grun.sh script
-CMD ["gunicorn", "--workers", "6", "--bind", "0.0.0.0:8000", "--timeout", "120", "--keepalive", "5", "run:app"]
+CMD ["gunicorn", "--workers", "6", "--bind", "0.0.0.0:8000", "--timeout", "120", "--keep-alive", "5", "run:app"]
