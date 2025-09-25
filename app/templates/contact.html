@@ -4,6 +4,10 @@
 
 {% block title %}contact{% endblock %}
 
+{% block js %}
+<script src="{{ url_for('static', filename='js/phone-mask.js') }}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="blog-post-strip">
 <h1 class="blog-header">contact form</h1>
@@ -12,6 +16,7 @@
       {{ form.hidden_tag() }}
       {{ render_text_field(form.name) }}
       {{ render_text_field(form.email) }}
+      {{ render_text_field(form.phone, placeholder="(888) 888-8888") }}
       {{ render_text_field(form.reason) }}
       {{ render_text_field(form.message) }}
       <hr />

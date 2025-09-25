@@ -520,3 +520,9 @@ textarea.form__field {
   flex: 1;
   min-width: 200px;
 }
+
+#phone {
+  width: 92px;
+  position: relative;
+  right: -22px;
+}

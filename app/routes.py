@@ -56,6 +56,7 @@ def formatContactEmail(contactForm):
            f'----------------------------------------------\n' \
            f'name: {contactForm.name.data}\n' \
            f'email: {contactForm.email.data}\n' \
+           f'phone: {contactForm.phone.data}\n' \
            f'reason: {contactForm.reason.data}\n' \
            f'message: {contactForm.message.data}\n'
 
