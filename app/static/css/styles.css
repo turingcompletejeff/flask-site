@@ -482,3 +482,41 @@ textarea.form__field {
   margin-bottom: 8px;
   margin-right: 8px;
 }
+
+/* Style title input to look like H2 */
+#blog-title-input {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: rgba(124, 126, 128);
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  width: 90%;
+  background-color: #f9f9f9;
+  font-family: "Share Tech", sans-serif;
+}
+
+#blog-title-input:focus {
+  outline: none;
+  border-color: hsl(205, 95%, 70%);
+  box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+}
+
+/* Layout for new post form header - vertical layout */
+#new-post-header {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Layout for image fields row */
+.image-fields-row {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.image-fields-row .form__group {
+  flex: 1;
+  min-width: 200px;
+}
