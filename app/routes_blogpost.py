@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
+import json
 from flask_login import login_required
 import os
 from werkzeug.utils import secure_filename
@@ -61,12 +62,25 @@ def new_post():
             )
             img.save(thumb_path)
         
+        # Handle portrait resize parameters and merge with existing themap data
+        themap_data = {}
+        resize_params = None
+        if request.form.get('portrait_resize_params'):
+            try:
+                resize_params = json.loads(request.form.get('portrait_resize_params'))
+                themap_data['portrait_display'] = resize_params
+            except (json.JSONDecodeError, TypeError):
+                themap_data['portrait_display'] = {"display_mode": "auto"}
+        else:
+            themap_data['portrait_display'] = {"display_mode": "auto"}
+
         # create blog post object
         post = BlogPost(
             title=form.title.data,
             content=form.content.data,
             portrait=filename,
-            thumbnail=thumbnailname
+            thumbnail=thumbnailname,
+            themap=themap_data
         )
         
         db.session.add(post)

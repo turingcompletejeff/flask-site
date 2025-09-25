@@ -18,7 +18,14 @@
     </div>
     <div>{{ post.content |safe}}</div>
     {% if post.portrait %}
-    <img class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}" />
+    {% set portrait_style = "" %}
+    {% if post.themap and post.themap.portrait_display %}
+      {% if post.themap.portrait_display.display_mode == "custom" %}
+        {% set portrait_style = "width: " + post.themap.portrait_display.max_width_vw|string + "vw;" %}
+      {% endif %}
+    {% endif %}
+    <img class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}"
+         {% if portrait_style %}style="{{ portrait_style }}"{% endif %} />
     {% endif %}
     <hr />
     <div class="blog-post-timestamps">

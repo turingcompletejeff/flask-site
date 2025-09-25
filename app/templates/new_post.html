@@ -27,6 +27,28 @@
             {%- for error in form.portrait.errors %}
               <span class="form__error">{{ error }}</span>
             {% endfor %}
+
+            <div id="portrait-resize-controls" style="display: none; margin-top: 10px;">
+              <label class="form__label">Portrait Display Options:</label>
+              <div style="margin: 10px 0;">
+                <label>
+                  <input type="radio" name="portrait_display" value="auto" checked>
+                  Auto (original size, up to 70vw)
+                </label>
+              </div>
+              <div style="margin: 10px 0;">
+                <label>
+                  <input type="radio" name="portrait_display" value="custom">
+                  Custom size
+                </label>
+                <div id="custom-size-controls" style="display: none; margin-left: 20px;">
+                  <label>Max width:
+                    <input type="range" name="portrait_max_width" min="20" max="100" value="70" step="5">
+                    <span id="width-display">70</span>% of viewport
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="form__group">
@@ -58,4 +80,52 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block endjs %}
+<script>
+$(document).ready(function() {
+  const portraitInput = $('#blog-img-input');
+  const resizeControls = $('#portrait-resize-controls');
+  const customControls = $('#custom-size-controls');
+  const widthSlider = $('input[name="portrait_max_width"]');
+  const widthDisplay = $('#width-display');
+
+  // Show resize controls when an image is selected
+  portraitInput.on('change', function() {
+    if (this.files && this.files[0]) {
+      resizeControls.show();
+    } else {
+      resizeControls.hide();
+    }
+  });
+
+  // Toggle custom size controls
+  $('input[name="portrait_display"]').on('change', function() {
+    if ($(this).val() === 'custom') {
+      customControls.show();
+    } else {
+      customControls.hide();
+    }
+  });
+
+  // Update width display as user moves slider
+  widthSlider.on('input', function() {
+    widthDisplay.text($(this).val());
+  });
+
+  // Form submission handler to include resize parameters
+  $('form').on('submit', function() {
+    const displayMode = $('input[name="portrait_display"]:checked').val();
+    const maxWidth = widthSlider.val();
+
+    // Add hidden fields with resize parameters
+    if (displayMode === 'custom') {
+      $(this).append('<input type="hidden" name="portrait_resize_params" value=\'{"display_mode": "custom", "max_width_vw": ' + maxWidth + '}\'>');
+    } else {
+      $(this).append('<input type="hidden" name="portrait_resize_params" value=\'{"display_mode": "auto"}\'>');
+    }
+  });
+});
+</script>
 {% endblock %}
