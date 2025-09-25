@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_wtf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
@@ -14,7 +15,14 @@ login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(Config)
+    
+    # Check if we're in testing mode
+    if os.environ.get('TESTING') == 'true' or (test_config and test_config.get('TESTING')):
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        app.config['TESTING'] = True
+    else:
+        # load normal config
+        app.config.from_object(Config)
     
     # enable CSRF globally
     csrf.init_app(app)
