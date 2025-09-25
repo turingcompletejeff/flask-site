@@ -21,7 +21,11 @@
     {% set portrait_style = "" %}
     {% if post.themap and post.themap.portrait_display %}
       {% if post.themap.portrait_display.display_mode == "custom" %}
-        {% set portrait_style = "width: " + post.themap.portrait_display.max_width_vw|string + "vw;" %}
+        {% if post.themap.portrait_display.max_width_vw %}
+          {% set portrait_style = "width: " + post.themap.portrait_display.max_width_vw|string + "vw;" %}
+        {% elif post.themap.portrait_display.width_pct %}
+          {% set portrait_style = "width: " + post.themap.portrait_display.width_pct|string + "%;" %}
+        {% endif %}
       {% endif %}
     {% endif %}
     <img class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}"

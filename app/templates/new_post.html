@@ -33,7 +33,7 @@
               <div style="margin: 10px 0;">
                 <label>
                   <input type="radio" name="portrait_display" value="auto" checked>
-                  Auto (original size, up to 70vw)
+                  Auto (original size, up to 100% of its container)
                 </label>
               </div>
               <div style="margin: 10px 0;">
@@ -43,8 +43,8 @@
                 </label>
                 <div id="custom-size-controls" style="display: none; margin-left: 20px;">
                   <label>Max width:
-                    <input type="range" name="portrait_max_width" min="20" max="100" value="70" step="5">
-                    <span id="width-display">70</span>% of viewport
+                    <input type="range" name="portrait_max_width" min="5" max="100" value="100" step="5">
+                    <span id="width-display">100</span>% of container
                   </label>
                 </div>
               </div>
@@ -121,7 +121,7 @@ $(document).ready(function() {
 
     // Add hidden fields with resize parameters
     if (displayMode === 'custom') {
-      $(this).append('<input type="hidden" name="portrait_resize_params" value=\'{"display_mode": "custom", "max_width_vw": ' + maxWidth + '}\'>');
+      $(this).append('<input type="hidden" name="portrait_resize_params" value=\'{"display_mode": "custom", "width_pct": ' + maxWidth + '}\'>');
     } else {
       $(this).append('<input type="hidden" name="portrait_resize_params" value=\'{"display_mode": "auto"}\'>');
     }
