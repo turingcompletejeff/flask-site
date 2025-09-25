@@ -1,0 +1,138 @@
+/* Duolingo-Style Button Implementation for TC-8
+   Based on: https://medium.com/@lilskyjuicebytes/clone-the-ui-1-replicating-duolingos-button-in-pure-css-bd37a97edb7e
+*/
+
+/* PRIMARY BUTTON STYLE - For main contact form submit button */
+.duolingo-primary {
+    background: #1CB0F6;
+    color: #fff;
+    font-weight: 800;
+    height: 44px;
+    cursor: pointer;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 0 #0A7CB5; /* Darker shade for shadow */
+    padding: 0 24px;
+    font-size: 16px;
+    transition: all 0.1s ease;
+}
+
+.duolingo-primary:active {
+    box-shadow: none;
+    transform: translateY(4px);
+}
+
+.duolingo-primary:hover:not(:active) {
+    filter: brightness(1.1);
+}
+
+/* SECONDARY BUTTON STYLE - For cancel/secondary actions */
+.duolingo-secondary {
+    background-color: #fff;
+    color: #4B4B4B;
+    border-radius: 15px;
+    border: 2px solid #E5E5E5;
+    box-shadow: 0 2px 0 #E5E5E5;
+    font-weight: 800;
+    height: 44px;
+    cursor: pointer;
+    padding: 0 24px;
+    font-size: 16px;
+    transition: all 0.1s ease;
+}
+
+.duolingo-secondary:hover {
+    background-color: #E5E5E5;
+    box-shadow: 0 2px 0 #CECECE;
+    border: 2px solid #CECECE;
+}
+
+.duolingo-secondary:active {
+    box-shadow: none;
+    transform: translateY(2px);
+    background-color: #E5E5E5;
+    border: 2px solid #CECECE;
+}
+
+/* SUCCESS/POSITIVE BUTTON - For positive actions */
+.duolingo-success {
+    background: #427b18;
+    color: #fff;
+    font-weight: 800;
+    height: 44px;
+    cursor: pointer;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 0 #294d0f;
+    padding: 0 24px;
+    font-size: 16px;
+    transition: all 0.1s ease;
+}
+
+.duolingo-success:active {
+    box-shadow: none;
+    transform: translateY(4px);
+}
+
+.duolingo-success:hover:not(:active) {
+    filter: brightness(1.1);
+}
+
+/* WARNING/DANGER BUTTON - For destructive actions */
+.duolingo-danger {
+    background: #FF4B4B;
+    color: #fff;
+    font-weight: 800;
+    height: 44px;
+    cursor: pointer;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 0 #CC3333;
+    padding: 0 24px;
+    font-size: 16px;
+    transition: all 0.1s ease;
+}
+
+.duolingo-danger:active {
+    box-shadow: none;
+    transform: translateY(4px);
+}
+
+.duolingo-danger:hover:not(:active) {
+    filter: brightness(1.1);
+}
+
+/* UTILITY CLASSES */
+.btn-full-width {
+    width: 100%;
+}
+
+.btn-large {
+    height: 52px;
+    font-size: 18px;
+}
+
+.btn-small {
+    height: 36px;
+    font-size: 14px;
+    padding: 0 16px;
+}
+
+/* DISABLED STATE */
+.duolingo-primary:disabled,
+.duolingo-secondary:disabled,
+.duolingo-success:disabled,
+.duolingo-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.duolingo-primary:disabled:hover,
+.duolingo-secondary:disabled:hover,
+.duolingo-success:disabled:hover,
+.duolingo-danger:disabled:hover {
+    filter: none;
+    background-color: inherit;
+}
