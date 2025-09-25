@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_from_directory, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_from_directory, current_app, jsonify
 from app import db
 from app.models import BlogPost
 from app.forms import ContactForm
@@ -30,20 +30,41 @@ def about():
 @main_bp.route('/contact', methods=['GET', 'POST'])
 def contact():
     form = ContactForm()
-    
+
     if form.validate_on_submit():
-        # process the data, send an email
-        message = formatContactEmail(form)
-        print('dry run. attempting to send message:')
-        print(message)
-        print(f'from: {Config.MAIL_USER}')
-        print(f'to: {Config.ADMIN_EMAIL}')
-        print('sending mail...')
-        sendAnEmail(message)
-        
-        flash(f'message sent from {form.email.data}', "success")
-        return redirect(url_for('main_bp.contact'))
-    
+        try:
+            # process the data, send an email
+            message = formatContactEmail(form)
+            print('dry run. attempting to send message:')
+            print(message)
+            print(f'from: {Config.MAIL_USER}')
+            print(f'to: {Config.ADMIN_EMAIL}')
+            print('sending mail...')
+            sendAnEmail(message)
+
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+                return jsonify({
+                    'success': True,
+                    'message': f'message sent from {form.email.data}',
+                    'redirect': url_for('main_bp.index')
+                })
+            else:
+                flash(f'message sent from {form.email.data}', "success")
+                return redirect(url_for('main_bp.index'))
+
+        except Exception as e:
+            print(f'Error sending email: {e}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
+                return jsonify({'success': False, 'error': 'Failed to send message. Please try again.'}), 500
+            else:
+                flash('Failed to send message. Please try again.', 'error')
+                return render_template('contact.html', current_page="contact", form=form)
+
+    # If form has validation errors and it's an AJAX request, return the form with errors
+    if request.method == 'POST' and (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', '')):
+        return render_template('contact.html', current_page="contact", form=form)
+
     return render_template('contact.html', current_page="contact", form=form)
 
 @main_bp.route('/uploads/blog-posts/<filename>')
