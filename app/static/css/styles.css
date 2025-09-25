@@ -526,3 +526,59 @@ textarea.form__field {
   position: relative;
   right: -22px;
 }
+
+/* Contact Form Loading States */
+.spinner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(23, 47, 23, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  border-radius: 5px;
+}
+
+.spinner-container {
+  text-align: center;
+  color: hsl(85, 80%, 60%);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  font-size: 40px;
+  color: hsl(85, 80%, 60%);
+  margin: 0 auto 15px;
+  display: block;
+}
+
+.loading-text {
+  font-size: 16px;
+  font-family: "Share Tech", sans-serif;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.form-disabled {
+  position: relative;
+}
+
+.form-disabled .form__field {
+  opacity: 0.6;
+  background-color: #f0f0f0;
+}
+
+.form-disabled .form__submit {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.blog-post {
+  position: relative;
+}
