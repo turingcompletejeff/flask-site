@@ -23,4 +23,5 @@ class BlogPostForm(FlaskForm):
     title = StringField("Title", validators=[DataRequired()])
     content = TextAreaField("Content", validators=[DataRequired()])
     portrait = FileField("Portrait", validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
+    thumbnail = FileField("Custom Thumbnail (Optional)", validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit = SubmitField("Post")

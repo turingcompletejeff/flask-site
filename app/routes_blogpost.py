@@ -28,18 +28,31 @@ def new_post():
 
     if form.validate_on_submit():
         portrait_file = form.portrait.data
+        thumbnail_file = form.thumbnail.data
         filename = None
         thumbnailname = None
-        
+
         if portrait_file:
             # ensure a safe filename
             filename = secure_filename(portrait_file.filename)
             file_path = os.path.join(current_app.config['BLOG_POST_UPLOAD_FOLDER'], filename)
-            
+
             # save original
             portrait_file.save(file_path)
-            
-            # create thumbnail
+
+        # Handle thumbnail: custom upload takes priority, otherwise auto-generate
+        if thumbnail_file:
+            # Custom thumbnail uploaded
+            thumbnailname = f"custom_thumb_{secure_filename(thumbnail_file.filename)}"
+            thumb_path = os.path.join(current_app.config['BLOG_POST_UPLOAD_FOLDER'], thumbnailname)
+
+            # Save and resize custom thumbnail to 300x300
+            thumbnail_file.save(thumb_path)
+            img = Image.open(thumb_path)
+            img.thumbnail((300,300))
+            img.save(thumb_path)
+        elif portrait_file:
+            # Auto-generate thumbnail from portrait
             thumbnailname = f"thumb_{filename}"
             img = Image.open(file_path)
             img.thumbnail((300,300))

@@ -20,6 +20,15 @@
           {% endfor %}
         </div>
 
+        <div class="form__group">
+          {{ form.thumbnail.label(class_="form__label") }}
+          {{ form.thumbnail(class_="form__field", id="blog-thumbnail-input") }}
+          <small class="form__help">If not provided, a thumbnail will be auto-generated from your portrait image.</small>
+          {%- for error in form.thumbnail.errors %}
+            <span class="form__error">{{ error }}</span>
+          {% endfor %}
+        </div>
+
         <h2>
           <div class="form__group">
             {{ form.title.label(class_="form__label") }}

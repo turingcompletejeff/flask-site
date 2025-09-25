@@ -2,3 +2,4 @@ __pycache__/
 .env
 venv
 uploads/blog-posts/*
+*claude*.md
