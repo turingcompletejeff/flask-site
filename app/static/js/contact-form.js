@@ -16,7 +16,7 @@ function initContactFormHandlers() {
     // Create and insert loading spinner
     const $spinner = $('<div id="form-spinner" class="spinner-overlay" style="display: none;">' +
                       '<div class="spinner-container">' +
-                      '<div class="loading-spinner"></div>' +
+                      '<span class="material-symbols-outlined spinner" id="contact-spinner">refresh</span>' +
                       '<div class="loading-text">sending message...</div>' +
                       '</div>' +
                       '</div>');
