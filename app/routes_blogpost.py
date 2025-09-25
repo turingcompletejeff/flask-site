@@ -119,6 +119,24 @@ def edit_post(post_id):
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
+
+        # Handle portrait resize parameters and update themap data
+        if request.form.get('portrait_resize_params'):
+            try:
+                resize_params = json.loads(request.form.get('portrait_resize_params'))
+                if post.themap:
+                    # Update existing themap data
+                    post.themap['portrait_display'] = resize_params
+                else:
+                    # Create new themap data
+                    post.themap = {'portrait_display': resize_params}
+            except (json.JSONDecodeError, TypeError):
+                # Fallback to auto mode if JSON parsing fails
+                if post.themap:
+                    post.themap['portrait_display'] = {"display_mode": "auto"}
+                else:
+                    post.themap = {'portrait_display': {"display_mode": "auto"}}
+
         db.session.commit()
         flash('post updated!', 'success')
         return redirect(url_for('blogpost_bp.view_post', post_id=post.id))

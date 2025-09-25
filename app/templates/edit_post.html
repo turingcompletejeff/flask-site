@@ -11,7 +11,59 @@
     <textarea name="content" rows="20" cols="50">{{ post.content }}</textarea>
     
     {% if post.portrait %}
-    <img class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}" />
+    <div id="portrait-section">
+      <label class="form__label">Portrait Image:</label>
+
+      <!-- Current styling values from themap -->
+      {% set current_display_mode = "auto" %}
+      {% set current_width_pct = 100 %}
+      {% if post.themap and post.themap.portrait_display %}
+        {% if post.themap.portrait_display.display_mode %}
+          {% set current_display_mode = post.themap.portrait_display.display_mode %}
+        {% endif %}
+        {% if post.themap.portrait_display.width_pct %}
+          {% set current_width_pct = post.themap.portrait_display.width_pct %}
+        {% endif %}
+      {% endif %}
+
+      <div id="portrait-resize-controls" style="margin-top: 10px;">
+        <label class="form__label">Portrait Display Options:</label>
+        <div style="margin: 10px 0;">
+          <label>
+            <input type="radio" name="portrait_display" value="auto" {% if current_display_mode == "auto" %}checked{% endif %}>
+            Auto (original size, up to 100% of its container)
+          </label>
+        </div>
+        <div style="margin: 10px 0;">
+          <label>
+            <input type="radio" name="portrait_display" value="custom" {% if current_display_mode == "custom" %}checked{% endif %}>
+            Custom size
+          </label>
+          <div id="custom-size-controls" style="{% if current_display_mode != 'custom' %}display: none; {% endif %}margin-left: 20px;">
+            <label>Max width:
+              <input type="range" name="portrait_max_width" min="5" max="100" value="{{ current_width_pct }}" step="5">
+              <span id="width-display">{{ current_width_pct }}</span>% of container
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live preview with current styling -->
+      {% set portrait_style = "" %}
+      {% if post.themap and post.themap.portrait_display %}
+        {% if post.themap.portrait_display.display_mode == "custom" %}
+          {% if post.themap.portrait_display.width_pct %}
+            {% set portrait_style = "width: " + post.themap.portrait_display.width_pct|string + "%;" %}
+          {% endif %}
+        {% endif %}
+      {% endif %}
+
+      <div id="image-preview" style="margin-top: 15px; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;">
+        <label class="form__label">Preview (as it will appear in view):</label>
+        <img id="preview-image" class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}"
+             {% if portrait_style %}style="{{ portrait_style }}"{% endif %} />
+      </div>
+    </div>
     {% endif %}
     <hr />
     <div class="blog-post-timestamps">
@@ -24,4 +76,59 @@
   </form>
 </div>
 
+{% endblock %}
+
+{% block endjs %}
+<script>
+$(document).ready(function() {
+  const customControls = $('#custom-size-controls');
+  const widthSlider = $('input[name="portrait_max_width"]');
+  const widthDisplay = $('#width-display');
+  const previewImage = $('#preview-image');
+
+  function updatePreviewStyling() {
+    const displayMode = $('input[name="portrait_display"]:checked').val();
+    const maxWidth = widthSlider.val();
+
+    // Apply the same styling logic as view_post.html
+    if (displayMode === 'custom') {
+      previewImage.css('width', maxWidth + '%');
+    } else {
+      previewImage.css('width', '');  // Remove custom width, use auto/default
+    }
+  }
+
+  // Toggle custom size controls and update preview
+  $('input[name="portrait_display"]').on('change', function() {
+    if ($(this).val() === 'custom') {
+      customControls.show();
+    } else {
+      customControls.hide();
+    }
+    updatePreviewStyling();
+  });
+
+  // Update width display and preview as user moves slider
+  widthSlider.on('input', function() {
+    widthDisplay.text($(this).val());
+    updatePreviewStyling();
+  });
+
+  // Form submission handler to include resize parameters
+  $('form').on('submit', function() {
+    const displayMode = $('input[name="portrait_display"]:checked').val();
+    const maxWidth = widthSlider.val();
+
+    // Add hidden fields with resize parameters
+    if (displayMode === 'custom') {
+      $(this).append('<input type="hidden" name="portrait_resize_params" value=\'{"display_mode": "custom", "width_pct": ' + maxWidth + '}\'>');
+    } else {
+      $(this).append('<input type="hidden" name="portrait_resize_params" value=\'{"display_mode": "auto"}\'>');
+    }
+  });
+
+  // Initialize styling based on current state
+  updatePreviewStyling();
+});
+</script>
 {% endblock %}

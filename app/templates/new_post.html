@@ -48,6 +48,12 @@
                   </label>
                 </div>
               </div>
+
+              <!-- Image preview that matches view_post styling -->
+              <div id="image-preview" style="display: none; margin-top: 15px; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;">
+                <label class="form__label">Preview (as it will appear in view):</label>
+                <img id="preview-image" class="blog-portrait" style="" />
+              </div>
             </div>
           </div>
 
@@ -90,28 +96,54 @@ $(document).ready(function() {
   const customControls = $('#custom-size-controls');
   const widthSlider = $('input[name="portrait_max_width"]');
   const widthDisplay = $('#width-display');
+  const imagePreview = $('#image-preview');
+  const previewImage = $('#preview-image');
 
-  // Show resize controls when an image is selected
+  function updatePreviewStyling() {
+    const displayMode = $('input[name="portrait_display"]:checked').val();
+    const maxWidth = widthSlider.val();
+
+    // Apply the same styling logic as view_post.html
+    if (displayMode === 'custom') {
+      previewImage.css('width', maxWidth + '%');
+    } else {
+      previewImage.css('width', '');  // Remove custom width, use auto/default
+    }
+  }
+
+  // Show resize controls and preview when an image is selected
   portraitInput.on('change', function() {
     if (this.files && this.files[0]) {
       resizeControls.show();
+
+      // Show image preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImage.attr('src', e.target.result);
+        imagePreview.show();
+        updatePreviewStyling();
+      };
+      reader.readAsDataURL(this.files[0]);
     } else {
       resizeControls.hide();
+      imagePreview.hide();
     }
   });
 
-  // Toggle custom size controls
+  // Toggle custom size controls and update preview
   $('input[name="portrait_display"]').on('change', function() {
     if ($(this).val() === 'custom') {
       customControls.show();
     } else {
       customControls.hide();
     }
+    updatePreviewStyling();
   });
 
-  // Update width display as user moves slider
+  // Update width display and preview as user moves slider
   widthSlider.on('input', function() {
     widthDisplay.text($(this).val());
+    updatePreviewStyling();
   });
 
   // Form submission handler to include resize parameters
