@@ -4,6 +4,7 @@ from flask_login import login_required
 import os
 from werkzeug.utils import secure_filename
 from PIL import Image
+from sqlalchemy.orm.attributes import flag_modified
 from app import db
 from app.models import BlogPost
 from app.forms import BlogPostForm
@@ -127,6 +128,7 @@ def edit_post(post_id):
                 if post.themap:
                     # Update existing themap data
                     post.themap['portrait_display'] = resize_params
+                    flag_modified(post, 'themap')  # Tell SQLAlchemy the JSON field was modified
                 else:
                     # Create new themap data
                     post.themap = {'portrait_display': resize_params}
@@ -134,6 +136,7 @@ def edit_post(post_id):
                 # Fallback to auto mode if JSON parsing fails
                 if post.themap:
                     post.themap['portrait_display'] = {"display_mode": "auto"}
+                    flag_modified(post, 'themap')  # Tell SQLAlchemy the JSON field was modified
                 else:
                     post.themap = {'portrait_display': {"display_mode": "auto"}}
 
