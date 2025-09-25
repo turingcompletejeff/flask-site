@@ -1,7 +1,11 @@
-{% macro render_text_field(field) %}
+{% macro render_text_field(field, placeholder=None) %}
 <div class="form__group">
     {{ field.label(class_="form__label") }}
-    {{ field(class_="form__field", id=field.name)}}
+    {% if placeholder %}
+        {{ field(class_="form__field", id=field.name, placeholder=placeholder)}}
+    {% else %}
+        {{ field(class_="form__field", id=field.name)}}
+    {% endif %}
 
     {%- for error in field.errors %}
         <span class="form__error">{{ error }}</span>
