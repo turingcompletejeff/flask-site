@@ -30,7 +30,7 @@ def about():
 @main_bp.route('/contact', methods=['GET', 'POST'])
 def contact():
     form = ContactForm()
-
+    
     if form.validate_on_submit():
         try:
             # process the data, send an email
@@ -63,6 +63,7 @@ def contact():
 
     # If form has validation errors and it's an AJAX request, return the form with errors
     if request.method == 'POST' and (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', '')):
+        print(f"Form validation failed. Errors: {form.errors}")
         return render_template('contact.html', current_page="contact", form=form)
 
     return render_template('contact.html', current_page="contact", form=form)

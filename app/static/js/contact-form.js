@@ -28,19 +28,22 @@ function initContactFormHandlers() {
 
     $form.on('submit.contactForm', function(e) {
         e.preventDefault();
+        
+        // Capture form data BEFORE disabling the form
+        const formData = new FormData(this);
 
         // Show spinner and disable form
         showLoadingState();
 
-        // Submit form via AJAX
         $.ajax({
             url: '/contact',
             method: 'POST',
-            data: new FormData(this),
+            data: formData,
             processData: false,
             contentType: false,
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': $("meta[name=csrf-token]").attr("content")
             },
             success: function(response) {
                 if (typeof response === 'object' && response.success) {
