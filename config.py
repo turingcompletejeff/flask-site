@@ -4,7 +4,12 @@ import os
 load_dotenv() # load env variables from .env file
 
 class Config:
-  SQLALCHEMY_DATABASE_URI = f"{os.environ.get('DATABASE_TYPE')}://{os.environ.get('DB_USERNAME')}:{os.environ.get('DB_PASSWORD')}@{os.environ.get('DB_HOST')}:{os.environ.get('DB_PORT')}/{os.environ.get('DB_NAME')}"
+  SQLALCHEMY_DATABASE_URI = f"{os.environ.get('DATABASE_TYPE')}://{os.environ.get('DB_USERNAME')}:{os.environ.get('DB_PASSWORD')}@{os.environ.get('DB_HOST')}:{os.environ.get('DB_PORT')}/{os.environ.get('DB_NAME')}?connect_timeout=10"
+  SQLALCHEMY_ENGINE_OPTIONS = {
+          'pool_timeout': 10,
+          'pool_recycle': 300,
+          'pool_pre_ping': True
+          }
   RCON_PASS = os.environ.get('RCON_PASS')
   RCON_HOST = os.environ.get('MC_HOST')
   RCON_PORT = os.environ.get('MC_PORT')

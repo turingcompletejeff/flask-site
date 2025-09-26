@@ -13,6 +13,10 @@ RUN groupadd --gid 1000 flask && \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
+    libpq5 \
+    curl \
+    iputils-ping \
+    netcat-openbsd \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -40,6 +44,9 @@ RUN groupadd --gid 1000 flask && \
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    curl \
+    iputils-ping \
+    netcat-openbsd \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -64,8 +71,8 @@ USER flask
 EXPOSE 8000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+# HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+#    CMD curl -f http://localhost:8000/ || exit 1
 
 # Use gunicorn as in your grun.sh script
 CMD ["gunicorn", "--workers", "6", "--bind", "0.0.0.0:8000", "--timeout", "120", "--keep-alive", "5", "run:app"]
