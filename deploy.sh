@@ -1,58 +1,58 @@
 #!/bin/bash
 
-# Docker Deployment Script for Flask Site
-# This replaces your manual SSH + screen deployment process
+# Docker Compose Deployment Script for Flask Site
+# Uses Docker Compose to manage both Flask app and PostgreSQL database
 
 set -e  # Exit on any error
 
 # Configuration
-IMAGE_NAME="flask-site"
-TAG="latest"
-CONTAINER_NAME="flask-site-prod"
+COMPOSE_FILE="docker-compose.yml"
+PROJECT_NAME="flask-site"
 
-echo "🚀 Starting Docker deployment for Flask Site..."
+echo "🚀 Starting Docker Compose deployment for Flask Site..."
 
 # Pull latest code
 echo "📦 Pulling latest changes..."
 git pull origin main
 
-# Build new Docker image
-echo "🔨 Building Docker image..."
-docker build -t $IMAGE_NAME:$TAG .
+# Stop existing containers
+echo "🛑 Stopping existing containers..."
+docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down
 
-# Stop and remove existing container if it exists
-echo "🛑 Stopping existing container (if running)..."
-docker stop $CONTAINER_NAME 2>/dev/null || true
-docker rm $CONTAINER_NAME 2>/dev/null || true
+# Build and start all services
+echo "🔨 Building and starting services..."
+docker compose -f $COMPOSE_FILE -p $PROJECT_NAME up --build -d
 
-# Start new container
-echo "▶️  Starting new container..."
-docker run -d \
-  --name $CONTAINER_NAME \
-  --restart unless-stopped \
-  -p 8000:8000 \
-  --env-file .env \
-  -v $(pwd)/uploads:/app/uploads \
-  $IMAGE_NAME:$TAG
+# Wait for services to be healthy
+echo "🔍 Waiting for services to start..."
+sleep 15
 
-# Wait for container to be healthy
-echo "🔍 Waiting for container to be healthy..."
-sleep 10
-
-# Check if container is running
-if docker ps --format "table {{.Names}}" | grep -q $CONTAINER_NAME; then
-    echo "✅ Deployment successful! Container is running."
-    docker logs --tail 20 $CONTAINER_NAME
+# Check if containers are running
+echo "📊 Checking container status..."
+if docker compose -f $COMPOSE_FILE -p $PROJECT_NAME ps | grep -q "Up"; then
+    echo "✅ Deployment successful! Services are running."
+    echo ""
+    echo "📊 Container status:"
+    docker compose -f $COMPOSE_FILE -p $PROJECT_NAME ps
+    echo ""
+    echo "📋 Recent logs:"
+    docker compose -f $COMPOSE_FILE -p $PROJECT_NAME logs --tail 10
 else
-    echo "❌ Deployment failed! Container is not running."
-    docker logs $CONTAINER_NAME
+    echo "❌ Deployment failed! Some services are not running."
+    echo ""
+    echo "📋 Error logs:"
+    docker compose -f $COMPOSE_FILE -p $PROJECT_NAME logs
     exit 1
 fi
 
 # Clean up old images (keep latest 3)
 echo "🧹 Cleaning up old images..."
-docker images $IMAGE_NAME --format "table {{.ID}}" | tail -n +4 | xargs -r docker rmi 2>/dev/null || true
+docker image prune -f
 
 echo "🎉 Deployment complete!"
-echo "📊 Container status:"
-docker ps --filter name=$CONTAINER_NAME --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+echo "🌐 Application should be accessible on configured ports"
+echo ""
+echo "💡 Useful commands:"
+echo "  View logs:    docker compose -f $COMPOSE_FILE -p $PROJECT_NAME logs -f"
+echo "  Stop services: docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down"
+echo "  Restart:      docker compose -f $COMPOSE_FILE -p $PROJECT_NAME restart"

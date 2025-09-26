@@ -30,7 +30,8 @@ services:
     networks:
       - flask-network
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     # Remove custom wait - let depends_on handle it
     # command: gunicorn --workers 6 --bind 0.0.0.0:8000 --timeout 120 --keep-alive 5 run:app
 
