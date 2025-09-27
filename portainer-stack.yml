@@ -1,9 +1,8 @@
-# Portainer Stack Configuration for Flask Site
-version: '3.8'
-
 services:
   flask-site:
-    image: flask-site:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile
     container_name: flask-site-prod
     restart: unless-stopped
     ports:
@@ -34,11 +33,24 @@ services:
         max-size: "10m"
         max-file: "3"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/about"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 2G            # Increased for your 16GB system
+          cpus: '4.0'           # Can use 4 of your 28 cores
+        reservations:
+          memory: 512M
+          cpus: '1.0'
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 3
+        window: 120s
 
 networks:
   flask-network:
