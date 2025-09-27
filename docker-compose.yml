@@ -63,7 +63,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       # Initialization scripts - runs only on first startup
       - ./db-init:/docker-entrypoint-initdb.d
-    ports:
+    # ports:
       # Expose for development/debugging (remove in production)
       # - "5433:5432"
     networks:
