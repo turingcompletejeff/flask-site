@@ -1,0 +1,94 @@
+services:
+  flask-site:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: flask-site-dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Load from .env file
+      - DATABASE_TYPE=${DATABASE_TYPE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - RCON_PASS=${RCON_PASS}
+      - MC_HOST=${MC_HOST}
+      - MC_PORT=${MC_PORT}
+      - SECRET_KEY=${SECRET_KEY}
+      - REGISTRATION_ENABLED=${REGISTRATION_ENABLED}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PW=${MAIL_PW}
+    volumes:
+      # Mount uploads directory to persist user uploads
+      - ./uploads:/app/uploads
+      # Mount for development (remove in production)
+      - .:/app
+    networks:
+      - flask-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2G          # Much more reasonable with 16GB total
+          cpus: '4.0'         # Can use 4 cores max (14% of your 28 cores)
+        reservations:
+          memory: 512M        # Guaranteed minimum
+          cpus: '1.0'         # Always has 1 core available
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/about"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s     # Increased start period
+    command: >
+      sh -c "gunicorn --log-level info --workers 2 --bind 0.0.0.0:8000 --timeout 120 --keep-alive 5 run:app"
+
+  postgres:
+    image: postgres:15-alpine    # Using alpine for smaller size
+    container_name: flask-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: America/New_York
+    volumes:
+      # Persistent data storage
+      - postgres_data:/var/lib/postgresql/data
+      # Initialization scripts - runs only on first startup
+      - ./db-init:/docker-entrypoint-initdb.d
+    # ports:
+      # Expose for development/debugging (remove in production)
+      # - "5433:5432"
+    networks:
+      - flask-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5            # Reduced from 10
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M        # PostgreSQL doesn't need much for your use case
+          cpus: '2.0'         # Can use up to 2 cores for complex queries
+        reservations:
+          memory: 256M        # Guaranteed minimum
+          cpus: '0.5'         # Always has half a core
+
+networks:
+  flask-network:
+    driver: bridge
+    name: flask-site-network
+
+volumes:
+  postgres_data:
+    driver: local
+    name: flask-postgres-data
