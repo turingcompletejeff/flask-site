@@ -41,7 +41,7 @@ services:
           memory: 512M        # Guaranteed minimum
           cpus: '1.0'         # Always has 1 core available
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/about"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
