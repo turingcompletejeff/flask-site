@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_wtf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
-#from flask_migrate import Migrate
+from flask_migrate import Migrate
 from flask_login import LoginManager
 from config import Config
 from .filters import register_filters
@@ -10,7 +10,7 @@ __version__ = "0.1.0"
 
 db = SQLAlchemy()
 rcon = None
-#migrate = Migrate()
+migrate = Migrate()
 csrf = CSRFProtect()
 login_manager = LoginManager()
 
@@ -22,7 +22,7 @@ def create_app():
     csrf.init_app(app)
     # Initialize Flask extensions
     db.init_app(app)
-    #migrate.init_app(app, db)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     
     # register timezone filter
