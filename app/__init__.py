@@ -6,6 +6,8 @@ from flask_login import LoginManager
 from config import Config
 from .filters import register_filters
 
+__version__ = "0.1.0"
+
 db = SQLAlchemy()
 rcon = None
 #migrate = Migrate()
@@ -35,7 +37,12 @@ def create_app():
     app.register_blueprint(blogpost_bp)
     from app.routes_mc import mc_bp
     app.register_blueprint(mc_bp)
-    
+    from app.routes_health import health_bp
+    app.register_blueprint(health_bp)
+
+    # Exempt health endpoint from CSRF (read-only, no auth required)
+    csrf.exempt(health_bp)
+
     # init global.... RCON object
     app.rcon = rcon
 
