@@ -68,11 +68,11 @@
     <hr />
     <div class="blog-post-timestamps form-actions">
       {% if post.is_draft %}
-        {{ form.publish(class_="submit-btn") }}
+        {{ form.publish(class_="duolingo-success") }}
       {% else %}
-        <button type="submit" name="publish" class="submit-btn">Update Post</button>
+        <button type="submit" name="publish" class="duolingo-primary">Update Post</button>
       {% endif %}
-      {{ form.save_draft(class_="btn-draft") }}
+      {{ form.save_draft(class_="duolingo-draft") }}
       <small >Posted on {{ post.date_posted.strftime('%Y-%m-%d') }}</small>
       {% if post.hasEdits() %}
       <small class="blog-post-edited">Edited on {{ post.last_updated|localtime }}</small>
