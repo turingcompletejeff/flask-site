@@ -8,6 +8,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from app import db
 from app.models import BlogPost
 from app.forms import BlogPostForm
+from app.auth_decorators import require_any_role
 
 # Create a blueprint for main routes
 blogpost_bp = Blueprint('blogpost_bp', __name__)
@@ -28,6 +29,7 @@ def view_post(post_id):
 # Route to create a new blog post
 @blogpost_bp.route('/post/new', methods=['GET', 'POST'])
 @login_required
+@require_any_role(['blogger', 'admin'])
 def new_post():
     form = BlogPostForm()
 
@@ -111,6 +113,7 @@ def new_post():
 # Route to delete a blog post
 @blogpost_bp.route('/post/delete', methods=['POST'])
 @login_required
+@require_any_role(['blogger', 'admin'])
 def delete_post():
     post_id = request.form.get("id")
     post = BlogPost.query.get_or_404(post_id)
@@ -122,6 +125,7 @@ def delete_post():
 # Route to edit an existing blog post
 @blogpost_bp.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
 @login_required
+@require_any_role(['blogger', 'admin'])
 def edit_post(post_id):
     post = BlogPost.query.get_or_404(post_id)
     form = BlogPostForm()
