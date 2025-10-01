@@ -28,6 +28,7 @@ class BlogPost(db.Model):
     themap = db.Column(db.JSON, nullable=True) # general use JSON map
     date_posted = db.Column(db.Date, nullable=False, default=datetime.now)  # Creation date
     last_updated = db.Column(db.DateTime, nullable=True, onupdate=lambda: datetime.now(timezone.utc))  # Last update date -- always store UTC
+    is_draft = db.Column(db.Boolean, nullable=False, default=True)  # Draft status
 
     def __repr__(self):
         return f'<BlogPost {self.title}>'

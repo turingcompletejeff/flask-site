@@ -4,3 +4,4 @@ venv
 uploads/blog-posts/*
 *claude*.md.claude.md
 .claude/memory.md
+*CLAUDE*.md

@@ -102,6 +102,30 @@
     filter: brightness(1.1);
 }
 
+/* DRAFT BUTTON - For draft/save actions (orange theme) */
+.duolingo-draft {
+    background: #f39c12;
+    color: #fff;
+    font-weight: 800;
+    height: 44px;
+    cursor: pointer;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 0 #c87f0a;
+    padding: 0 24px;
+    font-size: 16px;
+    transition: all 0.1s ease;
+}
+
+.duolingo-draft:active {
+    box-shadow: none;
+    transform: translateY(4px);
+}
+
+.duolingo-draft:hover:not(:active) {
+    filter: brightness(1.1);
+}
+
 /* UTILITY CLASSES */
 .btn-full-width {
     width: 100%;

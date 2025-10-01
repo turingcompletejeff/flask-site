@@ -12,13 +12,20 @@ main_bp = Blueprint('main_bp', __name__)
 # Home page
 @main_bp.route('/')
 def index():
+    from flask_login import current_user
     msg = request.args.get("flash")
     cat = request.args.get("category", "info")
     if msg:
         flash(msg, cat)
-    # Query all blog posts in descending order by date
-    blog_posts = BlogPost.query.order_by(BlogPost.date_posted.desc(),BlogPost.id.desc()).all()
-    
+
+    # Query blog posts based on authentication status
+    if current_user.is_authenticated:
+        # Authenticated users see all posts (drafts + published)
+        blog_posts = BlogPost.query.order_by(BlogPost.date_posted.desc(),BlogPost.id.desc()).all()
+    else:
+        # Public users only see published posts
+        blog_posts = BlogPost.query.filter_by(is_draft=False).order_by(BlogPost.date_posted.desc(),BlogPost.id.desc()).all()
+
     return render_template('index.html', blog_posts=blog_posts, current_page="blog")
 
 # About page

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 import json
-from flask_login import login_required
+from flask_login import login_required, current_user
 import os
 from werkzeug.utils import secure_filename
 from PIL import Image
@@ -17,6 +17,12 @@ blogpost_bp = Blueprint('blogpost_bp', __name__)
 def view_post(post_id):
     # Query the specific blog post by ID
     post = BlogPost.query.get_or_404(post_id)
+
+    # Check if post is draft and user is not authenticated
+    if post.is_draft and not current_user.is_authenticated:
+        flash('This post is not available.', 'error')
+        return redirect(url_for('main_bp.index'))
+
     return render_template('view_post.html', post=post)
 
 # Route to create a new blog post
@@ -75,19 +81,28 @@ def new_post():
         else:
             themap_data['portrait_display'] = {"display_mode": "auto"}
 
+        # Determine draft status based on which button was clicked
+        is_draft = True  # Default to draft
+        flash_message = "Draft saved!"
+
+        if form.publish.data:
+            is_draft = False
+            flash_message = "Post published!"
+
         # create blog post object
         post = BlogPost(
             title=form.title.data,
             content=form.content.data,
             portrait=filename,
             thumbnail=thumbnailname,
-            themap=themap_data
+            themap=themap_data,
+            is_draft=is_draft
         )
-        
+
         db.session.add(post)
         db.session.commit()
 
-        flash("post created!", "success")
+        flash(flash_message, "success")
         return redirect(url_for("main_bp.index"))
 
     # If form validation fails, render the form again with errors
@@ -121,6 +136,15 @@ def edit_post(post_id):
         post.title = form.title.data
         post.content = form.content.data
 
+        # Determine draft status based on which button was clicked
+        flash_message = "Post updated!"
+        if form.save_draft.data:
+            post.is_draft = True
+            flash_message = "Draft saved!"
+        elif form.publish.data:
+            post.is_draft = False
+            flash_message = "Post published!"
+
         # Handle portrait resize parameters and update themap data
         if request.form.get('portrait_resize_params'):
             try:
@@ -141,7 +165,7 @@ def edit_post(post_id):
                     post.themap = {'portrait_display': {"display_mode": "auto"}}
 
         db.session.commit()
-        flash('post updated!', 'success')
+        flash(flash_message, 'success')
         return redirect(url_for('blogpost_bp.view_post', post_id=post.id))
 
     return render_template('edit_post.html', form=form, post=post)
