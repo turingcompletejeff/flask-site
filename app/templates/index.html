@@ -6,7 +6,7 @@
   <div class="blog-post-strip">
     <h1 class="blog-header">turing complete jeff</h1>
 
-    {% if current_user.is_authenticated %}
+    {% if current_user.is_authenticated and (current_user.has_role('blogger') or current_user.is_admin()) %}
     <a href="{{ url_for('blogpost_bp.new_post') }}" id="blog-post-add">
       <span class="material-symbols-outlined hover-add"></span>
     </a>
@@ -23,7 +23,7 @@
                  src="{{ url_for('main_bp.uploaded_file', filename=post.thumbnail) }}" />
 	    {% endif %}
             <h2>{{ post.title }}</h2>
-	    {% if current_user.is_authenticated %}
+	    {% if current_user.is_authenticated and (current_user.has_role('blogger') or current_user.is_admin()) %}
             <a class="blog-post-edit" href="{{ url_for('blogpost_bp.edit_post', post_id=post.id) }}">
               <span class="material-symbols-outlined hover-edit"></span>
             </a>
@@ -52,7 +52,7 @@
 {% endblock %}
 
 {% block endjs %}
-{% if current_user.is_authenticated %}
+{% if current_user.is_authenticated and (current_user.has_role('blogger') or current_user.is_admin()) %}
 <script>
   $(document).ready(function() {
     // delete post
