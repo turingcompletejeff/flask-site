@@ -21,7 +21,7 @@ Begin work on a JIRA ticket with proper setup and time tracking.
    ```
    
 4. **Read Context**
-	 - Check if there's a markdown file for this ticket (like CLAUDE.md, TC-31-health-endpoint.md)
+	 - Check if there's a markdown file for this ticket (like CLAUDE.md, CLAUDE-TC-31.md)
 	 - Review CLAUDE.md for project patterns
 	 - Search for related files in the codebase
   
