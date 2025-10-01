@@ -79,8 +79,9 @@
 
       <hr />
 
-      <div class="blog-post-actions">
-        {{ form.submit(class_="submit-btn") }}
+      <div class="blog-post-actions form-actions">
+        {{ form.publish(class_="submit-btn") }}
+        {{ form.save_draft(class_="btn-draft") }}
         <a href="{{ url_for('main_bp.index') }}" class="cancel-btn">cancel</a>
       </div>
     </form>
