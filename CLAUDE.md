@@ -6,22 +6,48 @@
 - Gunicorn WSGI server for production
 - Docker containerization with Portainer orchestration
 
+## Environment Variables
+Required configuration via environment variables:
+- DATABASE_URL: PostgreSQL connection string (required)
+- SECRET_KEY: Flask secret key for sessions (falls back to 'dev-key-please-change')
+- FLASK_ENV: development or production (optional)
+
+Minecraft RCON Integration:
+- RCON_HOST: Minecraft server host for RCON commands
+- RCON_PORT: Minecraft RCON port (default: 25575)
+- RCON_PASSWORD: Minecraft RCON authentication password
+
+Optional:
+- UPLOAD_FOLDER: Override default uploads/blog-posts/ directory
+
 ## Coding Conventions
 - Follow PEP 8 for Python code
 - Use Blueprint pattern for route organization
 - Always use environment variables for secrets (never hardcode)
 - Database migrations: Use Flask-Migrate (flask db migrate/upgrade)
 - Button styling: Use duolingo-buttons.css classes consistently
+  - Available classes: duolingo-primary, duolingo-success, duolingo-secondary, duolingo-draft, duolingo-danger
+  - Primary: Default actions
+  - Success: Publish/confirm actions
+  - Secondary: Cancel/back actions
+  - Draft: Save as draft actions
+  - Danger: Delete/destructive actions
 
 ## Important Patterns
 - Blog posts use portrait images with auto-generated thumbnails (300x300)
 - All uploads go to `uploads/blog-posts/` directory
 - CSRF protection enabled globally, exempt read-only endpoints
 - Use `@login_required` decorator for authenticated routes
+- Draft posts: Posts can be saved as drafts (is_draft=True) or published
+  - Drafts visible only to authenticated users in blog listing
+  - Public users cannot see draft posts
+  - Use dual submit buttons: "Save as Draft" and "Publish"
+  - Draft button uses duolingo-draft class, Publish uses duolingo-success
+  - Edit form supports both save modes via different submit buttons
 
 ## Database Models
 - User: Authentication with bcrypt password hashing
-- BlogPost: title, content, portrait, thumbnail, dates
+- BlogPost: title, content, portrait, thumbnail, dates, is_draft (Boolean)
 - MinecraftCommand: RCON integration for game server
 
 ## JIRA Integration
