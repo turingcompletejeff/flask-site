@@ -55,6 +55,42 @@ Optional:
 - Branch naming: feature/TC-XX-description
 - Always include time tracking rounded to 15min
 
+### Automatic Time Tracking with MCP Tool
+Claude Code has access to the `mcp__time__get_current_time` tool for automatic time tracking:
+
+**How It Works:**
+1. At the START of a task, Claude Code calls `mcp__time__get_current_time` to record the start time
+2. At the END of the task (before committing), Claude Code calls the tool again to get the current time
+3. Claude Code automatically calculates elapsed time and rounds to nearest 15 minutes
+4. The calculated time is included in the Smart Commit message
+
+**Smart Commit Format with Auto-Tracking:**
+```
+TC-XX #time [calculated]h [calculated]m #comment [task description] #done
+```
+
+**Example Workflow:**
+```
+1. Start task → get_current_time() → 14:00
+2. Complete work...
+3. Ready to commit → get_current_time() → 15:23
+4. Calculate: 1h 23m → round to 1h 30m
+5. Commit: "TC-28 #time 1h 30m #comment Implemented admin dashboard #done"
+```
+
+**Benefits:**
+- No manual time estimation needed
+- Accurate tracking of actual time spent
+- Automatic rounding to 15-minute increments for JIRA
+- Consistent time tracking across all commits
+
+**Claude Code Instructions:**
+- ALWAYS call `mcp__time__get_current_time` at task start
+- ALWAYS call it again before creating commit message
+- ALWAYS calculate elapsed time and round to nearest 15min (0.25h increments)
+- ALWAYS include calculated time in Smart Commit using #time flag
+- Format: Use "Xh Ym" or "Xh" or "Ym" format (e.g., "1h 30m", "2h", "45m")
+
 ## Common Tasks
 - Start dev server: `python run.py`
 - Production deploy: `./grun.sh`
