@@ -8,7 +8,7 @@ Begin work on a JIRA ticket with proper setup and time tracking.
 ## Process
 
 1. **Record Start Time**
-   Ask the user for the current time and record it
+   Use `mcp__time__get_current_time` tool to automatically record the start time
 
 2. **Check the status of the current branch**
    ```bash
