@@ -1,0 +1,198 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="breadcrumb">
+        <a href="{{ url_for('admin_bp.dashboard') }}">Dashboard</a> &gt; Edit User
+    </div>
+
+    <h1>Edit User: {{ user.username }}</h1>
+
+    <div class="form-container">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control") }}
+                {% if form.username.errors %}
+                    <div class="error-messages">
+                        {% for error in form.username.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control") }}
+                {% if form.email.errors %}
+                    <div class="error-messages">
+                        {% for error in form.email.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label>Current Roles</label>
+                <div class="roles-display">
+                    {% if user.roles %}
+                        {% for role in user.roles %}
+                            {% if role.name == 'admin' %}
+                                <span class="role-badge role-badge-admin">{{ role.name }}</span>
+                            {% elif role.name == 'blogger' %}
+                                <span class="role-badge role-badge-moderator">{{ role.name }}</span>
+                            {% else %}
+                                <span class="role-badge role-badge-user">{{ role.name }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <span class="no-roles">No roles assigned</span>
+                    {% endif %}
+                </div>
+                <p class="help-text">Note: Role management coming soon</p>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="duolingo-secondary" onclick="window.location.href='{{ url_for('admin_bp.dashboard') }}'">
+                    Cancel
+                </button>
+                {{ form.submit(class="duolingo-success") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.breadcrumb {
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.breadcrumb a {
+    color: #1cb0f6;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.admin-container h1 {
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.form-container {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: #555;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #1cb0f6;
+}
+
+.error-messages {
+    margin-top: 8px;
+}
+
+.error {
+    color: #ff4b4b;
+    font-size: 0.9em;
+    margin: 5px 0;
+}
+
+.roles-display {
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.9em;
+    margin-right: 8px;
+}
+
+.role-badge-admin {
+    background: #ff4b4b;
+}
+
+.role-badge-moderator {
+    background: #1cb0f6;
+}
+
+.role-badge-user {
+    background: #58cc02;
+}
+
+.no-roles {
+    color: #999;
+    font-style: italic;
+}
+
+.help-text {
+    color: #777;
+    font-size: 0.9em;
+    margin: 0;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+    .form-container {
+        padding: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
