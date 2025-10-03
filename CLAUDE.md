@@ -84,6 +84,10 @@ Optional:
 - Use conditional blocks outside the element instead
 - Always test forms after adding dual submit buttons
 - Use duolingo button classes: `duolingo-primary`, `duolingo-success`, `duolingo-secondary`, `duolingo-draft`, `duolingo-danger`
+- **Button elements**: Use `<button>` tags instead of `<a>` tags for better styling
+  - For navigation: `<button type="button" onclick="window.location.href='{{ url_for(...) }}'">Text</button>`
+  - For form submissions: `<button type="submit">Text</button>`
+  - Avoid `<a href="..." class="duolingo-*">` as it renders with link styling instead of button styling
 
 ### Docker Development
 - Restart containers after model changes: `docker-compose down && docker-compose up --build`

@@ -27,6 +27,9 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.Text, nullable=False)
+    profile_picture = db.Column(db.Text, nullable=True)
+    bio = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
 
     # Relationship to roles
     roles = db.relationship('Role', secondary=role_assignments, backref='assigned_users')

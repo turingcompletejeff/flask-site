@@ -1,0 +1,169 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="edit-profile-container">
+    <h1>Edit Profile</h1>
+
+    <form method="POST" enctype="multipart/form-data" class="profile-form">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            <label for="email">{{ form.email.label }}</label>
+            {{ form.email(class="form-control", id="email") }}
+            {% if form.email.errors %}
+                <div class="error-messages">
+                    {% for error in form.email.errors %}
+                        <p class="error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="bio">{{ form.bio.label }}</label>
+            {{ form.bio(class="form-control", rows="5", id="bio", placeholder="Tell us about yourself (max 500 characters)") }}
+            <small class="form-text">{{ form.bio.data|length if form.bio.data else 0 }}/500 characters</small>
+            {% if form.bio.errors %}
+                <div class="error-messages">
+                    {% for error in form.bio.errors %}
+                        <p class="error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="profile_picture">
+                <span class="material-symbols-outlined">add_a_photo</span>
+                {{ form.profile_picture.label }}
+            </label>
+            {{ form.profile_picture(class="form-control", id="profile_picture") }}
+            <small class="form-text">Allowed formats: jpg, png, jpeg, gif (max 15MB)</small>
+            {% if form.profile_picture.errors %}
+                <div class="error-messages">
+                    {% for error in form.profile_picture.errors %}
+                        <p class="error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if current_user.profile_picture %}
+                <div class="current-picture">
+                    <p>Current profile picture:</p>
+                    <img src="/uploads/profiles/{{ current_user.profile_picture }}" alt="Current profile picture">
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            {{ form.submit(class="duolingo-primary") }}
+            <button type="button" onclick="window.location.href='{{ url_for('profile_bp.view_profile') }}'" class="duolingo-secondary">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<style>
+.edit-profile-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile-form {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.form-group label .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.form-text {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.error-messages {
+    margin-top: 5px;
+}
+
+.error {
+    color: #d32f2f;
+    font-size: 0.9em;
+    margin: 2px 0;
+}
+
+.current-picture {
+    margin-top: 15px;
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
+}
+
+.current-picture p {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.current-picture img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+</style>
+
+<script>
+// Character counter for bio
+document.addEventListener('DOMContentLoaded', function() {
+    const bioField = document.getElementById('bio');
+    const counterText = document.querySelector('.form-text');
+
+    if (bioField && counterText) {
+        bioField.addEventListener('input', function() {
+            const length = this.value.length;
+            counterText.textContent = `${length}/500 characters`;
+        });
+    }
+});
+</script>
+{% endblock %}
