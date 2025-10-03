@@ -39,23 +39,27 @@
             </div>
 
             <div class="form-group">
-                <label>Current Roles</label>
-                <div class="roles-display">
-                    {% if user.roles %}
-                        {% for role in user.roles %}
-                            {% if role.name == 'admin' %}
-                                <span class="role-badge role-badge-admin">{{ role.name }}</span>
-                            {% elif role.name == 'blogger' %}
-                                <span class="role-badge role-badge-moderator">{{ role.name }}</span>
-                            {% else %}
-                                <span class="role-badge role-badge-user">{{ role.name }}</span>
-                            {% endif %}
-                        {% endfor %}
-                    {% else %}
-                        <span class="no-roles">No roles assigned</span>
-                    {% endif %}
+                {{ form.roles.label }}
+                <div class="roles-checkboxes">
+                    {% for role_id, role_name in form.roles.choices %}
+                    <label class="role-toggle">
+                        <input type="checkbox"
+                               class="role-checkbox"
+                               name="roles"
+                               value="{{ role_id }}"
+                               id="role-{{ role_id }}"
+                               {% if role_id in form.roles.data %}checked{% endif %}>
+                        <span class="role-badge
+                                     {% if role_name == 'admin' %}role-badge-admin
+                                     {% elif role_name == 'blogger' %}role-badge-moderator
+                                     {% else %}role-badge-user{% endif %}
+                                     {% if role_id not in form.roles.data %}unchecked{% endif %}">
+                            {{ role_name }}
+                        </span>
+                    </label>
+                    {% endfor %}
                 </div>
-                <p class="help-text">Note: Role management coming soon</p>
+                <p class="help-text">Click role badges to toggle selection</p>
             </div>
 
             <div class="form-actions">
@@ -174,6 +178,38 @@
     margin: 0;
 }
 
+.roles-checkboxes {
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
+}
+
+.role-toggle {
+    display: inline-block;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.role-checkbox {
+    display: none;
+}
+
+.role-badge {
+    transition: opacity 0.2s, transform 0.1s;
+    cursor: pointer;
+    user-select: none;
+}
+
+.role-badge:hover {
+    transform: scale(1.05);
+}
+
+.role-badge.unchecked {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
 .form-actions {
     display: flex;
     gap: 10px;
@@ -195,4 +231,25 @@
     }
 }
 </style>
+
+<script>
+// Role badge toggle interaction
+document.addEventListener('DOMContentLoaded', function() {
+    const roleToggles = document.querySelectorAll('.role-toggle');
+
+    roleToggles.forEach(label => {
+        const checkbox = label.querySelector('.role-checkbox');
+        const badge = label.querySelector('.role-badge');
+
+        // Update badge state on checkbox change
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                badge.classList.remove('unchecked');
+            } else {
+                badge.classList.add('unchecked');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

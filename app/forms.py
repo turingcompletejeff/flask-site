@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SelectField, SubmitField, PasswordField, EmailField
+from wtforms import StringField, TextAreaField, SelectField, SubmitField, PasswordField, EmailField, SelectMultipleField
 from flask_wtf.file import FileField, FileAllowed
-from wtforms.validators import DataRequired, Email, ValidationError, Length, EqualTo
+from wtforms.validators import DataRequired, Email, ValidationError, Length, EqualTo, Optional
 import re
 
 class PhoneNumber:
@@ -62,6 +62,7 @@ class PasswordChangeForm(FlaskForm):
 class EditUserForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=50)])
     email = EmailField('Email', validators=[DataRequired(), Email()])
+    roles = SelectMultipleField('Roles', coerce=int, validators=[Optional()])
     submit = SubmitField('Save Changes')
 
 class CreateUserForm(FlaskForm):

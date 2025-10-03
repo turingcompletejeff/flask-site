@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, abort, request
+from flask import Blueprint, render_template, redirect, url_for, flash, abort, request, jsonify
 from flask_login import login_required, current_user
 from functools import wraps
 from app import db
@@ -39,6 +39,9 @@ def dashboard():
         users_query = User.query.order_by(User.created_at.desc())
         users, total_pages, current_page, has_prev, has_next = paginate_query(users_query, page, per_page)
 
+        # Get all roles for inline toggle
+        all_roles = Role.query.order_by(Role.name).all()
+
         # Calculate statistics
         total_users = User.query.count()
         total_admins = User.query.filter(User.roles.any(Role.name == 'admin')).count()
@@ -57,6 +60,7 @@ def dashboard():
 
         return render_template('admin_dashboard.html',
                              users=users,
+                             all_roles=all_roles,
                              stats=stats,
                              current_page=current_page,
                              total_pages=total_pages,
@@ -89,7 +93,10 @@ def edit_user(user_id):
             flash('You cannot edit your own account from here. Use your profile page.', 'warning')
             return redirect(url_for('admin_bp.dashboard'))
 
+        # Get all available roles
+        all_roles = Role.query.order_by(Role.name).all()
         form = EditUserForm()
+        form.roles.choices = [(r.id, r.name) for r in all_roles]
 
         if form.validate_on_submit():
             # Check if username is unique (excluding current user)
@@ -106,6 +113,25 @@ def edit_user(user_id):
 
             user.username = form.username.data
             user.email = form.email.data
+
+            # Update roles
+            selected_role_ids = form.roles.data
+
+            # Security check: Prevent removing last admin
+            admin_role = Role.query.filter_by(name='admin').first()
+            if user.has_role('admin') and admin_role and admin_role.id not in selected_role_ids:
+                admin_count = User.query.join(User.roles).filter(Role.name == 'admin').count()
+                if admin_count <= 1:
+                    flash('Cannot remove admin role from the last admin user.', 'danger')
+                    return render_template('admin_edit_user.html', form=form, user=user)
+
+            # Clear and reassign roles
+            user.roles = []
+            for role_id in selected_role_ids:
+                role = Role.query.get(role_id)
+                if role:
+                    user.roles.append(role)
+
             db.session.commit()
 
             flash(f'User {user.username} updated successfully!', 'success')
@@ -115,6 +141,7 @@ def edit_user(user_id):
         if request.method == 'GET':
             form.username.data = user.username
             form.email.data = user.email
+            form.roles.data = [r.id for r in user.roles]
 
         return render_template('admin_edit_user.html', form=form, user=user)
 
@@ -190,3 +217,51 @@ def delete_user(user_id):
         flash('Database error occurred while deleting user.', 'danger')
         print(f"Delete user error: {e}")
         return redirect(url_for('admin_bp.dashboard'))
+
+@admin_bp.route('/admin/users/<int:user_id>/toggle-role/<role_name>', methods=['POST'])
+@login_required
+@admin_required
+def toggle_user_role(user_id, role_name):
+    """Toggle a role for a user via AJAX"""
+    try:
+        user = User.query.get_or_404(user_id)
+        role = Role.query.filter_by(name=role_name).first_or_404()
+
+        has_role = user.has_role(role_name)
+
+        # Security: Prevent removing last admin
+        if has_role and role_name == 'admin':
+            admin_count = User.query.join(User.roles).filter(Role.name == 'admin').count()
+            if admin_count <= 1:
+                return jsonify({
+                    'success': False,
+                    'error': 'Cannot remove the last admin user'
+                }), 400
+
+        # Security: Prevent self-demotion
+        if user.id == current_user.id and has_role and role_name == 'admin':
+            return jsonify({
+                'success': False,
+                'error': 'Cannot remove your own admin role'
+            }), 400
+
+        # Toggle role
+        if has_role:
+            user.roles.remove(role)
+        else:
+            user.roles.append(role)
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'has_role': not has_role,
+            'role': role_name
+        })
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': 'Database error occurred'
+        }), 500

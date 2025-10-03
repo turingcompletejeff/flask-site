@@ -55,20 +55,25 @@
                         <td>{{ user.id }}</td>
                         <td>{{ user.username }}</td>
                         <td>{{ user.email }}</td>
-                        <td>
-                            {% if user.roles %}
-                                {% for role in user.roles %}
-                                    {% if role.name == 'admin' %}
-                                        <span class="role-badge role-badge-admin">{{ role.name }}</span>
-                                    {% elif role.name == 'blogger' %}
-                                        <span class="role-badge role-badge-moderator">{{ role.name }}</span>
-                                    {% else %}
-                                        <span class="role-badge role-badge-user">{{ role.name }}</span>
-                                    {% endif %}
-                                {% endfor %}
-                            {% else %}
-                                <span class="no-roles">No roles</span>
-                            {% endif %}
+                        <td class="roles-cell">
+                            {% for role in all_roles %}
+                                {% set has_role = user.has_role(role.name) %}
+                                <label class="role-toggle" title="Click to toggle {{ role.name }}">
+                                    <input type="checkbox"
+                                           class="role-checkbox"
+                                           data-user-id="{{ user.id }}"
+                                           data-role="{{ role.name }}"
+                                           data-csrf="{{ csrf_token() }}"
+                                           {% if has_role %}checked{% endif %}>
+                                    <span class="role-badge
+                                                 {% if role.name == 'admin' %}role-badge-admin
+                                                 {% elif role.name == 'blogger' %}role-badge-moderator
+                                                 {% else %}role-badge-user{% endif %}
+                                                 {% if not has_role %}unchecked{% endif %}">
+                                        {{ role.name }}
+                                    </span>
+                                </label>
+                            {% endfor %}
                         </td>
                         <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
                         <td class="actions-cell">
@@ -255,6 +260,48 @@
     font-style: italic;
 }
 
+/* Role Toggle Styles */
+.roles-cell {
+    min-width: 200px;
+}
+
+.role-toggle {
+    display: inline-block;
+    margin-right: 8px;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.role-checkbox {
+    display: none;
+}
+
+.role-badge {
+    transition: opacity 0.2s, transform 0.1s;
+    cursor: pointer;
+    user-select: none;
+}
+
+.role-badge:hover {
+    transform: scale(1.05);
+}
+
+.role-badge.unchecked {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+.role-badge.loading {
+    opacity: 0.6;
+    cursor: wait;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.8; }
+}
+
 /* Pagination */
 .pagination {
     display: flex;
@@ -362,5 +409,59 @@ window.onclick = function(event) {
         closeDeleteModal();
     }
 }
+
+// Role toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const roleCheckboxes = document.querySelectorAll('.role-checkbox');
+
+    roleCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', async function() {
+            const userId = this.dataset.userId;
+            const roleName = this.dataset.role;
+            const csrfToken = this.dataset.csrf;
+            const badge = this.nextElementSibling;
+
+            // Disable during request
+            this.disabled = true;
+            badge.classList.add('loading');
+
+            try {
+                const response = await fetch(`/admin/users/${userId}/toggle-role/${roleName}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update UI
+                    this.checked = data.has_role;
+                    if (data.has_role) {
+                        badge.classList.remove('unchecked');
+                    } else {
+                        badge.classList.add('unchecked');
+                    }
+
+                    // Show success feedback
+                    addFlashMessage('success', 'Role updated successfully');
+                } else {
+                    // Revert checkbox on error
+                    this.checked = !this.checked;
+                    addFlashMessage('danger', data.error || 'Failed to update role');
+                }
+            } catch (error) {
+                // Revert on network error
+                this.checked = !this.checked;
+                addFlashMessage('danger', 'Network error occurred');
+            } finally {
+                this.disabled = false;
+                badge.classList.remove('loading');
+            }
+        });
+    });
+});
 </script>
 {% endblock %}
