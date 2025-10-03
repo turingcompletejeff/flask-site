@@ -17,16 +17,21 @@ login_manager = LoginManager()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    
+
     # enable CSRF globally
     csrf.init_app(app)
     # Initialize Flask extensions
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    
+
     # register timezone filter
     register_filters(app)
+
+    # Ensure upload folders exist
+    import os
+    os.makedirs(app.config.get('PROFILE_UPLOAD_FOLDER', 'uploads/profiles'), exist_ok=True)
+    os.makedirs(app.config.get('UPLOAD_FOLDER', 'uploads/blog-posts'), exist_ok=True)
 
     # Register blueprints or routes
     from app.routes import main_bp

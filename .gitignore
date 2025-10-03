@@ -2,6 +2,7 @@ __pycache__/
 .env
 venv
 uploads/blog-posts/*
+uploads/profiles/*
 *claude*.md.claude.md
 .claude/memory.md
 *CLAUDE*.md

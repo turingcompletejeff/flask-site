@@ -22,6 +22,8 @@ def edit_profile():
     """Edit user profile information"""
     form = ProfileEditForm()
 
+    ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif'}
+
     if request.method == 'GET':
         # Pre-populate form with current user data
         form.email.data = current_user.email
@@ -38,25 +40,56 @@ def edit_profile():
         if form.profile_picture.data:
             profile_picture_file = form.profile_picture.data
 
-            # Get file extension
+            # Validate file has extension
+            if '.' not in profile_picture_file.filename:
+                flash('Invalid file format', 'danger')
+                return redirect(url_for('profile_bp.edit_profile'))
+
+            # Get and validate file extension
             file_extension = secure_filename(profile_picture_file.filename).rsplit('.', 1)[1].lower()
+            if file_extension not in ALLOWED_EXTENSIONS:
+                flash('Only JPG, PNG, and GIF files allowed', 'danger')
+                return redirect(url_for('profile_bp.edit_profile'))
 
             # Create filenames
             filename = f"{current_user.id}_profile.{file_extension}"
             thumbnailname = f"{current_user.id}_thumb.{file_extension}"
 
-            # Save original
-            file_path = os.path.join(current_app.config['PROFILE_UPLOAD_FOLDER'], filename)
-            profile_picture_file.save(file_path)
+            try:
+                # Delete old profile pictures if they exist
+                if current_user.profile_picture:
+                    # Remove old files with any extension
+                    for ext in ALLOWED_EXTENSIONS:
+                        old_profile = os.path.join(current_app.config['PROFILE_UPLOAD_FOLDER'],
+                                                   f"{current_user.id}_profile.{ext}")
+                        old_thumb = os.path.join(current_app.config['PROFILE_UPLOAD_FOLDER'],
+                                                f"{current_user.id}_thumb.{ext}")
+                        if os.path.exists(old_profile):
+                            os.remove(old_profile)
+                        if os.path.exists(old_thumb):
+                            os.remove(old_thumb)
 
-            # Create thumbnail (200x200)
-            img = Image.open(file_path)
-            img.thumbnail((200, 200))
-            thumb_path = os.path.join(current_app.config['PROFILE_UPLOAD_FOLDER'], thumbnailname)
-            img.save(thumb_path)
+                # Save original
+                file_path = os.path.join(current_app.config['PROFILE_UPLOAD_FOLDER'], filename)
+                profile_picture_file.save(file_path)
 
-            # Store thumbnail name in database
-            current_user.profile_picture = thumbnailname
+                # Create thumbnail (200x200)
+                img = Image.open(file_path)
+                img.thumbnail((200, 200))
+                thumb_path = os.path.join(current_app.config['PROFILE_UPLOAD_FOLDER'], thumbnailname)
+                img.save(thumb_path)
+
+                # Store thumbnail name in database
+                current_user.profile_picture = thumbnailname
+
+            except IOError as e:
+                current_app.logger.error(f'Profile picture upload failed: {e}')
+                flash('Failed to save profile picture. Please try again.', 'danger')
+                return redirect(url_for('profile_bp.edit_profile'))
+            except Exception as e:
+                current_app.logger.error(f'Unexpected error during profile picture upload: {e}')
+                flash('An error occurred. Please try again.', 'danger')
+                return redirect(url_for('profile_bp.edit_profile'))
 
         db.session.commit()
         flash('Profile updated successfully!', 'success')
