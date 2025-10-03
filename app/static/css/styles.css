@@ -50,17 +50,18 @@ ul[aria-label]::before {
 /* Header/banner styling */
 #banner {
     width: 100%;
-    height: 150px;
-    background-image: url('../img/banner.png');
+    height: 464px;
+    background-image: url(../img/yurt-banner.webp);
     background-color: hsl(145, 50%, 10%);
     background-size: cover;
-    background-position: center;
+    background-position-x: right;
+    background-position-y: top;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: inset 0px -7px 14px 5px hsl(124 35% 10%);
-    background-blend-mode: hard-light;
+    box-shadow: inset 0px -15px 26px 26px hsl(145, 50%, 10%);
+    background-blend-mode: difference;
 }
 
 .flash-messages {
