@@ -14,7 +14,7 @@ profile_bp = Blueprint('profile_bp', __name__)
 @login_required
 def view_profile():
     """Display user profile"""
-    return render_template('profile.html', user=current_user)
+    return render_template('profile.html', user=current_user, current_page='profile')
 
 @profile_bp.route('/profile/edit', methods=['GET', 'POST'])
 @login_required
@@ -95,7 +95,7 @@ def edit_profile():
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('profile_bp.view_profile'))
 
-    return render_template('edit_profile.html', form=form)
+    return render_template('edit_profile.html', form=form, current_page='profile')
 
 @profile_bp.route('/profile/change-password', methods=['GET', 'POST'])
 @login_required

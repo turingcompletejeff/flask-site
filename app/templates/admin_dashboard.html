@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1>Admin Dashboard</h1>
+
+    <!-- Users Widget -->
+    <div class="admin-widget">
+        <h2>User Management</h2>
+        <div class="widget-content">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.roles %}
+                                {% for role in user.roles %}
+                                    <span class="role-badge">{{ role.name }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="no-roles">No roles</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-container h1 {
+    color: #999;
+    margin-bottom: 30px;
+}
+
+.admin-widget {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.admin-widget h2 {
+    color: #444;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.widget-content {
+    background: white;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th {
+    background: #e0e0e0;
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+    color: #333;
+}
+
+.users-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+}
+
+.users-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    background: #4CAF50;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.85em;
+    margin-right: 5px;
+}
+
+.no-roles {
+    color: #999;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .users-table {
+        font-size: 0.9em;
+    }
+
+    .users-table th,
+    .users-table td {
+        padding: 8px;
+    }
+}
+</style>
+{% endblock %}
