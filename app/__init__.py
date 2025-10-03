@@ -6,7 +6,7 @@ from flask_login import LoginManager
 from config import Config
 from .filters import register_filters
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 db = SQLAlchemy()
 rcon = None
