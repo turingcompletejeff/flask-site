@@ -140,6 +140,9 @@ ul[aria-label]::before {
     padding: 15px;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    height: 300px;
 }
 
 .sidebar h2 {
@@ -172,6 +175,13 @@ ul[aria-label]::before {
 
 .sidebar ul li a:hover {
     color: #007BFF;
+}
+
+/* Admin nav anchored to bottom */
+.nav-admin {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 2px solid #333;
 }
 
 /* RIGHT sidebar menu (not always visible) */

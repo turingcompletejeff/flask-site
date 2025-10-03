@@ -46,6 +46,8 @@ def create_app():
     app.register_blueprint(health_bp)
     from app.routes_profile import profile_bp
     app.register_blueprint(profile_bp)
+    from app.routes_admin import admin_bp
+    app.register_blueprint(admin_bp)
 
     # Exempt health endpoint from CSRF (read-only, no auth required)
     csrf.exempt(health_bp)

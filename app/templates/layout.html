@@ -93,10 +93,10 @@
     <div class="main-content">
         <!-- Sidebar -->
         <nav class="sidebar">
-            <ul>
+            <ul class="nav-main">
 		{% if current_user.is_authenticated %}
 		<li>welcome, {{ current_user.username }}</li>
-		<li><a href="{{ url_for('profile_bp.view_profile') }}">profile</a></li>
+		<li class="{% if current_page == 'profile' %}selected{% endif %}"><a href="{{ url_for('profile_bp.view_profile') }}">profile</a></li>
 		<li><a href="{{ url_for('auth.logout') }}">logout</a></li>
 		{% else %}
 		<li><a href="{{ url_for('auth.login') }}">login</a></li>
@@ -109,6 +109,11 @@
                 <li class="{% if current_page == 'minecraf' %}selected{% endif %}"><a href="{{ url_for('mc_bp.index') }}">minecraf</a></li>
 		{% endif %}
             </ul>
+		{% if current_user.is_authenticated and current_user.is_admin() %}
+            <ul class="nav-admin">
+                <li class="{% if current_page == 'admin' %}selected{% endif %}"><a href="{{ url_for('admin_bp.dashboard') }}">admin</a></li>
+            </ul>
+		{% endif %}
         </nav>
 
         <!-- Main content area -->
