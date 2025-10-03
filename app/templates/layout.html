@@ -96,6 +96,7 @@
             <ul>
 		{% if current_user.is_authenticated %}
 		<li>welcome, {{ current_user.username }}</li>
+		<li><a href="{{ url_for('profile_bp.view_profile') }}">profile</a></li>
 		<li><a href="{{ url_for('auth.logout') }}">logout</a></li>
 		{% else %}
 		<li><a href="{{ url_for('auth.login') }}">login</a></li>

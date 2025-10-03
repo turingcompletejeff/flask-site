@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h1>Profile</h1>
+
+    <div class="profile-header">
+        <div class="profile-picture">
+            {% if user.profile_picture %}
+                <img src="/uploads/profiles/{{ user.profile_picture }}" alt="{{ user.username }}'s profile picture">
+            {% else %}
+                <div class="default-avatar">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="profile-info">
+            <h2>{{ user.username }}</h2>
+            <p class="profile-email">{{ user.email }}</p>
+            {% if user.bio %}
+                <p class="profile-bio">{{ user.bio }}</p>
+            {% else %}
+                <p class="profile-bio-empty">No bio added yet</p>
+            {% endif %}
+            <p class="profile-joined">Member since: {{ user.created_at.strftime('%B %d, %Y') }}</p>
+        </div>
+    </div>
+
+    <div class="profile-actions">
+        <button onclick="window.location.href='{{ url_for('profile_bp.edit_profile') }}'" class="duolingo-primary">Edit Profile</button>
+        <button onclick="window.location.href='{{ url_for('profile_bp.change_password') }}'" class="duolingo-secondary">Change Password</button>
+    </div>
+</div>
+
+<style>
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile-header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.profile-picture img {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.default-avatar {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.default-avatar .material-symbols-outlined {
+    font-size: 120px;
+    color: #999;
+}
+
+.profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.profile-info h2 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.profile-email {
+    color: #666;
+    margin: 5px 0;
+}
+
+.profile-bio {
+    margin: 15px 0;
+    line-height: 1.6;
+    color: #444;
+}
+
+.profile-bio-empty {
+    margin: 15px 0;
+    color: #999;
+    font-style: italic;
+}
+
+.profile-joined {
+    color: #888;
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 15px;
+}
+
+@media (max-width: 600px) {
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profile-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
