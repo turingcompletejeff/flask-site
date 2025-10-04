@@ -90,10 +90,17 @@
                         data-filename="{{ image.filename }}"
                         data-status="{% if image.in_use %}in-use{% else %}orphaned{% endif %}">
                         <td class="preview-cell">
+                            {% if image.path.startswith('app/static/') %}
+                            <img src="/{{ image.path.replace('app/static/', 'static/') }}"
+                                 alt="{{ image.filename }}"
+                                 class="image-thumbnail"
+                                 onclick="showImagePreview('/{{ image.path.replace('app/static/', 'static/') }}', '{{ image.filename }}')">
+                            {% else %}
                             <img src="/{{ image.path }}"
                                  alt="{{ image.filename }}"
                                  class="image-thumbnail"
                                  onclick="showImagePreview('/{{ image.path }}', '{{ image.filename }}')">
+                            {% endif %}
                         </td>
                         <td class="filename-cell">{{ image.filename }}</td>
                         <td>{{ image.size_kb }} KB</td>
