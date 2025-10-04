@@ -1,0 +1,180 @@
+{% extends "layout.html" %}
+
+{% block title %}Create User{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="breadcrumb">
+        <a href="{{ url_for('admin_bp.dashboard') }}">Dashboard</a> &gt; Create User
+    </div>
+
+    <h1>Create New User</h1>
+
+    <div class="form-container">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control", placeholder="Enter username") }}
+                {% if form.username.errors %}
+                    <div class="error-messages">
+                        {% for error in form.username.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control", placeholder="Enter email address") }}
+                {% if form.email.errors %}
+                    <div class="error-messages">
+                        {% for error in form.email.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="form-control", placeholder="Minimum 8 characters") }}
+                {% if form.password.errors %}
+                    <div class="error-messages">
+                        {% for error in form.password.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.confirm_password.label }}
+                {{ form.confirm_password(class="form-control", placeholder="Re-enter password") }}
+                {% if form.confirm_password.errors %}
+                    <div class="error-messages">
+                        {% for error in form.confirm_password.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="info-box">
+                <p><strong>Note:</strong> New users are created with no roles by default. You can assign roles after creation.</p>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="duolingo-secondary" onclick="window.location.href='{{ url_for('admin_bp.dashboard') }}'">
+                    Cancel
+                </button>
+                {{ form.submit(class="duolingo-success") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.breadcrumb {
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.breadcrumb a {
+    color: #1cb0f6;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.admin-container h1 {
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.form-container {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: #555;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #1cb0f6;
+}
+
+.error-messages {
+    margin-top: 8px;
+}
+
+.error {
+    color: #ff4b4b;
+    font-size: 0.9em;
+    margin: 5px 0;
+}
+
+.info-box {
+    background: #e3f2fd;
+    border-left: 4px solid #1cb0f6;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.info-box p {
+    margin: 0;
+    color: #555;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+    .form-container {
+        padding: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

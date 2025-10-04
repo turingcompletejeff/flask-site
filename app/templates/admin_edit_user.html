@@ -1,0 +1,255 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="breadcrumb">
+        <a href="{{ url_for('admin_bp.dashboard') }}">Dashboard</a> &gt; Edit User
+    </div>
+
+    <h1>Edit User: {{ user.username }}</h1>
+
+    <div class="form-container">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control") }}
+                {% if form.username.errors %}
+                    <div class="error-messages">
+                        {% for error in form.username.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(class="form-control") }}
+                {% if form.email.errors %}
+                    <div class="error-messages">
+                        {% for error in form.email.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.roles.label }}
+                <div class="roles-checkboxes">
+                    {% for role_id, role_name in form.roles.choices %}
+                    <label class="role-toggle">
+                        <input type="checkbox"
+                               class="role-checkbox"
+                               name="roles"
+                               value="{{ role_id }}"
+                               id="role-{{ role_id }}"
+                               {% if role_id in form.roles.data %}checked{% endif %}>
+                        <span class="role-badge
+                                     {% if role_name == 'admin' %}role-badge-admin
+                                     {% elif role_name == 'blogger' %}role-badge-moderator
+                                     {% else %}role-badge-user{% endif %}
+                                     {% if role_id not in form.roles.data %}unchecked{% endif %}">
+                            {{ role_name }}
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <p class="help-text">Click role badges to toggle selection</p>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="duolingo-secondary" onclick="window.location.href='{{ url_for('admin_bp.dashboard') }}'">
+                    Cancel
+                </button>
+                {{ form.submit(class="duolingo-success") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.breadcrumb {
+    color: #777;
+    margin-bottom: 20px;
+}
+
+.breadcrumb a {
+    color: #1cb0f6;
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.admin-container h1 {
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.form-container {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: #555;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #1cb0f6;
+}
+
+.error-messages {
+    margin-top: 8px;
+}
+
+.error {
+    color: #ff4b4b;
+    font-size: 0.9em;
+    margin: 5px 0;
+}
+
+.roles-display {
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.9em;
+    margin-right: 8px;
+}
+
+.role-badge-admin {
+    background: #ff4b4b;
+}
+
+.role-badge-moderator {
+    background: #1cb0f6;
+}
+
+.role-badge-user {
+    background: #58cc02;
+}
+
+.no-roles {
+    color: #999;
+    font-style: italic;
+}
+
+.help-text {
+    color: #777;
+    font-size: 0.9em;
+    margin: 0;
+}
+
+.roles-checkboxes {
+    padding: 10px;
+    background: white;
+    border-radius: 4px;
+}
+
+.role-toggle {
+    display: inline-block;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.role-checkbox {
+    display: none;
+}
+
+.role-badge {
+    transition: opacity 0.2s, transform 0.1s;
+    cursor: pointer;
+    user-select: none;
+}
+
+.role-badge:hover {
+    transform: scale(1.05);
+}
+
+.role-badge.unchecked {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+    .form-container {
+        padding: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+// Role badge toggle interaction
+document.addEventListener('DOMContentLoaded', function() {
+    const roleToggles = document.querySelectorAll('.role-toggle');
+
+    roleToggles.forEach(label => {
+        const checkbox = label.querySelector('.role-checkbox');
+        const badge = label.querySelector('.role-badge');
+
+        // Update badge state on checkbox change
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                badge.classList.remove('unchecked');
+            } else {
+                badge.classList.add('unchecked');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
