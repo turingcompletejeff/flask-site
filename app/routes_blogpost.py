@@ -46,8 +46,10 @@ def new_post():
         # Validate and process portrait file
         if portrait_file:
             # Security: Validate file type, size, and magic number
+            current_app.logger.info(f'Portrait upload attempt by user {current_user.id}: {portrait_file.filename}')
             is_valid, error_msg = validate_image_file(portrait_file)
             if not is_valid:
+                current_app.logger.warning(f'Portrait upload validation failed for user {current_user.id}: {error_msg}')
                 flash(f'Portrait upload failed: {error_msg}', 'danger')
                 return render_template('new_post.html', form=form)
 
@@ -59,23 +61,27 @@ def new_post():
             # Save original with error handling
             try:
                 portrait_file.save(file_path)
+                current_app.logger.info(f'Portrait saved successfully by user {current_user.id}: {filename}')
             except Exception as e:
+                current_app.logger.error(f'Portrait save error for user {current_user.id}: {e}')
                 flash(f'Error saving portrait image: {str(e)}', 'danger')
-                print(f"Portrait save error: {e}")
                 return render_template('new_post.html', form=form)
 
         # Handle thumbnail: custom upload takes priority, otherwise auto-generate
         if thumbnail_file:
             # Security: Validate custom thumbnail file
+            current_app.logger.info(f'Thumbnail upload attempt by user {current_user.id}: {thumbnail_file.filename}')
             is_valid, error_msg = validate_image_file(thumbnail_file)
             if not is_valid:
+                current_app.logger.warning(f'Thumbnail upload validation failed for user {current_user.id}: {error_msg}')
                 flash(f'Thumbnail upload failed: {error_msg}', 'danger')
                 # Clean up portrait if it was uploaded
                 if portrait_file and os.path.exists(file_path):
                     try:
                         os.remove(file_path)
-                    except OSError:
-                        pass
+                        current_app.logger.info(f'Cleaned up portrait after thumbnail failure: {filename}')
+                    except OSError as e:
+                        current_app.logger.error(f'Failed to cleanup portrait: {e}')
                 return render_template('new_post.html', form=form)
 
             # Custom thumbnail uploaded
@@ -89,15 +95,17 @@ def new_post():
                 img = Image.open(thumb_path)
                 img.thumbnail((300,300))
                 img.save(thumb_path)
+                current_app.logger.info(f'Thumbnail saved successfully by user {current_user.id}: {thumbnailname}')
             except Exception as e:
+                current_app.logger.error(f'Thumbnail processing error for user {current_user.id}: {e}')
                 flash(f'Error processing thumbnail: {str(e)}', 'danger')
-                print(f"Thumbnail processing error: {e}")
                 # Clean up uploaded files
                 if portrait_file and os.path.exists(file_path):
                     try:
                         os.remove(file_path)
-                    except OSError:
-                        pass
+                        current_app.logger.info(f'Cleaned up portrait after thumbnail processing failure: {filename}')
+                    except OSError as e:
+                        current_app.logger.error(f'Failed to cleanup portrait: {e}')
                 return render_template('new_post.html', form=form)
         elif portrait_file:
             # Auto-generate thumbnail from portrait
@@ -109,15 +117,17 @@ def new_post():
                 img = Image.open(file_path)
                 img.thumbnail((300,300))
                 img.save(thumb_path)
+                current_app.logger.info(f'Auto-generated thumbnail for user {current_user.id}: {thumbnailname}')
             except Exception as e:
+                current_app.logger.error(f'Thumbnail generation error for user {current_user.id}: {e}')
                 flash(f'Error generating thumbnail: {str(e)}', 'danger')
-                print(f"Thumbnail generation error: {e}")
                 # Clean up portrait
                 if os.path.exists(file_path):
                     try:
                         os.remove(file_path)
-                    except OSError:
-                        pass
+                        current_app.logger.info(f'Cleaned up portrait after thumbnail generation failure: {filename}')
+                    except OSError as e:
+                        current_app.logger.error(f'Failed to cleanup portrait: {e}')
                 return render_template('new_post.html', form=form)
         
         # Handle portrait resize parameters and merge with existing themap data

@@ -272,7 +272,25 @@ def toggle_user_role(user_id, role_name):
 @login_required
 @admin_required
 def manage_images():
-    """Image management widget - view and manage all uploaded images"""
+    """
+    Image management widget - view and manage all uploaded images.
+
+    Scans configured directories for image files and checks their usage
+    in the database (BlogPost, User models) and templates/CSS files.
+
+    Returns:
+        Rendered admin_images.html template with:
+            - images_by_directory: Dict of directory -> list of file info
+            - stats: Statistics (total images, orphaned count, sizes)
+
+    Requires:
+        - User must be authenticated (@login_required)
+        - User must have admin role (@admin_required)
+
+    Scanned directories:
+        - uploads/* (all subdirectories)
+        - app/static/img
+    """
     try:
         images_by_directory = {}
 
@@ -425,23 +443,42 @@ def manage_images():
 @login_required
 @admin_required
 def delete_image(image_path):
-    """Delete a specific image file"""
+    """
+    Delete a specific image file with comprehensive security validation.
+
+    Args:
+        image_path: Relative path to the image file
+
+    Returns:
+        Redirect to manage_images page with success or error message
+
+    Security:
+        - Validates path against traversal attacks
+        - Ensures file is within allowed directories
+        - Logs all deletion attempts for audit trail
+    """
+    # Log deletion attempt for security audit
+    current_app.logger.info(f'Image deletion requested by user {current_user.id} ({current_user.username}): {image_path}')
+
     try:
         # Security: Strict path validation - reject any path traversal attempts
         # Check for various path traversal patterns
         dangerous_patterns = ['..', '~', '//', '\\\\', '\x00']
         if any(pattern in image_path for pattern in dangerous_patterns):
+            current_app.logger.warning(f'Path traversal attempt detected by user {current_user.id}: {image_path}')
             flash('Invalid image path detected.', 'danger')
             return redirect(url_for('admin_bp.manage_images'))
 
         # Reject absolute paths
         if image_path.startswith('/') or (len(image_path) > 1 and image_path[1] == ':'):
+            current_app.logger.warning(f'Absolute path rejected for user {current_user.id}: {image_path}')
             flash('Invalid image path detected.', 'danger')
             return redirect(url_for('admin_bp.manage_images'))
 
         # Ensure the path is within allowed directories
         allowed_prefixes = ['uploads/', 'app/static/img/']
         if not any(image_path.startswith(prefix) for prefix in allowed_prefixes):
+            current_app.logger.warning(f'Path outside allowed directories for user {current_user.id}: {image_path}')
             flash('Invalid image path.', 'danger')
             return redirect(url_for('admin_bp.manage_images'))
 
@@ -463,28 +500,44 @@ def delete_image(image_path):
                     continue
 
             if not is_within_allowed:
+                current_app.logger.warning(f'Resolved path outside allowed directories for user {current_user.id}: {resolved_path}')
                 flash('Invalid image path.', 'danger')
                 return redirect(url_for('admin_bp.manage_images'))
         except (OSError, RuntimeError) as e:
+            current_app.logger.error(f'Path resolution failed for user {current_user.id}, path {image_path}: {e}')
             flash('Invalid image path.', 'danger')
             return redirect(url_for('admin_bp.manage_images'))
 
         # Security check: ensure file exists and is a file
-        if not file_path.exists() or not file_path.is_file():
+        if not file_path.exists():
+            current_app.logger.warning(f'File not found for deletion by user {current_user.id}: {image_path}')
             flash('Image not found.', 'danger')
             return redirect(url_for('admin_bp.manage_images'))
+
+        if not file_path.is_file():
+            current_app.logger.warning(f'Attempted to delete non-file by user {current_user.id}: {image_path}')
+            flash('Invalid file path.', 'danger')
+            return redirect(url_for('admin_bp.manage_images'))
+
+        # Get file info for logging before deletion
+        file_size = file_path.stat().st_size
+        file_name = file_path.name
 
         # Delete the file with error handling
         try:
             os.remove(file_path)
-            flash(f'Image {file_path.name} deleted successfully.', 'success')
+            current_app.logger.info(f'Image deleted successfully by user {current_user.id}: {image_path} ({file_size} bytes)')
+            flash(f'Image {file_name} deleted successfully.', 'success')
+        except PermissionError as e:
+            current_app.logger.error(f'Permission denied deleting image for user {current_user.id}: {image_path} - {e}')
+            flash('Permission denied: Unable to delete image.', 'danger')
         except OSError as e:
+            current_app.logger.error(f'OS error deleting image for user {current_user.id}: {image_path} - {e}')
             flash(f'Error deleting image: {str(e)}', 'danger')
-            print(f"Delete image error: {e}")
 
     except Exception as e:
-        flash(f'Error deleting image: {str(e)}', 'danger')
-        print(f"Delete image error: {e}")
+        current_app.logger.error(f'Unexpected error during image deletion for user {current_user.id}: {image_path} - {e}')
+        flash('An unexpected error occurred while deleting the image.', 'danger')
 
     return redirect(url_for('admin_bp.manage_images'))
 
@@ -492,7 +545,25 @@ def delete_image(image_path):
 @login_required
 @admin_required
 def purge_orphaned_images():
-    """Delete all orphaned images (not referenced in database)"""
+    """
+    Delete all orphaned images (not referenced in database).
+
+    Scans uploads directory and removes files that are not referenced
+    in any database model (BlogPost, User).
+
+    Returns:
+        Redirect to manage_images with success/error message
+
+    Requires:
+        - User must be authenticated (@login_required)
+        - User must have admin role (@admin_required)
+
+    Security:
+        - Only processes files in uploads directory
+        - Skips files referenced in BlogPost.portrait, BlogPost.thumbnail
+        - Skips files referenced in User.profile_picture
+        - Protects both thumbnail and original profile pictures
+    """
     try:
         uploads_dir = Path('uploads')
         deleted_count = 0
