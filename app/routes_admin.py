@@ -8,6 +8,8 @@ from app.utils.pagination import paginate_query
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
+import os
+from pathlib import Path
 
 # Create a blueprint for admin routes
 admin_bp = Blueprint('admin_bp', __name__)
@@ -265,3 +267,274 @@ def toggle_user_role(user_id, role_name):
             'success': False,
             'error': 'Database error occurred'
         }), 500
+
+@admin_bp.route('/admin/images')
+@login_required
+@admin_required
+def manage_images():
+    """Image management widget - view and manage all uploaded images"""
+    try:
+        images_by_directory = {}
+
+        # Define directories to scan
+        scan_directories = [
+            ('uploads', 'Uploads'),  # Will scan subdirectories
+            ('app/static/img', 'Static Images')  # Single directory
+        ]
+
+        # Scan uploads subdirectories
+        uploads_dir = Path('uploads')
+        if uploads_dir.exists():
+            for subdir in uploads_dir.iterdir():
+                if subdir.is_dir():
+                    dir_name = f"uploads/{subdir.name}"
+                    images_by_directory[dir_name] = []
+
+                    # List all image files in this directory
+                    for image_file in subdir.iterdir():
+                        if image_file.is_file():
+                            file_stat = image_file.stat()
+                            file_info = {
+                                'filename': image_file.name,
+                                'path': str(image_file),
+                                'size': file_stat.st_size,
+                                'size_kb': round(file_stat.st_size / 1024, 2),
+                                'modified': datetime.fromtimestamp(file_stat.st_mtime),
+                                'in_use': False,
+                                'used_by': []
+                            }
+                            images_by_directory[dir_name].append(file_info)
+
+        # Scan app/static/img directory
+        static_img_dir = Path('app/static/img')
+        if static_img_dir.exists():
+            dir_name = 'app/static/img'
+            images_by_directory[dir_name] = []
+
+            for image_file in static_img_dir.iterdir():
+                if image_file.is_file() and not image_file.name.startswith('.'):
+                    file_stat = image_file.stat()
+                    file_info = {
+                        'filename': image_file.name,
+                        'path': str(image_file),
+                        'size': file_stat.st_size,
+                        'size_kb': round(file_stat.st_size / 1024, 2),
+                        'modified': datetime.fromtimestamp(file_stat.st_mtime),
+                        'in_use': False,
+                        'used_by': []
+                    }
+                    images_by_directory[dir_name].append(file_info)
+
+        # Check database for image usage
+        # Check BlogPost table for blog-posts directory
+        if 'uploads/blog-posts' in images_by_directory:
+            blog_posts = BlogPost.query.all()
+            for post in blog_posts:
+                for image_info in images_by_directory['uploads/blog-posts']:
+                    filename = image_info['filename']
+                    # Check both portrait and thumbnail fields
+                    if post.portrait and filename in post.portrait:
+                        image_info['in_use'] = True
+                        image_info['used_by'].append(f'Post #{post.id}: {post.title}')
+                    if post.thumbnail and filename in post.thumbnail:
+                        image_info['in_use'] = True
+                        if f'Post #{post.id}: {post.title}' not in image_info['used_by']:
+                            image_info['used_by'].append(f'Post #{post.id}: {post.title}')
+
+        # Check User table for profiles directory
+        if 'uploads/profiles' in images_by_directory:
+            users = User.query.all()
+            for user in users:
+                for image_info in images_by_directory['uploads/profiles']:
+                    filename = image_info['filename']
+                    # Check if this is the thumbnail stored in database
+                    if user.profile_picture and filename in user.profile_picture:
+                        image_info['in_use'] = True
+                        image_info['used_by'].append(f'User #{user.id}: {user.username}')
+
+                        # Also mark the corresponding original profile picture as in use
+                        # Pattern: X_thumb.png -> X_profile.png
+                        if '_thumb.' in filename:
+                            original_filename = filename.replace('_thumb.', '_profile.')
+                            for orig_info in images_by_directory['uploads/profiles']:
+                                if orig_info['filename'] == original_filename:
+                                    orig_info['in_use'] = True
+                                    orig_info['used_by'].append(f'User #{user.id}: {user.username} (original)')
+                                    break
+
+        # Scan static images usage in templates and CSS files
+        if 'app/static/img' in images_by_directory:
+            # Scan all template files
+            template_dir = Path('app/templates')
+            static_css_dir = Path('app/static/css')
+
+            for image_info in images_by_directory['app/static/img']:
+                filename = image_info['filename']
+
+                # Search in templates
+                if template_dir.exists():
+                    for template_file in template_dir.rglob('*.html'):
+                        try:
+                            content = template_file.read_text()
+                            if filename in content:
+                                image_info['in_use'] = True
+                                image_info['used_by'].append(f'Template: {template_file.name}')
+                        except Exception:
+                            pass
+
+                # Search in CSS files
+                if static_css_dir.exists():
+                    for css_file in static_css_dir.rglob('*.css'):
+                        try:
+                            content = css_file.read_text()
+                            if filename in content:
+                                image_info['in_use'] = True
+                                if f'CSS: {css_file.name}' not in image_info['used_by']:
+                                    image_info['used_by'].append(f'CSS: {css_file.name}')
+                        except Exception:
+                            pass
+
+                # If no usage found, mark as potentially orphaned
+                if not image_info['in_use']:
+                    image_info['used_by'].append('⚠️ Not found in templates or CSS')
+
+        # Calculate statistics
+        total_images = sum(len(images) for images in images_by_directory.values())
+        total_orphaned = sum(1 for images in images_by_directory.values() for img in images if not img['in_use'])
+        total_size_kb = sum(img['size_kb'] for images in images_by_directory.values() for img in images)
+        orphaned_size_kb = sum(img['size_kb'] for images in images_by_directory.values() for img in images if not img['in_use'])
+
+        stats = {
+            'total_images': total_images,
+            'total_orphaned': total_orphaned,
+            'total_size_mb': round(total_size_kb / 1024, 2),
+            'orphaned_size_mb': round(orphaned_size_kb / 1024, 2)
+        }
+
+        return render_template('admin_images.html',
+                             images_by_directory=images_by_directory,
+                             stats=stats,
+                             page='admin')
+
+    except Exception as e:
+        flash('Error loading image management.', 'danger')
+        print(f"Image management error: {e}")
+        return redirect(url_for('admin_bp.dashboard'))
+
+@admin_bp.route('/admin/images/delete/<path:image_path>', methods=['POST'])
+@login_required
+@admin_required
+def delete_image(image_path):
+    """Delete a specific image file"""
+    try:
+        # Security: Validate path doesn't contain traversal attempts
+        if '..' in image_path or image_path.startswith('/'):
+            flash('Invalid image path.', 'danger')
+            return redirect(url_for('admin_bp.manage_images'))
+
+        # Ensure the path is within allowed directories
+        allowed_prefixes = ['uploads/', 'app/static/img/']
+        if not any(image_path.startswith(prefix) for prefix in allowed_prefixes):
+            flash('Invalid image path.', 'danger')
+            return redirect(url_for('admin_bp.manage_images'))
+
+        file_path = Path(image_path)
+
+        # Security check: resolve path and ensure it's still in allowed directory
+        try:
+            resolved_path = file_path.resolve()
+            allowed_dirs = [Path('uploads').resolve(), Path('app/static/img').resolve()]
+            if not any(str(resolved_path).startswith(str(allowed_dir)) for allowed_dir in allowed_dirs):
+                flash('Invalid image path.', 'danger')
+                return redirect(url_for('admin_bp.manage_images'))
+        except Exception:
+            flash('Invalid image path.', 'danger')
+            return redirect(url_for('admin_bp.manage_images'))
+
+        # Security check: ensure file exists and is a file
+        if not file_path.exists() or not file_path.is_file():
+            flash('Image not found.', 'danger')
+            return redirect(url_for('admin_bp.manage_images'))
+
+        # Delete the file with error handling
+        try:
+            os.remove(file_path)
+            flash(f'Image {file_path.name} deleted successfully.', 'success')
+        except OSError as e:
+            flash(f'Error deleting image: {str(e)}', 'danger')
+            print(f"Delete image error: {e}")
+
+    except Exception as e:
+        flash(f'Error deleting image: {str(e)}', 'danger')
+        print(f"Delete image error: {e}")
+
+    return redirect(url_for('admin_bp.manage_images'))
+
+@admin_bp.route('/admin/images/purge-orphaned', methods=['POST'])
+@login_required
+@admin_required
+def purge_orphaned_images():
+    """Delete all orphaned images (not referenced in database)"""
+    try:
+        uploads_dir = Path('uploads')
+        deleted_count = 0
+        deleted_size_kb = 0
+        errors = []
+
+        # Get all images in use from database (optimized - single query per table)
+        images_in_use = set()
+
+        # From BlogPost - get all at once
+        blog_posts = BlogPost.query.all()
+        for post in blog_posts:
+            if post.portrait:
+                images_in_use.add(os.path.basename(post.portrait))
+            if post.thumbnail:
+                images_in_use.add(os.path.basename(post.thumbnail))
+
+        # From User - get all at once
+        users = User.query.all()
+        for user in users:
+            if user.profile_picture:
+                thumb_filename = os.path.basename(user.profile_picture)
+                images_in_use.add(thumb_filename)
+
+                # Also protect the corresponding original profile picture
+                # Pattern: X_thumb.png -> X_profile.png
+                if '_thumb.' in thumb_filename:
+                    original_filename = thumb_filename.replace('_thumb.', '_profile.')
+                    images_in_use.add(original_filename)
+
+        # Scan and delete orphaned files
+        if uploads_dir.exists():
+            for subdir in uploads_dir.iterdir():
+                if subdir.is_dir():
+                    for image_file in subdir.iterdir():
+                        if image_file.is_file():
+                            # Re-check just before deletion to minimize race condition
+                            filename = image_file.name
+                            if filename not in images_in_use:
+                                try:
+                                    file_size = image_file.stat().st_size
+                                    os.remove(image_file)
+                                    deleted_count += 1
+                                    deleted_size_kb += file_size / 1024
+                                except OSError as e:
+                                    errors.append(f'{filename}: {str(e)}')
+
+        # Report results
+        if deleted_count > 0:
+            flash(f'Purged {deleted_count} orphaned images ({round(deleted_size_kb / 1024, 2)} MB freed).', 'success')
+        else:
+            flash('No orphaned images found to purge.', 'info')
+
+        if errors:
+            flash(f'Errors occurred while deleting {len(errors)} file(s).', 'warning')
+            for error in errors[:5]:  # Show first 5 errors
+                print(f"Purge error: {error}")
+
+    except Exception as e:
+        flash(f'Error purging orphaned images: {str(e)}', 'danger')
+        print(f"Purge orphaned images error: {e}")
+
+    return redirect(url_for('admin_bp.manage_images'))

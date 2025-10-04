@@ -1,0 +1,422 @@
+{% extends "layout.html" %}
+
+{% block title %}Image Management{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1>Image Management</h1>
+
+    <!-- Back to Dashboard Button -->
+    <div style="margin-bottom: 20px;">
+        <button type="button" class="duolingo-secondary" onclick="window.location.href='{{ url_for('admin_bp.dashboard') }}'">
+            ← Back to Dashboard
+        </button>
+    </div>
+
+    <!-- Statistics Widget -->
+    <div class="admin-widget">
+        <h2>Statistics</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_images }}</div>
+                <div class="stat-label">Total Images</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orphaned">{{ stats.total_orphaned }}</div>
+                <div class="stat-label">Orphaned Images</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.total_size_mb }} MB</div>
+                <div class="stat-label">Total Size</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value orphaned">{{ stats.orphaned_size_mb }} MB</div>
+                <div class="stat-label">Orphaned Size</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purge All Orphaned Images Button -->
+    {% if stats.total_orphaned > 0 %}
+    <div class="admin-widget">
+        <div class="widget-header">
+            <h2>Bulk Actions</h2>
+            <button type="button" class="duolingo-danger" onclick="confirmPurgeOrphaned()">
+                Purge All Orphaned Images ({{ stats.total_orphaned }})
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Images by Directory -->
+    {% for directory, images in images_by_directory.items() %}
+    <div class="admin-widget">
+        <div class="widget-header">
+            <h2>{{ directory }}/ Directory</h2>
+            <span class="directory-count">{{ images|length }} file(s)</span>
+        </div>
+        <div class="widget-content">
+            {% if images %}
+            <table class="images-table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Size</th>
+                        <th>Modified</th>
+                        <th>Status</th>
+                        <th>Used By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for image in images %}
+                    <tr class="{% if not image.in_use %}orphaned-row{% endif %}">
+                        <td class="filename-cell">{{ image.filename }}</td>
+                        <td>{{ image.size_kb }} KB</td>
+                        <td>{{ image.modified.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if image.in_use %}
+                                <span class="status-badge status-in-use">In Use</span>
+                            {% else %}
+                                <span class="status-badge status-orphaned">Orphaned</span>
+                            {% endif %}
+                        </td>
+                        <td class="used-by-cell">
+                            {% if image.used_by %}
+                                {% for usage in image.used_by %}
+                                    <div class="usage-item">{{ usage }}</div>
+                                {% endfor %}
+                            {% else %}
+                                <span class="no-usage">Not in use</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="button" class="duolingo-danger action-btn"
+                                    onclick="confirmDeleteImage('{{ image.path }}', '{{ image.filename }}', {{ 'true' if image.in_use else 'false' }})">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="no-images">No images found in this directory.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if not images_by_directory %}
+    <div class="admin-widget">
+        <p class="no-images">No upload directories found.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Image Confirmation Modal -->
+<div id="deleteImageModal" class="modal">
+    <div class="modal-content">
+        <h3>Confirm Delete</h3>
+        <p>Are you sure you want to delete image <strong id="deleteImageName"></strong>?</p>
+        <p id="inUseWarning" class="warning-text" style="display:none;">⚠️ WARNING: This image is currently in use!</p>
+        <p class="warning-text">This action cannot be undone.</p>
+        <form id="deleteImageForm" method="POST" action="">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-actions">
+                <button type="button" class="duolingo-secondary" onclick="closeDeleteImageModal()">Cancel</button>
+                <button type="submit" class="duolingo-danger">Confirm Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Purge Orphaned Images Confirmation Modal -->
+<div id="purgeOrphanedModal" class="modal">
+    <div class="modal-content">
+        <h3>Confirm Purge All Orphaned Images</h3>
+        <p>Are you sure you want to delete <strong>ALL {{ stats.total_orphaned }} orphaned images</strong>?</p>
+        <p class="info-text">This will free up {{ stats.orphaned_size_mb }} MB of disk space.</p>
+        <p class="warning-text">This action cannot be undone.</p>
+        <form id="purgeOrphanedForm" method="POST" action="{{ url_for('admin_bp.purge_orphaned_images') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-actions">
+                <button type="button" class="duolingo-secondary" onclick="closePurgeOrphanedModal()">Cancel</button>
+                <button type="submit" class="duolingo-danger">Confirm Purge All</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-container h1 {
+    color: #999;
+    margin-bottom: 30px;
+}
+
+.admin-widget {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.admin-widget h2 {
+    color: #444;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.widget-header h2 {
+    margin: 0;
+}
+
+.directory-count {
+    color: #666;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.widget-content {
+    background: white;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+/* Statistics Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #1cb0f6;
+    margin-bottom: 5px;
+}
+
+.stat-value.orphaned {
+    color: #ff4b4b;
+}
+
+.stat-label {
+    color: #777;
+    font-size: 0.9em;
+}
+
+/* Images Table */
+.images-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.images-table th {
+    background: #e0e0e0;
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+    color: #333;
+}
+
+.images-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e0e0e0;
+    color: #333;
+}
+
+.images-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.orphaned-row {
+    background: #fff5f5;
+}
+
+.orphaned-row:hover {
+    background: #ffe5e5;
+}
+
+.filename-cell {
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.used-by-cell {
+    max-width: 300px;
+}
+
+.usage-item {
+    padding: 2px 0;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.no-usage {
+    color: #999;
+    font-style: italic;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.status-in-use {
+    background: #58cc02;
+    color: white;
+}
+
+.status-orphaned {
+    background: #ff4b4b;
+    color: white;
+}
+
+.action-btn {
+    padding: 5px 12px;
+    font-size: 0.9em;
+}
+
+.no-images {
+    color: #999;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.warning-text {
+    color: #ff4b4b;
+    font-weight: 500;
+}
+
+.info-text {
+    color: #1cb0f6;
+    font-weight: 500;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .images-table {
+        font-size: 0.85em;
+    }
+
+    .images-table th,
+    .images-table td {
+        padding: 8px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .widget-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+</style>
+
+<script>
+function confirmDeleteImage(imagePath, imageName, inUse) {
+    const modal = document.getElementById('deleteImageModal');
+    const deleteForm = document.getElementById('deleteImageForm');
+    const imageNameSpan = document.getElementById('deleteImageName');
+    const inUseWarning = document.getElementById('inUseWarning');
+
+    imageNameSpan.textContent = imageName;
+    deleteForm.action = `/admin/images/delete/${imagePath}`;
+
+    if (inUse) {
+        inUseWarning.style.display = 'block';
+    } else {
+        inUseWarning.style.display = 'none';
+    }
+
+    modal.style.display = 'block';
+}
+
+function closeDeleteImageModal() {
+    document.getElementById('deleteImageModal').style.display = 'none';
+}
+
+function confirmPurgeOrphaned() {
+    const modal = document.getElementById('purgeOrphanedModal');
+    modal.style.display = 'block';
+}
+
+function closePurgeOrphanedModal() {
+    document.getElementById('purgeOrphanedModal').style.display = 'none';
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const deleteModal = document.getElementById('deleteImageModal');
+    const purgeModal = document.getElementById('purgeOrphanedModal');
+
+    if (event.target == deleteModal) {
+        closeDeleteImageModal();
+    }
+    if (event.target == purgeModal) {
+        closePurgeOrphanedModal();
+    }
+}
+</script>
+{% endblock %}
