@@ -55,11 +55,27 @@
             <h2>{{ directory }}/ Directory</h2>
             <span class="directory-count">{{ images|length }} file(s)</span>
         </div>
+
+        <!-- Search and Filter Controls -->
+        <div class="filter-controls">
+            <input type="text"
+                   class="search-input"
+                   placeholder="Search by filename..."
+                   onkeyup="filterImages(this, '{{ directory }}')"
+                   id="search-{{ directory }}">
+            <select class="filter-select" onchange="filterByStatus(this, '{{ directory }}')">
+                <option value="all">All Images</option>
+                <option value="in-use">In Use Only</option>
+                <option value="orphaned">Orphaned Only</option>
+            </select>
+        </div>
+
         <div class="widget-content">
             {% if images %}
-            <table class="images-table">
+            <table class="images-table" id="table-{{ directory }}">
                 <thead>
                     <tr>
+                        <th>Preview</th>
                         <th>Filename</th>
                         <th>Size</th>
                         <th>Modified</th>
@@ -70,7 +86,15 @@
                 </thead>
                 <tbody>
                     {% for image in images %}
-                    <tr class="{% if not image.in_use %}orphaned-row{% endif %}">
+                    <tr class="{% if not image.in_use %}orphaned-row{% endif %} image-row"
+                        data-filename="{{ image.filename }}"
+                        data-status="{% if image.in_use %}in-use{% else %}orphaned{% endif %}">
+                        <td class="preview-cell">
+                            <img src="/{{ image.path }}"
+                                 alt="{{ image.filename }}"
+                                 class="image-thumbnail"
+                                 onclick="showImagePreview('/{{ image.path }}', '{{ image.filename }}')">
+                        </td>
                         <td class="filename-cell">{{ image.filename }}</td>
                         <td>{{ image.size_kb }} KB</td>
                         <td>{{ image.modified.strftime('%Y-%m-%d %H:%M') }}</td>
@@ -145,6 +169,17 @@
                 <button type="submit" class="duolingo-danger">Confirm Purge All</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div id="imagePreviewModal" class="modal">
+    <div class="modal-content modal-large">
+        <span class="modal-close" onclick="closeImagePreview()">&times;</span>
+        <h3 id="previewImageName"></h3>
+        <div class="image-preview-container">
+            <img id="previewImage" src="" alt="Image Preview">
+        </div>
     </div>
 </div>
 
@@ -309,6 +344,77 @@
     padding: 20px;
 }
 
+/* Filter Controls */
+.filter-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 0 15px;
+}
+
+.search-input,
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.search-input {
+    flex: 1;
+    max-width: 400px;
+}
+
+.filter-select {
+    min-width: 150px;
+}
+
+/* Image Preview */
+.preview-cell {
+    width: 60px;
+    text-align: center;
+}
+
+.image-thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.image-thumbnail:hover {
+    transform: scale(1.1);
+}
+
+.modal-large {
+    max-width: 800px;
+}
+
+.modal-close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: #000;
+}
+
+.image-preview-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.image-preview-container img {
+    max-width: 100%;
+    max-height: 600px;
+    border-radius: 8px;
+}
+
 /* Modal Styles */
 .modal {
     display: none;
@@ -406,16 +512,66 @@ function closePurgeOrphanedModal() {
     document.getElementById('purgeOrphanedModal').style.display = 'none';
 }
 
+function showImagePreview(imagePath, imageName) {
+    const modal = document.getElementById('imagePreviewModal');
+    const previewImage = document.getElementById('previewImage');
+    const previewName = document.getElementById('previewImageName');
+
+    previewImage.src = imagePath;
+    previewName.textContent = imageName;
+    modal.style.display = 'block';
+}
+
+function closeImagePreview() {
+    document.getElementById('imagePreviewModal').style.display = 'none';
+}
+
+function filterImages(input, directory) {
+    const filter = input.value.toLowerCase();
+    const tableId = 'table-' + directory;
+    const table = document.getElementById(tableId);
+    const rows = table.getElementsByClassName('image-row');
+
+    for (let i = 0; i < rows.length; i++) {
+        const filename = rows[i].getAttribute('data-filename').toLowerCase();
+        if (filename.includes(filter)) {
+            rows[i].style.display = '';
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
+}
+
+function filterByStatus(select, directory) {
+    const status = select.value;
+    const tableId = 'table-' + directory;
+    const table = document.getElementById(tableId);
+    const rows = table.getElementsByClassName('image-row');
+
+    for (let i = 0; i < rows.length; i++) {
+        const rowStatus = rows[i].getAttribute('data-status');
+        if (status === 'all' || rowStatus === status) {
+            rows[i].style.display = '';
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
+}
+
 // Close modals when clicking outside
 window.onclick = function(event) {
     const deleteModal = document.getElementById('deleteImageModal');
     const purgeModal = document.getElementById('purgeOrphanedModal');
+    const previewModal = document.getElementById('imagePreviewModal');
 
     if (event.target == deleteModal) {
         closeDeleteImageModal();
     }
     if (event.target == purgeModal) {
         closePurgeOrphanedModal();
+    }
+    if (event.target == previewModal) {
+        closeImagePreview();
     }
 }
 </script>
