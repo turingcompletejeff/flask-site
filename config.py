@@ -17,7 +17,7 @@ class Config:
   REGISTRATION_ENABLED = os.environ.get('REGISTRATION_ENABLED', 'True') == 'True'
   BLOG_POST_UPLOAD_FOLDER = os.path.join(os.getcwd(),'uploads/blog-posts')
   PROFILE_UPLOAD_FOLDER = os.path.join(os.getcwd(),'uploads/profiles')
-  MAX_CONTENT_LENGTH = 15 * 1024 * 1024 # 15MB limit
+  MAX_CONTENT_LENGTH = 5 * 1024 * 1024 # 5MB limit (security: prevent DoS attacks)
   TIMEZONE = "America/New_York"
   ADMIN_EMAIL = "turingcompletejeff@gmail.com"
   MAIL_SERVER = "smtp.gmail.com"

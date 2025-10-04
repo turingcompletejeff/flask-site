@@ -9,6 +9,7 @@ from app import db
 from app.models import BlogPost
 from app.forms import BlogPostForm
 from app.auth_decorators import require_any_role
+from app.utils.file_validation import validate_image_file, sanitize_filename
 
 # Create a blueprint for main routes
 blogpost_bp = Blueprint('blogpost_bp', __name__)
@@ -42,34 +43,82 @@ def new_post():
         filename = None
         thumbnailname = None
 
+        # Validate and process portrait file
         if portrait_file:
-            # ensure a safe filename
-            filename = secure_filename(portrait_file.filename)
+            # Security: Validate file type, size, and magic number
+            is_valid, error_msg = validate_image_file(portrait_file)
+            if not is_valid:
+                flash(f'Portrait upload failed: {error_msg}', 'danger')
+                return render_template('new_post.html', form=form)
+
+            # Sanitize and secure the filename
+            safe_filename_str = sanitize_filename(portrait_file.filename)
+            filename = secure_filename(safe_filename_str)
             file_path = os.path.join(current_app.config['BLOG_POST_UPLOAD_FOLDER'], filename)
 
-            # save original
-            portrait_file.save(file_path)
+            # Save original with error handling
+            try:
+                portrait_file.save(file_path)
+            except Exception as e:
+                flash(f'Error saving portrait image: {str(e)}', 'danger')
+                print(f"Portrait save error: {e}")
+                return render_template('new_post.html', form=form)
 
         # Handle thumbnail: custom upload takes priority, otherwise auto-generate
         if thumbnail_file:
+            # Security: Validate custom thumbnail file
+            is_valid, error_msg = validate_image_file(thumbnail_file)
+            if not is_valid:
+                flash(f'Thumbnail upload failed: {error_msg}', 'danger')
+                # Clean up portrait if it was uploaded
+                if portrait_file and os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                return render_template('new_post.html', form=form)
+
             # Custom thumbnail uploaded
-            thumbnailname = f"custom_thumb_{secure_filename(thumbnail_file.filename)}"
+            safe_thumb_name = sanitize_filename(thumbnail_file.filename)
+            thumbnailname = f"custom_thumb_{secure_filename(safe_thumb_name)}"
             thumb_path = os.path.join(current_app.config['BLOG_POST_UPLOAD_FOLDER'], thumbnailname)
 
             # Save and resize custom thumbnail to 300x300
-            thumbnail_file.save(thumb_path)
-            img = Image.open(thumb_path)
-            img.thumbnail((300,300))
-            img.save(thumb_path)
+            try:
+                thumbnail_file.save(thumb_path)
+                img = Image.open(thumb_path)
+                img.thumbnail((300,300))
+                img.save(thumb_path)
+            except Exception as e:
+                flash(f'Error processing thumbnail: {str(e)}', 'danger')
+                print(f"Thumbnail processing error: {e}")
+                # Clean up uploaded files
+                if portrait_file and os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                return render_template('new_post.html', form=form)
         elif portrait_file:
             # Auto-generate thumbnail from portrait
             thumbnailname = f"thumb_{filename}"
-            img = Image.open(file_path)
-            img.thumbnail((300,300))
             thumb_path = os.path.join(
                 current_app.config['BLOG_POST_UPLOAD_FOLDER'],thumbnailname
             )
-            img.save(thumb_path)
+            try:
+                img = Image.open(file_path)
+                img.thumbnail((300,300))
+                img.save(thumb_path)
+            except Exception as e:
+                flash(f'Error generating thumbnail: {str(e)}', 'danger')
+                print(f"Thumbnail generation error: {e}")
+                # Clean up portrait
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                return render_template('new_post.html', form=form)
         
         # Handle portrait resize parameters and merge with existing themap data
         themap_data = {}

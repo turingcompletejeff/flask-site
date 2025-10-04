@@ -427,9 +427,16 @@ def manage_images():
 def delete_image(image_path):
     """Delete a specific image file"""
     try:
-        # Security: Validate path doesn't contain traversal attempts
-        if '..' in image_path or image_path.startswith('/'):
-            flash('Invalid image path.', 'danger')
+        # Security: Strict path validation - reject any path traversal attempts
+        # Check for various path traversal patterns
+        dangerous_patterns = ['..', '~', '//', '\\\\', '\x00']
+        if any(pattern in image_path for pattern in dangerous_patterns):
+            flash('Invalid image path detected.', 'danger')
+            return redirect(url_for('admin_bp.manage_images'))
+
+        # Reject absolute paths
+        if image_path.startswith('/') or (len(image_path) > 1 and image_path[1] == ':'):
+            flash('Invalid image path detected.', 'danger')
             return redirect(url_for('admin_bp.manage_images'))
 
         # Ensure the path is within allowed directories
@@ -442,12 +449,23 @@ def delete_image(image_path):
 
         # Security check: resolve path and ensure it's still in allowed directory
         try:
-            resolved_path = file_path.resolve()
+            resolved_path = file_path.resolve(strict=True)
             allowed_dirs = [Path('uploads').resolve(), Path('app/static/img').resolve()]
-            if not any(str(resolved_path).startswith(str(allowed_dir)) for allowed_dir in allowed_dirs):
+
+            # Verify resolved path is within allowed directories
+            is_within_allowed = False
+            for allowed_dir in allowed_dirs:
+                try:
+                    resolved_path.relative_to(allowed_dir)
+                    is_within_allowed = True
+                    break
+                except ValueError:
+                    continue
+
+            if not is_within_allowed:
                 flash('Invalid image path.', 'danger')
                 return redirect(url_for('admin_bp.manage_images'))
-        except Exception:
+        except (OSError, RuntimeError) as e:
             flash('Invalid image path.', 'danger')
             return redirect(url_for('admin_bp.manage_images'))
 
