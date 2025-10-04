@@ -6,6 +6,7 @@ import os
 from app import db
 from app.models import User
 from app.forms import ProfileEditForm, PasswordChangeForm
+from app.utils.file_validation import validate_image_file, sanitize_filename
 
 # Create a blueprint for profile routes
 profile_bp = Blueprint('profile_bp', __name__)
@@ -40,18 +41,17 @@ def edit_profile():
         if form.profile_picture.data:
             profile_picture_file = form.profile_picture.data
 
-            # Validate file has extension
-            if '.' not in profile_picture_file.filename:
-                flash('Invalid file format', 'danger')
+            # Security: Comprehensive file validation (MIME type, magic number, size)
+            is_valid, error_msg = validate_image_file(profile_picture_file)
+            if not is_valid:
+                flash(f'Profile picture upload failed: {error_msg}', 'danger')
                 return redirect(url_for('profile_bp.edit_profile'))
 
-            # Get and validate file extension
-            file_extension = secure_filename(profile_picture_file.filename).rsplit('.', 1)[1].lower()
-            if file_extension not in ALLOWED_EXTENSIONS:
-                flash('Only JPG, PNG, and GIF files allowed', 'danger')
-                return redirect(url_for('profile_bp.edit_profile'))
+            # Get sanitized extension
+            safe_name = sanitize_filename(profile_picture_file.filename)
+            file_extension = safe_name.rsplit('.', 1)[1].lower()
 
-            # Create filenames
+            # Create filenames based on user ID
             filename = f"{current_user.id}_profile.{file_extension}"
             thumbnailname = f"{current_user.id}_thumb.{file_extension}"
 
