@@ -1,6 +1,7 @@
 """File upload validation utilities for security"""
 import os
-import imghdr
+from io import BytesIO
+from PIL import Image
 from werkzeug.datastructures import FileStorage
 
 # Allowed image file extensions
@@ -73,20 +74,25 @@ def validate_image_file(file: FileStorage, max_size: int = MAX_IMAGE_SIZE) -> tu
         actual_mb = file_size / (1024 * 1024)
         return False, f"File too large ({actual_mb:.2f}MB). Maximum size: {max_mb:.0f}MB"
 
-    # Validate magic number (actual file type) using imghdr
-    # Read first chunk for magic number check
+    # Validate magic number (actual file type) using Pillow
+    # Read file content for validation
     file.seek(0)
-    header = file.read(512)
+    file_content = file.read()
     file.seek(0)  # Reset again for later use
 
-    # Detect actual image type from file header
-    detected_type = imghdr.what(None, h=header)
-
-    if not detected_type:
+    # Try to open as image and detect actual type
+    try:
+        img = Image.open(BytesIO(file_content))
+        detected_type = img.format.lower() if img.format else None
+        img.close()
+    except Exception:
         return False, "File does not appear to be a valid image"
 
+    if not detected_type:
+        return False, "Could not determine image type"
+
     # Map detected type to expected extension
-    # imghdr returns: 'jpeg', 'png', 'gif', 'webp', etc.
+    # PIL returns: 'JPEG', 'PNG', 'GIF', 'WEBP', etc. (we lowercased it)
     valid_types = {
         'jpeg': ['jpg', 'jpeg'],
         'png': ['png'],
