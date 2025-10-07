@@ -117,6 +117,10 @@ def app():
     with test_app.app_context():
         yield test_app
 
+        # Close database connections before cleanup
+        _db.session.remove()
+        _db.engine.dispose()
+
     # Cleanup upload directories after tests
     import shutil
     for folder in [test_app.config['BLOG_POST_UPLOAD_FOLDER'],
@@ -147,13 +151,18 @@ def db(app):
 
         yield _db
 
+        # Cleanup: remove session and close connections
         _db.session.remove()
+
         # Drop tables in reverse order
         MinecraftCommand.__table__.drop(_db.engine, checkfirst=True)
         BlogPost.__table__.drop(_db.engine, checkfirst=True)
         role_assignments.drop(_db.engine, checkfirst=True)
         Role.__table__.drop(_db.engine, checkfirst=True)
         User.__table__.drop(_db.engine, checkfirst=True)
+
+        # Dispose of engine connections
+        _db.engine.dispose()
 
 
 @pytest.fixture(scope='function')
@@ -405,8 +414,11 @@ def csrf_app():
         # MinecraftCommand now uses StringArray type (JSON for SQLite, ARRAY for PostgreSQL)
         _db.create_all()
         yield test_app
+
+        # Cleanup: remove session, drop tables, dispose connections
         _db.session.remove()
         _db.drop_all()
+        _db.engine.dispose()
 
     # Restore original TESTING flag
     if old_testing:
