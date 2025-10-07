@@ -2,6 +2,10 @@
 
 {% block title %}{{ post.title }}{% endblock %}
 
+{% block js %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/blog-editor.css') }}">
+{% endblock %}
+
 {% block content %}
 
 <div class="blog-post">
@@ -26,20 +30,20 @@
         {% endif %}
       {% endif %}
 
-      <div id="portrait-resize-controls" style="margin-top: 10px;">
+      <div id="portrait-resize-controls" class="visible">
         <label class="form__label">Portrait Display Options:</label>
-        <div style="margin: 10px 0;">
+        <div class="portrait-option-group">
           <label>
             <input type="radio" name="portrait_display" value="auto" {% if current_display_mode == "auto" %}checked{% endif %}>
             Auto (original size, up to 100% of its container)
           </label>
         </div>
-        <div style="margin: 10px 0;">
+        <div class="portrait-option-group">
           <label>
             <input type="radio" name="portrait_display" value="custom" {% if current_display_mode == "custom" %}checked{% endif %}>
             Custom size
           </label>
-          <div id="custom-size-controls" style="{% if current_display_mode != 'custom' %}display: none; {% endif %}margin-left: 20px;">
+          <div id="custom-size-controls" {% if current_display_mode == 'custom' %}class="visible"{% endif %}>
             <label>Max width:
               <input type="range" name="portrait_max_width" min="5" max="100" value="{{ current_width_pct }}" step="5">
               <span id="width-display">{{ current_width_pct }}</span>% of container
@@ -58,7 +62,7 @@
         {% endif %}
       {% endif %}
 
-      <div id="image-preview" style="margin-top: 15px; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;">
+      <div id="image-preview" class="visible">
         <label class="form__label">Preview (as it will appear in view):</label>
         <img id="preview-image" class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}"
              {% if portrait_style %}style="{{ portrait_style }}"{% endif %} />
@@ -68,11 +72,11 @@
     <hr />
     <div class="blog-post-timestamps form-actions">
       {% if post.is_draft %}
-        {{ form.publish(class_="duolingo-success") }}
+        {{ form.publish(class_="clicky-success") }}
       {% else %}
-        <button type="submit" name="publish" class="duolingo-primary">Update Post</button>
+        <button type="submit" name="publish" class="clicky-primary">Update Post</button>
       {% endif %}
-      {{ form.save_draft(class_="duolingo-draft") }}
+      {{ form.save_draft(class_="clicky-draft") }}
       <small >Posted on {{ post.date_posted.strftime('%Y-%m-%d') }}</small>
       {% if post.hasEdits() %}
       <small class="blog-post-edited">Edited on {{ post.last_updated|localtime }}</small>
@@ -106,9 +110,9 @@ $(document).ready(function() {
   // Toggle custom size controls and update preview
   $('input[name="portrait_display"]').on('change', function() {
     if ($(this).val() === 'custom') {
-      customControls.show();
+      customControls.addClass('visible');
     } else {
-      customControls.hide();
+      customControls.removeClass('visible');
     }
     updatePreviewStyling();
   });

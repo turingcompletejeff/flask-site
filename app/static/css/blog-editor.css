@@ -1,0 +1,44 @@
+/* Blog Post Editor Styles (new_post.html and edit_post.html) */
+
+/* Portrait resize controls */
+#portrait-resize-controls {
+    display: none;
+    margin-top: 10px;
+}
+
+#portrait-resize-controls.visible {
+    display: block;
+}
+
+/* Portrait display option groups */
+.portrait-option-group {
+    margin: 10px 0;
+}
+
+/* Custom size controls */
+#custom-size-controls {
+    display: none;
+    margin-left: 20px;
+}
+
+#custom-size-controls.visible {
+    display: block;
+}
+
+/* Image preview container */
+#image-preview {
+    display: none;
+    margin-top: 15px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+#image-preview.visible {
+    display: block;
+}
+
+/* Preview image styling */
+#preview-image {
+    /* Inherits blog-portrait class from main styles */
+}
