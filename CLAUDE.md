@@ -25,8 +25,8 @@ Optional:
 - Use Blueprint pattern for route organization
 - Always use environment variables for secrets (never hardcode)
 - Database migrations: Use Flask-Migrate (flask db migrate/upgrade)
-- Button styling: Use duolingo-buttons.css classes consistently
-  - Available classes: duolingo-primary, duolingo-success, duolingo-secondary, duolingo-draft, duolingo-danger
+- Button styling: Use clicky-buttons.css classes consistently
+  - Available classes: clicky-primary, clicky-success, clicky-secondary, clicky-draft, clicky-danger
   - Primary: Default actions
   - Success: Publish/confirm actions
   - Secondary: Cancel/back actions
@@ -42,7 +42,7 @@ Optional:
   - Drafts visible only to authenticated users in blog listing
   - Public users cannot see draft posts
   - Use dual submit buttons: "Save as Draft" and "Publish"
-  - Draft button uses duolingo-draft class, Publish uses duolingo-success
+  - Draft button uses clicky-draft class, Publish uses clicky-success
   - Edit form supports both save modes via different submit buttons
 
 ## Database Models
@@ -363,11 +363,11 @@ pytest tests/test_models.py::TestUser::test_user_creation -v
 - Cannot use Jinja2 syntax in HTML attribute values (e.g., `value="{{ ... }}"`)
 - Use conditional blocks outside the element instead
 - Always test forms after adding dual submit buttons
-- Use duolingo button classes: `duolingo-primary`, `duolingo-success`, `duolingo-secondary`, `duolingo-draft`, `duolingo-danger`
+- Use clicky button classes: `clicky-primary`, `clicky-success`, `clicky-secondary`, `clicky-draft`, `clicky-danger`
 - **Button elements**: Use `<button>` tags instead of `<a>` tags for better styling
   - For navigation: `<button type="button" onclick="window.location.href='{{ url_for(...) }}'">Text</button>`
   - For form submissions: `<button type="submit">Text</button>`
-  - Avoid `<a href="..." class="duolingo-*">` as it renders with link styling instead of button styling
+  - Avoid `<a href="..." class="clicky-*">` as it renders with link styling instead of button styling
 
 ---
 

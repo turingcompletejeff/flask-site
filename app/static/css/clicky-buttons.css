@@ -1,9 +1,12 @@
-/* Duolingo-Style Button Implementation for TC-8
-   Based on: https://medium.com/@lilskyjuicebytes/clone-the-ui-1-replicating-duolingos-button-in-pure-css-bd37a97edb7e
-*/
+/* ============================================
+   CLICKY BUTTONS - 3D TACTILE BUTTON SYSTEM
+   ============================================
+   Inspired by modern UI design with 3D click effects
+   Features: Smooth transitions, shadow-based depth, active press states
+   ============================================ */
 
-/* PRIMARY BUTTON STYLE - For main contact form submit button */
-.duolingo-primary {
+/* PRIMARY BUTTON STYLE - For main actions */
+.clicky-primary {
     background: var(--primary);
     color: var(--bg-light);
     font-weight: 800;
@@ -18,17 +21,17 @@
     transition: all 0.1s ease;
 }
 
-.duolingo-primary:active {
+.clicky-primary:active {
     box-shadow: none;
     transform: translateY(4px);
 }
 
-.duolingo-primary:hover:not(:active) {
+.clicky-primary:hover:not(:active) {
     background: oklch(from var(--primary) calc(l + 0.05) c h);
 }
 
 /* SECONDARY BUTTON STYLE - For cancel/secondary actions */
-.duolingo-secondary {
+.clicky-secondary {
     background-color: var(--bg-light);
     color: var(--text);
     border-radius: 15px;
@@ -42,13 +45,13 @@
     transition: all 0.1s ease;
 }
 
-.duolingo-secondary:hover {
+.clicky-secondary:hover {
     background-color: var(--bg);
     box-shadow: 0 2px 0 var(--border);
     border: 2px solid var(--border);
 }
 
-.duolingo-secondary:active {
+.clicky-secondary:active {
     box-shadow: none;
     transform: translateY(2px);
     background-color: var(--bg);
@@ -56,7 +59,7 @@
 }
 
 /* SUCCESS/POSITIVE BUTTON - For positive actions */
-.duolingo-success {
+.clicky-success {
     background: var(--success);
     color: var(--bg-light);
     font-weight: 800;
@@ -70,17 +73,17 @@
     transition: all 0.1s ease;
 }
 
-.duolingo-success:active {
+.clicky-success:active {
     box-shadow: none;
     transform: translateY(4px);
 }
 
-.duolingo-success:hover:not(:active) {
+.clicky-success:hover:not(:active) {
     background: oklch(from var(--success) calc(l + 0.05) c h);
 }
 
-/* WARNING/DANGER BUTTON - For destructive actions */
-.duolingo-danger {
+/* DANGER BUTTON - For destructive actions */
+.clicky-danger {
     background: var(--danger);
     color: var(--bg-light);
     font-weight: 800;
@@ -94,36 +97,36 @@
     transition: all 0.1s ease;
 }
 
-.duolingo-danger:active {
+.clicky-danger:active {
     box-shadow: none;
     transform: translateY(4px);
 }
 
-.duolingo-danger:hover:not(:active) {
+.clicky-danger:hover:not(:active) {
     background: oklch(from var(--danger) calc(l + 0.05) c h);
 }
 
-/* DRAFT BUTTON - For draft/save actions (orange theme) */
-.duolingo-draft {
-    background: var(--warning);
-    color: var(--text);
+/* DRAFT BUTTON - For draft/save actions */
+.clicky-draft {
+    background: var(--draft);
+    color: var(--bg-light);
     font-weight: 800;
     height: 44px;
     cursor: pointer;
     border: none;
     border-radius: 15px;
-    box-shadow: 0 4px 0 oklch(from var(--warning) calc(l - 0.1) c h);
+    box-shadow: 0 4px 0 oklch(from var(--draft) calc(l - 0.1) c h);
     padding: 0 24px;
     font-size: 16px;
     transition: all 0.1s ease;
 }
 
-.duolingo-draft:active {
+.clicky-draft:active {
     box-shadow: none;
     transform: translateY(4px);
 }
 
-.duolingo-draft:hover:not(:active) {
+.clicky-draft:hover:not(:active) {
     background: oklch(from var(--warning) calc(l + 0.05) c h);
 }
 
@@ -144,20 +147,22 @@
 }
 
 /* DISABLED STATE */
-.duolingo-primary:disabled,
-.duolingo-secondary:disabled,
-.duolingo-success:disabled,
-.duolingo-danger:disabled {
+.clicky-primary:disabled,
+.clicky-secondary:disabled,
+.clicky-success:disabled,
+.clicky-danger:disabled,
+.clicky-draft:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     box-shadow: none;
     transform: none;
 }
 
-.duolingo-primary:disabled:hover,
-.duolingo-secondary:disabled:hover,
-.duolingo-success:disabled:hover,
-.duolingo-danger:disabled:hover {
+.clicky-primary:disabled:hover,
+.clicky-secondary:disabled:hover,
+.clicky-success:disabled:hover,
+.clicky-danger:disabled:hover,
+.clicky-draft:disabled:hover {
     filter: none;
     background-color: inherit;
 }

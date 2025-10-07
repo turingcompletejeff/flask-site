@@ -3,6 +3,10 @@
 
 {% block title %}New Post{% endblock %}
 
+{% block js %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/blog-editor.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="blog-post-strip">
   <h1 class="blog-header">create new post</h1>
@@ -28,20 +32,20 @@
               <span class="form__error">{{ error }}</span>
             {% endfor %}
 
-            <div id="portrait-resize-controls" style="display: none; margin-top: 10px;">
+            <div id="portrait-resize-controls">
               <label class="form__label">Portrait Display Options:</label>
-              <div style="margin: 10px 0;">
+              <div class="portrait-option-group">
                 <label>
                   <input type="radio" name="portrait_display" value="auto" checked>
                   Auto (original size, up to 100% of its container)
                 </label>
               </div>
-              <div style="margin: 10px 0;">
+              <div class="portrait-option-group">
                 <label>
                   <input type="radio" name="portrait_display" value="custom">
                   Custom size
                 </label>
-                <div id="custom-size-controls" style="display: none; margin-left: 20px;">
+                <div id="custom-size-controls">
                   <label>Max width:
                     <input type="range" name="portrait_max_width" min="5" max="100" value="100" step="5">
                     <span id="width-display">100</span>% of container
@@ -50,9 +54,9 @@
               </div>
 
               <!-- Image preview that matches view_post styling -->
-              <div id="image-preview" style="display: none; margin-top: 15px; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;">
+              <div id="image-preview">
                 <label class="form__label">Preview (as it will appear in view):</label>
-                <img id="preview-image" class="blog-portrait" style="" />
+                <img id="preview-image" class="blog-portrait" />
               </div>
             </div>
           </div>
@@ -80,9 +84,9 @@
       <hr />
 
       <div class="blog-post-actions form-actions">
-        {{ form.publish(class_="duolingo-success") }}
-        {{ form.save_draft(class_="duolingo-draft") }}
-        <a href="{{ url_for('main_bp.index') }}" class="duolingo-secondary">cancel</a>
+        {{ form.publish(class_="clicky-success") }}
+        {{ form.save_draft(class_="clicky-draft") }}
+	<button type="button" onclick="window.location.href='/'" class="clicky-secondary">Cancel</button>
       </div>
     </form>
   </div>
@@ -115,28 +119,28 @@ $(document).ready(function() {
   // Show resize controls and preview when an image is selected
   portraitInput.on('change', function() {
     if (this.files && this.files[0]) {
-      resizeControls.show();
+      resizeControls.addClass('visible');
 
       // Show image preview
       const reader = new FileReader();
       reader.onload = function(e) {
         previewImage.attr('src', e.target.result);
-        imagePreview.show();
+        imagePreview.addClass('visible');
         updatePreviewStyling();
       };
       reader.readAsDataURL(this.files[0]);
     } else {
-      resizeControls.hide();
-      imagePreview.hide();
+      resizeControls.removeClass('visible');
+      imagePreview.removeClass('visible');
     }
   });
 
   // Toggle custom size controls and update preview
   $('input[name="portrait_display"]').on('change', function() {
     if ($(this).val() === 'custom') {
-      customControls.show();
+      customControls.addClass('visible');
     } else {
-      customControls.hide();
+      customControls.removeClass('visible');
     }
     updatePreviewStyling();
   });
