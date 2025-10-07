@@ -10,6 +10,7 @@ from app.models import BlogPost
 from app.forms import BlogPostForm
 from app.auth_decorators import require_any_role
 from app.utils.file_validation import validate_image_file, sanitize_filename
+from app.utils.image_utils import delete_uploaded_images
 
 # Create a blueprint for main routes
 blogpost_bp = Blueprint('blogpost_bp', __name__)
@@ -176,9 +177,28 @@ def new_post():
 def delete_post():
     post_id = request.form.get("id")
     post = BlogPost.query.get_or_404(post_id)
+
+    # Store image filenames before database deletion
+    portrait = post.portrait
+    thumbnail = post.thumbnail
+
+    # Delete database record first
     db.session.delete(post)
     db.session.commit()
-    flash('post deleted!', 'success')
+
+    # Clean up associated image files
+    result = delete_uploaded_images(
+        current_app.config['BLOG_POST_UPLOAD_FOLDER'],
+        [portrait, thumbnail]
+    )
+
+    # Enhanced flash message based on cleanup results
+    if result['errors']:
+        flash(f"Post deleted, but {len(result['errors'])} image(s) could not be removed.", 'warning')
+        current_app.logger.warning(f"Post {post_id} deleted with image cleanup errors: {result['errors']}")
+    else:
+        flash('Post and associated images deleted!', 'success')
+
     return redirect(url_for('main_bp.index'))
 
 # Route to edit an existing blog post

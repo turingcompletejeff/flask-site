@@ -5,6 +5,7 @@ from app import db
 from app.models import User, Role, BlogPost
 from app.forms import EditUserForm, CreateUserForm, DeleteUserForm
 from app.utils.pagination import paginate_query
+from app.utils.image_utils import delete_uploaded_images
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timezone
 from dateutil.relativedelta import relativedelta
@@ -206,9 +207,40 @@ def delete_user(user_id):
         form = DeleteUserForm()
         if form.validate_on_submit():
             username = user.username
+
+            # Store profile image filenames before database deletion
+            # Pattern: {user_id}_thumb.png and {user_id}_profile.png
+            profile_images = []
+            if user.profile_picture:
+                # User.profile_picture stores the thumbnail filename
+                profile_images.append(user.profile_picture)
+
+                # Also delete the corresponding original profile picture
+                # Pattern: X_thumb.png -> X_profile.png
+                thumb_filename = user.profile_picture
+                if '_thumb.' in thumb_filename:
+                    original_filename = thumb_filename.replace('_thumb.', '_profile.')
+                    profile_images.append(original_filename)
+
+            # Delete database record first
             db.session.delete(user)
             db.session.commit()
-            flash(f'User {username} deleted successfully.', 'success')
+
+            # Clean up associated profile image files
+            if profile_images:
+                result = delete_uploaded_images(
+                    current_app.config['PROFILE_UPLOAD_FOLDER'],
+                    profile_images
+                )
+
+                # Enhanced flash message based on cleanup results
+                if result['errors']:
+                    flash(f"User {username} deleted, but {len(result['errors'])} image(s) could not be removed.", 'warning')
+                    current_app.logger.warning(f"User {user_id} deleted with image cleanup errors: {result['errors']}")
+                else:
+                    flash(f'User {username} and associated images deleted successfully.', 'success')
+            else:
+                flash(f'User {username} deleted successfully.', 'success')
         else:
             flash('Invalid request.', 'danger')
 
