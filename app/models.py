@@ -1,8 +1,21 @@
 from app import db
 from datetime import date, datetime, timezone
 from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import TypeDecorator, String
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+
+
+class StringArray(TypeDecorator):
+    """Cross-database string array type: ARRAY for PostgreSQL, JSON for SQLite."""
+    impl = db.JSON
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(ARRAY(String(40)))
+        else:
+            return dialect.type_descriptor(db.JSON())
 
 # Association table for many-to-many relationship between users and roles
 role_assignments = db.Table('role_assignments',
@@ -74,10 +87,10 @@ class BlogPost(db.Model):
 
 class MinecraftCommand(db.Model):
     __tablename__ = 'minecraft_commands'
-    
+
     command_id = db.Column(db.Integer, primary_key=True)
     command_name = db.Column(db.String(20), nullable=True)
-    options = db.Column(ARRAY(db.String(40)))
+    options = db.Column(StringArray)
     
     def __repr__(self):
         return f'<BlogPost {self.command_name}>'
