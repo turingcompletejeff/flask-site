@@ -73,7 +73,7 @@ def dashboard():
 
     except SQLAlchemyError as e:
         flash('Database error occurred while loading dashboard.', 'danger')
-        print(f"Dashboard error: {e}")
+        current_app.logger.error(f"Dashboard error: {e}")
         return render_template('admin_dashboard.html',
                              users=[],
                              stats={'total_users': 0, 'total_admins': 0, 'total_posts': 0, 'users_this_month': 0},
@@ -151,7 +151,7 @@ def edit_user(user_id):
     except SQLAlchemyError as e:
         db.session.rollback()
         flash('Database error occurred while editing user.', 'danger')
-        print(f"Edit user error: {e}")
+        current_app.logger.error(f"Edit user error: {e}")
         return redirect(url_for('admin_bp.dashboard'))
 
 @admin_bp.route('/admin/users/create', methods=['GET', 'POST'])
@@ -187,7 +187,7 @@ def create_user():
         except SQLAlchemyError as e:
             db.session.rollback()
             flash('Database error occurred while creating user.', 'danger')
-            print(f"Create user error: {e}")
+            current_app.logger.error(f"Create user error: {e}")
 
     return render_template('admin_create_user.html', form=form)
 
@@ -249,7 +249,7 @@ def delete_user(user_id):
     except SQLAlchemyError as e:
         db.session.rollback()
         flash('Database error occurred while deleting user.', 'danger')
-        print(f"Delete user error: {e}")
+        current_app.logger.error(f"Delete user error: {e}")
         return redirect(url_for('admin_bp.dashboard'))
 
 @admin_bp.route('/admin/users/<int:user_id>/toggle-role/<role_name>', methods=['POST'])
@@ -468,7 +468,7 @@ def manage_images():
 
     except Exception as e:
         flash('Error loading image management.', 'danger')
-        print(f"Image management error: {e}")
+        current_app.logger.error(f"Image management error: {e}")
         return redirect(url_for('admin_bp.dashboard'))
 
 @admin_bp.route('/admin/images/delete/<path:image_path>', methods=['POST'])
@@ -652,10 +652,10 @@ def purge_orphaned_images():
         if errors:
             flash(f'Errors occurred while deleting {len(errors)} file(s).', 'warning')
             for error in errors[:5]:  # Show first 5 errors
-                print(f"Purge error: {error}")
+                current_app.logger.warning(f"Purge error: {error}")
 
     except Exception as e:
         flash(f'Error purging orphaned images: {str(e)}', 'danger')
-        print(f"Purge orphaned images error: {e}")
+        current_app.logger.error(f"Purge orphaned images error: {e}")
 
     return redirect(url_for('admin_bp.manage_images'))

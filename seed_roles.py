@@ -4,8 +4,13 @@ Seed initial roles into the database.
 Run this script once after creating the roles table.
 """
 
+import logging
 from app import create_app, db
 from app.models import Role, User
+
+# Configure logging for standalone script
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def seed_roles():
     app = create_app()
@@ -21,12 +26,12 @@ def seed_roles():
             if not existing:
                 role = Role(**role_data)
                 db.session.add(role)
-                print(f"Created role: {role_data['name']}")
+                logger.info(f"Created role: {role_data['name']}")
             else:
-                print(f"Role already exists: {role_data['name']}")
+                logger.info(f"Role already exists: {role_data['name']}")
 
         db.session.commit()
-        print("\nRole seeding completed successfully!")
+        logger.info("Role seeding completed successfully!")
 
         # Assign admin role to user "abcd"
         user = User.query.filter_by(username='abcd').first()
@@ -35,11 +40,11 @@ def seed_roles():
             if admin_role and admin_role not in user.roles:
                 user.roles.append(admin_role)
                 db.session.commit()
-                print(f"\nAssigned 'admin' role to user 'abcd'")
+                logger.info("Assigned 'admin' role to user 'abcd'")
             else:
-                print(f"\nUser 'abcd' already has 'admin' role")
+                logger.info("User 'abcd' already has 'admin' role")
         else:
-            print("\nWarning: User 'abcd' not found")
+            logger.warning("User 'abcd' not found")
 
 if __name__ == '__main__':
     seed_roles()

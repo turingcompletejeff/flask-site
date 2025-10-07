@@ -42,11 +42,11 @@ def contact():
         try:
             # process the data, send an email
             message = formatContactEmail(form)
-            print('dry run. attempting to send message:')
-            print(message)
-            print(f'from: {Config.MAIL_USER}')
-            print(f'to: {Config.ADMIN_EMAIL}')
-            print('sending mail...')
+            current_app.logger.info('Attempting to send contact form message')
+            current_app.logger.info(f'Message content: {message}')
+            current_app.logger.info(f'From: {Config.MAIL_USER}')
+            current_app.logger.info(f'To: {Config.ADMIN_EMAIL}')
+            current_app.logger.info('Sending email...')
             sendAnEmail(message)
 
             # Check if this is an AJAX request
@@ -61,7 +61,7 @@ def contact():
                 return redirect(url_for('main_bp.index'))
 
         except Exception as e:
-            print(f'Error sending email: {e}')
+            current_app.logger.error(f'Error sending email: {e}')
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', ''):
                 return jsonify({'success': False, 'error': 'Failed to send message. Please try again.'}), 500
             else:
@@ -70,7 +70,7 @@ def contact():
 
     # If form has validation errors and it's an AJAX request, return the form with errors
     if request.method == 'POST' and (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or 'application/json' in request.headers.get('Accept', '')):
-        print(f"Form validation failed. Errors: {form.errors}")
+        current_app.logger.warning(f"Form validation failed. Errors: {form.errors}")
         return render_template('contact.html', current_page="contact", form=form)
 
     return render_template('contact.html', current_page="contact", form=form)
@@ -119,7 +119,7 @@ def sendAnEmail(message):
 # tests smtp credentials for auto-mailer,server,port
 def attemptEmailConnection():
     # connect to SMTP
-    print(f'opening connection... on {Config.MAIL_SERVER}:{Config.MAIL_PORT}')
+    current_app.logger.info(f'Opening SMTP connection on {Config.MAIL_SERVER}:{Config.MAIL_PORT}')
     smtp = smtplib.SMTP()
     smtp._host = Config.MAIL_SERVER
     smtp.set_debuglevel(100) # just for demo purpose
@@ -127,9 +127,9 @@ def attemptEmailConnection():
     smtp.ehlo()
     smtp.starttls()
     smtp.ehlo()
-    print('attempting login...')
+    current_app.logger.info('Attempting SMTP login...')
     smtp.login(Config.MAIL_USER, Config.MAIL_PW)
-    print('quitting.')
+    current_app.logger.info('Closing SMTP connection')
     smtp.quit()
-    print('success!')
+    current_app.logger.info('SMTP connection test successful')
     return True
