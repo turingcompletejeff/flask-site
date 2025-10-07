@@ -51,6 +51,10 @@
   </div>
 {% endblock %}
 
+{% block rightsidebar %}
+<div id="right-sidebar">&nbsp;</div>
+{% endblock %}
+
 {% block endjs %}
 {% if current_user.is_authenticated and (current_user.has_role('blogger') or current_user.is_admin()) %}
 <script>

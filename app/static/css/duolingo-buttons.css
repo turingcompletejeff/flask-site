@@ -4,14 +4,15 @@
 
 /* PRIMARY BUTTON STYLE - For main contact form submit button */
 .duolingo-primary {
-    background: #1CB0F6;
-    color: #fff;
+    background: var(--primary);
+    color: var(--bg-light);
     font-weight: 800;
     height: 44px;
     cursor: pointer;
     border: none;
+    border-top: 2px solid oklch(from var(--primary) calc(l + 0.1) c h);
     border-radius: 15px;
-    box-shadow: 0 4px 0 #0A7CB5; /* Darker shade for shadow */
+    box-shadow: 0 4px 0 oklch(from var(--primary) calc(l - 0.1) c h);
     padding: 0 24px;
     font-size: 16px;
     transition: all 0.1s ease;
@@ -23,16 +24,16 @@
 }
 
 .duolingo-primary:hover:not(:active) {
-    filter: brightness(1.1);
+    background: oklch(from var(--primary) calc(l + 0.05) c h);
 }
 
 /* SECONDARY BUTTON STYLE - For cancel/secondary actions */
 .duolingo-secondary {
-    background-color: #fff;
-    color: #4B4B4B;
+    background-color: var(--bg-light);
+    color: var(--text);
     border-radius: 15px;
-    border: 2px solid #E5E5E5;
-    box-shadow: 0 2px 0 #E5E5E5;
+    border: 2px solid var(--border);
+    box-shadow: 0 2px 0 var(--border-muted);
     font-weight: 800;
     height: 44px;
     cursor: pointer;
@@ -42,28 +43,28 @@
 }
 
 .duolingo-secondary:hover {
-    background-color: #E5E5E5;
-    box-shadow: 0 2px 0 #CECECE;
-    border: 2px solid #CECECE;
+    background-color: var(--bg);
+    box-shadow: 0 2px 0 var(--border);
+    border: 2px solid var(--border);
 }
 
 .duolingo-secondary:active {
     box-shadow: none;
     transform: translateY(2px);
-    background-color: #E5E5E5;
-    border: 2px solid #CECECE;
+    background-color: var(--bg);
+    border: 2px solid var(--border);
 }
 
 /* SUCCESS/POSITIVE BUTTON - For positive actions */
 .duolingo-success {
-    background: #427b18;
-    color: #fff;
+    background: var(--success);
+    color: var(--bg-light);
     font-weight: 800;
     height: 44px;
     cursor: pointer;
     border: none;
     border-radius: 15px;
-    box-shadow: 0 4px 0 #294d0f;
+    box-shadow: 0 4px 0 oklch(from var(--success) calc(l - 0.1) c h);
     padding: 0 24px;
     font-size: 16px;
     transition: all 0.1s ease;
@@ -75,19 +76,19 @@
 }
 
 .duolingo-success:hover:not(:active) {
-    filter: brightness(1.1);
+    background: oklch(from var(--success) calc(l + 0.05) c h);
 }
 
 /* WARNING/DANGER BUTTON - For destructive actions */
 .duolingo-danger {
-    background: #FF4B4B;
-    color: #fff;
+    background: var(--danger);
+    color: var(--bg-light);
     font-weight: 800;
     height: 44px;
     cursor: pointer;
     border: none;
     border-radius: 15px;
-    box-shadow: 0 4px 0 #CC3333;
+    box-shadow: 0 4px 0 oklch(from var(--danger) calc(l - 0.1) c h);
     padding: 0 24px;
     font-size: 16px;
     transition: all 0.1s ease;
@@ -99,19 +100,19 @@
 }
 
 .duolingo-danger:hover:not(:active) {
-    filter: brightness(1.1);
+    background: oklch(from var(--danger) calc(l + 0.05) c h);
 }
 
 /* DRAFT BUTTON - For draft/save actions (orange theme) */
 .duolingo-draft {
-    background: #f39c12;
-    color: #fff;
+    background: var(--warning);
+    color: var(--text);
     font-weight: 800;
     height: 44px;
     cursor: pointer;
     border: none;
     border-radius: 15px;
-    box-shadow: 0 4px 0 #c87f0a;
+    box-shadow: 0 4px 0 oklch(from var(--warning) calc(l - 0.1) c h);
     padding: 0 24px;
     font-size: 16px;
     transition: all 0.1s ease;
@@ -123,7 +124,7 @@
 }
 
 .duolingo-draft:hover:not(:active) {
-    filter: brightness(1.1);
+    background: oklch(from var(--warning) calc(l + 0.05) c h);
 }
 
 /* UTILITY CLASSES */
