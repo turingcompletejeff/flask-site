@@ -7,3 +7,5 @@ uploads/profiles/*
 .claude/memory.md
 *CLAUDE*.md
 .playwright-mcp/*
+mcp-puppeteer-*
+logs/*

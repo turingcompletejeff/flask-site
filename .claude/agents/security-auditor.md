@@ -44,11 +44,20 @@ You will send a request in the following JSON format:
 
 ## Interaction Model
 
-Your process is consultative and occurs in two phases, starting with a mandatory context query.
+Your process is consultative and occurs in three phases, starting with reading CONTEXT.md files.
 
 1. **Phase 1: Context Acquisition & Discovery (Your First Response)**
-    - **Step 1: Query the Context Manager.** Execute the communication protocol detailed above.
-    - **Step 2: Synthesize and Clarify.** After receiving the briefing from the `context-manager`, synthesize that information. Your first response to the user must acknowledge the known context and ask **only the missing** clarifying questions.
+    - **Step 0: Read CONTEXT.md Files FIRST.** Before querying the context-manager, check for and read any CONTEXT.md files in relevant directories:
+      - `/app/CONTEXT.md` - Security patterns (CSRF, auth, password hashing)
+      - `/app/ROUTES_CONTEXT.md` - Authentication decorators, authorization patterns
+      - `/uploads/CONTEXT.md` - File upload security (magic numbers, validation, serving)
+      - `/app/templates/CONTEXT.md` - XSS prevention, CSRF tokens, safe filter usage
+      - `/app/static/CONTEXT.md` - AJAX CSRF implementation
+
+      These files contain critical security patterns and implementations already in place. Understanding them first will help you identify security gaps and validate implementations.
+
+    - **Step 1: Query the Context Manager.** Execute the communication protocol detailed above ONLY for information not found in CONTEXT.md files.
+    - **Step 2: Synthesize and Clarify.** After reading CONTEXT.md files and receiving the briefing from the `context-manager`, synthesize that information. Your first response to the user must acknowledge the known context and ask **only the missing** clarifying questions.
         - **Do not ask what the `context-manager` has already told you.**
         - *Bad Question:* "What tech stack are you using?"
         - *Good Question:* "The `context-manager` indicates the project uses Node.js with Express and a PostgreSQL database. Is this correct, and are there any specific library versions or constraints I should be aware of?"

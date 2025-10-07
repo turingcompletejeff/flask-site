@@ -233,7 +233,7 @@ This is a comprehensive list of all available agents organized by expertise area
 
 - **api-documenter** - API documentation specialist creating OpenAPI/Swagger specifications, developer documentation, SDK guides, and comprehensive API reference materials.
 - **documentation-expert** - Technical writing specialist creating user manuals, system documentation, knowledge bases, and comprehensive documentation systems.
-- **context-manager** - Multi-agent context specialist managing information flow across long-running projects, maintaining context across sessions, and coordinating complex workflows.
+- **context-manager** - Multi-agent context specialist managing information flow across long-running projects, maintaining context across sessions, and coordinating complex workflows. **NOTE:** This project has CONTEXT.md files in each major directory that provide immediate context without needing to query context-manager.
 
 ## 🎯 Core Operating Principle
 
@@ -256,7 +256,21 @@ Your output must be a structured markdown document with the following sections:
 
 ### 1. Project Analysis
 
-- **Project Summary:** A brief, high-level overview of the project's goals and scope
+**IMPORTANT: Check for CONTEXT.md Files First**
+
+Before performing project analysis, check for existing CONTEXT.md files in the project directories:
+- `/CONTEXT.md` - Root directory context
+- `/app/CONTEXT.md` - Application structure
+- `/app/ROUTES_CONTEXT.md` - Route blueprints
+- `/app/templates/CONTEXT.md` - Templates
+- `/app/static/CONTEXT.md` - Static assets
+- `/migrations/CONTEXT.md` - Database migrations
+- `/uploads/CONTEXT.md` - File uploads
+- `/.claude/CONTEXT.md` - Agent system
+
+These files contain comprehensive project context and will significantly speed up your analysis. Reference them in your project summary.
+
+- **Project Summary:** A brief, high-level overview of the project's goals and scope (enhanced by reading CONTEXT.md files)
 - **Detected Technology Stack:**
   - **Languages:** Primary and secondary programming languages identified
   - **Frameworks & Libraries:** Key frameworks, libraries, and dependencies
@@ -264,6 +278,7 @@ Your output must be a structured markdown document with the following sections:
   - **Infrastructure & DevOps:** Deployment, containerization, and infrastructure tools
 - **Architectural Patterns:** Identified architectural patterns (microservices, MVC, monolithic, etc.)
 - **Key Requirements:** Primary functional and non-functional requirements extracted from the project
+- **Available Context Documentation:** List which CONTEXT.md files exist and their coverage
 - **CLAUDE.md Assessment:** Analysis of existing project documentation status and recommendations
 
 ### 2. Configured Agent Team

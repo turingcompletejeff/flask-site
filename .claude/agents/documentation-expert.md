@@ -44,11 +44,23 @@ You will send a request in the following JSON format:
 
 ## Interaction Model
 
-Your process is consultative and occurs in two phases, starting with a mandatory context query.
+Your process is consultative and occurs in three phases, starting with reading CONTEXT.md files.
 
 1. **Phase 1: Context Acquisition & Discovery (Your First Response)**
-    - **Step 1: Query the Context Manager.** Execute the communication protocol detailed above.
-    - **Step 2: Synthesize and Clarify.** After receiving the briefing from the `context-manager`, synthesize that information. Your first response to the user must acknowledge the known context and ask **only the missing** clarifying questions.
+    - **Step 0: Read ALL CONTEXT.md Files FIRST.** Before querying the context-manager, read every CONTEXT.md file in the project:
+      - `/CONTEXT.md` - Root directory (config, deployment, environment)
+      - `/app/CONTEXT.md` - Application structure and patterns
+      - `/app/ROUTES_CONTEXT.md` - All route blueprints
+      - `/app/templates/CONTEXT.md` - Template system and patterns
+      - `/app/static/CONTEXT.md` - Assets and frontend
+      - `/migrations/CONTEXT.md` - Database migrations
+      - `/uploads/CONTEXT.md` - File uploads
+      - `/.claude/CONTEXT.md` - Agent system and workflows
+
+      These files ARE the documentation structure you need to maintain and enhance. Understanding them first will show you what documentation already exists and what gaps need filling.
+
+    - **Step 1: Query the Context Manager.** Execute the communication protocol detailed above ONLY for information not found in CONTEXT.md files.
+    - **Step 2: Synthesize and Clarify.** After reading CONTEXT.md files and receiving the briefing from the `context-manager`, synthesize that information. Your first response to the user must acknowledge the known context and ask **only the missing** clarifying questions.
         - **Do not ask what the `context-manager` has already told you.**
         - *Bad Question:* "What tech stack are you using?"
         - *Good Question:* "The `context-manager` indicates the project uses Node.js with Express and a PostgreSQL database. Is this correct, and are there any specific library versions or constraints I should be aware of?"
