@@ -9,3 +9,5 @@ uploads/profiles/*
 .playwright-mcp/*
 mcp-puppeteer-*
 logs/*
+.coverage
+.coveragerc
