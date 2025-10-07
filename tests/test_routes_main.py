@@ -142,6 +142,36 @@ class TestFlashMessages:
         assert response.status_code == 200
         # Should not crash with missing category
 
+    def test_flash_message_success_displayed(self, client, db):
+        """Test that success flash messages are properly displayed."""
+        with client.session_transaction() as sess:
+            sess['_flashes'] = [('success', 'Success message')]
+
+        response = client.get('/')
+        assert b'Success message' in response.data
+
+    def test_flash_message_error_displayed(self, client, db):
+        """Test that error flash messages are properly displayed."""
+        with client.session_transaction() as sess:
+            sess['_flashes'] = [('error', 'Error message')]
+
+        response = client.get('/')
+        assert b'Error message' in response.data
+
+    def test_flash_multiple_messages(self, client, db):
+        """Test that multiple flash messages are all displayed."""
+        with client.session_transaction() as sess:
+            sess['_flashes'] = [
+                ('success', 'First'),
+                ('error', 'Second'),
+                ('warning', 'Third')
+            ]
+
+        response = client.get('/')
+        assert b'First' in response.data
+        assert b'Second' in response.data
+        assert b'Third' in response.data
+
 
 @pytest.mark.integration
 class TestAboutRoute:

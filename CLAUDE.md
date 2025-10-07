@@ -312,7 +312,8 @@ git checkout -b styling/TC-XX-brief-description
 
 ### Database Migrations
 ```bash
-# Development
+# Development (activate venv first!)
+source venv/bin/activate
 python manage.py db migrate -m "Add field_name to Model"
 python manage.py db upgrade
 
@@ -326,7 +327,8 @@ docker-compose exec flask-site flask db upgrade
 
 ### Running the Application
 ```bash
-# Development server
+# Development server (activate venv first!)
+source venv/bin/activate
 python run.py
 
 # Production deploy
@@ -337,6 +339,24 @@ docker-compose up --build
 
 # Restart after model changes
 docker-compose down && docker-compose up --build
+```
+
+### Running Tests
+```bash
+# Always activate virtual environment first
+source venv/bin/activate
+
+# Run all tests
+pytest tests/ -v
+
+# Run specific test file
+pytest tests/test_models.py -v
+
+# Run with coverage report
+pytest tests/ --cov=app --cov-report=html
+
+# Run specific test
+pytest tests/test_models.py::TestUser::test_user_creation -v
 ```
 
 ### Template Best Practices
@@ -441,6 +461,9 @@ op.add_column('table_name',
 
 ### Testing Migrations
 ```bash
+# Always activate venv first
+source venv/bin/activate
+
 # Apply migration
 flask db upgrade
 
@@ -451,7 +474,7 @@ flask db current
 flask db downgrade
 flask db upgrade
 
-# Check for errors
+# Check for errors (Docker)
 docker-compose logs -f flask-site
 ```
 

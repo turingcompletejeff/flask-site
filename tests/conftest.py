@@ -133,23 +133,23 @@ def db(app):
     Creates all tables before test, drops all tables after test.
     Ensures complete isolation between tests.
 
-    Note: Excludes MinecraftCommand model as it uses PostgreSQL ARRAY type
-    which is not compatible with SQLite.
+    Note: Now includes MinecraftCommand with StringArray type (cross-database compatible).
     """
-    from app.models import User, Role, BlogPost, role_assignments
+    from app.models import User, Role, BlogPost, MinecraftCommand, role_assignments
 
     with app.app_context():
-        # Create only SQLite-compatible tables
-        # Skip MinecraftCommand which uses PostgreSQL ARRAY
+        # Create all tables (MinecraftCommand now uses StringArray for SQLite compatibility)
         User.__table__.create(_db.engine, checkfirst=True)
         Role.__table__.create(_db.engine, checkfirst=True)
         BlogPost.__table__.create(_db.engine, checkfirst=True)
+        MinecraftCommand.__table__.create(_db.engine, checkfirst=True)
         role_assignments.create(_db.engine, checkfirst=True)
 
         yield _db
 
         _db.session.remove()
         # Drop tables in reverse order
+        MinecraftCommand.__table__.drop(_db.engine, checkfirst=True)
         BlogPost.__table__.drop(_db.engine, checkfirst=True)
         role_assignments.drop(_db.engine, checkfirst=True)
         Role.__table__.drop(_db.engine, checkfirst=True)

@@ -108,6 +108,7 @@ Your process is consultative and occurs in three phases, starting with reading C
   - **Comprehensive Testing:** Write thorough unit and integration tests using `pytest`, including the use of fixtures and mocking.
   - **High Test Coverage:** Strive for and maintain a test coverage of over 90%, with a focus on testing edge cases.
   - **Static Analysis:** Utilize type hints (`typing` module) and static analysis tools like `mypy` and `ruff` to catch errors before runtime.
+  - **Virtual Environment:** Always activate the virtual environment before running Python/pytest commands: `source venv/bin/activate && pytest ...`
 - **Error Handling and Reliability:**
   - **Robust Error Handling:** Implement comprehensive error handling strategies, including the use of custom exception types to provide clear and actionable error messages.
 
