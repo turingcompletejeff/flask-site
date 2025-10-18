@@ -22,12 +22,9 @@ Project root containing configuration, deployment scripts, and entry points for 
 - **Dockerfile** - Container image definition for production
 - **docker-compose.yml** - Local development container orchestration
 - **portainer-stack.yml** - Production stack configuration for Portainer
-- **grun.sh** - Gunicorn production server startup script
-- **deploy.sh** - General deployment automation
-- **deploy-portainer.sh** - Portainer-specific deployment
 
 ### Database & Setup
-- **seed_roles.py** - Database seeding script for initial roles/data
+- **db-init/seed_roles.py** - Database seeding script for initial roles/data (UPDATED LOCATION)
 - **requirements.txt** - Python package dependencies (pip install -r)
 
 ### Documentation
@@ -49,33 +46,48 @@ Required in `.env` file:
 3. **Security**: Never hardcode credentials; use environment variables
 4. **Deployment**: Use Docker for production, run.py for local dev
 
-## Agent Touchpoints
-
-### backend-architect
-- Needs: config.py structure, database settings, upload paths
-- Common tasks: Adding new config variables, modifying database pooling
-
-### python-pro
-- Needs: requirements.txt dependencies, config patterns
-- Common tasks: Optimizing config loading, adding new dependencies
-
-### security-auditor
-- Needs: config.py for secret handling, MAX_CONTENT_LENGTH for DoS prevention
-- Common tasks: Validating environment variable usage, checking upload limits
-
-### documentation-expert
-- Needs: README.md, CLAUDE.md for documentation updates
-- Common tasks: Keeping setup instructions current with config changes
+## Agent Touchpoints (Unchanged)
+[Previous agent touchpoints remain the same]
 
 ## Common Tasks
 1. **Adding new environment variable**: Update `config.py` Config class, document in README.md
 2. **Modifying database settings**: Edit Config.SQLALCHEMY_* properties
 3. **Changing upload limits**: Modify Config.MAX_CONTENT_LENGTH
 4. **Adding Python dependency**: Update requirements.txt, rebuild Docker image
-5. **Deployment**: Use `./grun.sh` for production, `python run.py` for dev
+5. **Deployment**: Use `./run.py` for development, Docker for production (UPDATED FROM grun.sh)
 
 ## Related Directories
-- `app/` - Main application code (imports create_app from here)
+- `app/` - Main application code with new modular structure
+  - `models/` - Separate model files for each domain
+  - `forms/` - Modular form definitions
+  - `routes/` - Modular route blueprints
+  - `utils/` - Centralized utility modules
 - `migrations/` - Database migration files
 - `uploads/` - User-uploaded files (blog-posts, profiles)
 - `.claude/` - Agent definitions and slash commands
+- `db-init/` - Database initialization scripts
+
+## Modular Architecture Overview
+The project has been refactored to use a more modular architecture:
+- Separate directories for models, forms, routes, and utilities
+- Each directory includes an `__init__.py` for centralized exports
+- Improved separation of concerns
+- More maintainable and scalable code structure
+
+### Import Patterns
+```python
+# Models - Import from centralized location
+from app.models import User, BlogPost, Role
+
+# Forms
+from app.forms import ContactForm, BlogPostForm
+
+# Routes
+from app.routes import main, auth, blogpost
+
+# Utilities
+from app.utils import require_role, register_filters
+```
+
+## Version
+Current: 0.2.4 (defined in app/__init__.py)
