@@ -14,7 +14,7 @@
     <div class="blog-post-header">
     <h2>{{ post.title }}</h2>
     {% if current_user.is_authenticated %}
-          <a class="blog-post-edit" href="{{ url_for('blogpost_bp.edit_post', post_id=post.id) }}">
+          <a class="blog-post-edit" href="{{ url_for('blogpost.edit_post', post_id=post.id) }}">
             <span class="material-symbols-outlined hover-edit"></span>
           </a>
           <div class="blog-post-delete" data-id="{{ post.id }}">
@@ -34,7 +34,7 @@
         {% endif %}
       {% endif %}
     {% endif %}
-    <img class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}"
+    <img class="blog-portrait" src="{{ url_for('main.uploaded_file', filename=post.portrait) }}"
          {% if portrait_style %}style="{{ portrait_style }}"{% endif %} />
     {% endif %}
     <hr />
@@ -57,14 +57,14 @@
       
       if(button.hasClass("delete-confirm")) {
         // delete the post for real
-        $.post("{{ url_for('blogpost_bp.delete_post') }}", 
+        $.post("{{ url_for('blogpost.delete_post') }}", 
              { id: button.data("id") }, function() {
           
           button.parents(".blog-post").fadeOut(400,function() {
               $(this).remove();
           });
           
-          window.location.href = "{{ url_for('main_bp.index') }}?flash=post+deleted&category=success";
+          window.location.href = "{{ url_for('main.index') }}?flash=post+deleted&category=success";
         }).fail(function() {
           addFlashMessage("danger","error deleting post");
         });

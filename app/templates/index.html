@@ -7,7 +7,7 @@
     <h1 class="blog-header">turing complete jeff</h1>
 
     {% if current_user.is_authenticated and (current_user.has_role('blogger') or current_user.is_admin()) %}
-    <a href="{{ url_for('blogpost_bp.new_post') }}" id="blog-post-add">
+    <a href="{{ url_for('blogpost.new_post') }}" id="blog-post-add">
       <span class="material-symbols-outlined hover-add"></span>
     </a>
     {% endif %}
@@ -20,11 +20,11 @@
           <div class="blog-post-header">
 	    {% if post.thumbnail %}
             <img class="blog-thumbnail" 
-                 src="{{ url_for('main_bp.uploaded_file', filename=post.thumbnail) }}" />
+                 src="{{ url_for('main.uploaded_file', filename=post.thumbnail) }}" />
 	    {% endif %}
             <h2>{{ post.title }}</h2>
 	    {% if current_user.is_authenticated and (current_user.has_role('blogger') or current_user.is_admin()) %}
-            <a class="blog-post-edit" href="{{ url_for('blogpost_bp.edit_post', post_id=post.id) }}">
+            <a class="blog-post-edit" href="{{ url_for('blogpost.edit_post', post_id=post.id) }}">
               <span class="material-symbols-outlined hover-edit"></span>
             </a>
             <div class="blog-post-delete" data-id="{{ post.id }}">
@@ -35,7 +35,7 @@
             
           <hr />
           
-          <div>{{ post.content[:255] |safe}}... <a href="{{ url_for('blogpost_bp.view_post', post_id=post.id) }}">Read more</a></div>
+          <div>{{ post.content[:255] |safe}}... <a href="{{ url_for('blogpost.view_post', post_id=post.id) }}">Read more</a></div>
           
           <hr />
           <div class="blog-post-timestamps">
@@ -65,7 +65,7 @@
 
       if(button.hasClass("delete-confirm")) {
         // delete the post for real
-        $.post("{{ url_for('blogpost_bp.delete_post') }}",
+        $.post("{{ url_for('blogpost.delete_post') }}",
              { id: button.data("id") }, function() {
 
           button.parents(".blog-post").fadeOut(400,function() {

@@ -7,7 +7,7 @@ from mctools import RCONClient, QUERYClient
 import socket
 
 # Create a blueprint for main routes
-mc_bp = Blueprint('mc_bp', __name__)
+mc_bp = Blueprint('mc', __name__)
 
 @mc_bp.before_request
 def require_login_and_role():

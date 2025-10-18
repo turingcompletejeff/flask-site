@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from config import Config
-from .filters import register_filters
+from app.utils.filters import register_filters
 
 __version__ = "0.2.4" # initial testing fmwk
 
@@ -33,21 +33,24 @@ def create_app():
     os.makedirs(app.config.get('PROFILE_UPLOAD_FOLDER', 'uploads/profiles'), exist_ok=True)
     os.makedirs(app.config.get('UPLOAD_FOLDER', 'uploads/blog-posts'), exist_ok=True)
 
-    # Register blueprints or routes
-    from app.routes import main_bp
+    # Register blueprints
+    from app.routes import (
+        main_bp,
+        auth_bp,
+        blogpost_bp,
+        mc_bp,
+        admin_bp,
+        health_bp,
+        profile_bp
+    )
+
     app.register_blueprint(main_bp)
-    from app.routes_auth import auth
-    app.register_blueprint(auth)
-    from app.routes_blogpost import blogpost_bp
+    app.register_blueprint(auth_bp)
     app.register_blueprint(blogpost_bp)
-    from app.routes_mc import mc_bp
     app.register_blueprint(mc_bp)
-    from app.routes_health import health_bp
-    app.register_blueprint(health_bp)
-    from app.routes_profile import profile_bp
-    app.register_blueprint(profile_bp)
-    from app.routes_admin import admin_bp
     app.register_blueprint(admin_bp)
+    app.register_blueprint(health_bp)
+    app.register_blueprint(profile_bp)
 
     # Exempt health endpoint from CSRF (read-only, no auth required)
     csrf.exempt(health_bp)
@@ -59,5 +62,5 @@ def create_app():
 
 @login_manager.user_loader
 def load_user(user_id):
-    from .models import User
+    from app.models import User
     return User.query.get(int(user_id))

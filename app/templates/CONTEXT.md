@@ -123,7 +123,7 @@ Jinja2 HTML templates for server-side rendering. All templates follow template i
 
 ### URL Generation
 ```jinja2
-<a href="{{ url_for('blogpost_bp.view_post', post_id=post.id) }}">Read more</a>
+<a href="{{ url_for('blogpost.view_post', post_id=post.id) }}">Read more</a>
 <img src="{{ url_for('static', filename='img/logo.png') }}" />
 ```
 
@@ -157,7 +157,7 @@ Jinja2 HTML templates for server-side rendering. All templates follow template i
 ### Role-Based Display
 ```jinja2
 {% if current_user.has_role('blogger') or current_user.is_admin() %}
-  <a href="{{ url_for('blogpost_bp.new_post') }}">New Post</a>
+  <a href="{{ url_for('blogpost.new_post') }}">New Post</a>
 {% endif %}
 ```
 

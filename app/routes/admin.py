@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 
 # Create a blueprint for admin routes
-admin_bp = Blueprint('admin_bp', __name__)
+admin_bp = Blueprint('admin', __name__)
 
 def admin_required(f):
     """Decorator to require admin role for route access"""
@@ -21,7 +21,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Please log in to access this page.', 'warning')
-            return redirect(url_for('auth_bp.login'))
+            return redirect(url_for('auth.login'))
         if not current_user.is_admin():
             flash('Admin access required.', 'danger')
             abort(403)
@@ -94,7 +94,7 @@ def edit_user(user_id):
         # Prevent editing self
         if user.id == current_user.id:
             flash('You cannot edit your own account from here. Use your profile page.', 'warning')
-            return redirect(url_for('admin_bp.dashboard'))
+            return redirect(url_for('admin.dashboard'))
 
         # Get all available roles
         all_roles = Role.query.order_by(Role.name).all()
@@ -138,7 +138,7 @@ def edit_user(user_id):
             db.session.commit()
 
             flash(f'User {user.username} updated successfully!', 'success')
-            return redirect(url_for('admin_bp.dashboard'))
+            return redirect(url_for('admin.dashboard'))
 
         # Pre-populate form
         if request.method == 'GET':
@@ -152,7 +152,7 @@ def edit_user(user_id):
         db.session.rollback()
         flash('Database error occurred while editing user.', 'danger')
         current_app.logger.error(f"Edit user error: {e}")
-        return redirect(url_for('admin_bp.dashboard'))
+        return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/admin/users/create', methods=['GET', 'POST'])
 @login_required
@@ -182,7 +182,7 @@ def create_user():
             db.session.commit()
 
             flash(f'User {user.username} created successfully!', 'success')
-            return redirect(url_for('admin_bp.dashboard'))
+            return redirect(url_for('admin.dashboard'))
 
         except SQLAlchemyError as e:
             db.session.rollback()
@@ -202,7 +202,7 @@ def delete_user(user_id):
         # Prevent deleting self
         if user.id == current_user.id:
             flash('You cannot delete your own account.', 'danger')
-            return redirect(url_for('admin_bp.dashboard'))
+            return redirect(url_for('admin.dashboard'))
 
         form = DeleteUserForm()
         if form.validate_on_submit():
@@ -244,13 +244,13 @@ def delete_user(user_id):
         else:
             flash('Invalid request.', 'danger')
 
-        return redirect(url_for('admin_bp.dashboard'))
+        return redirect(url_for('admin.dashboard'))
 
     except SQLAlchemyError as e:
         db.session.rollback()
         flash('Database error occurred while deleting user.', 'danger')
         current_app.logger.error(f"Delete user error: {e}")
-        return redirect(url_for('admin_bp.dashboard'))
+        return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/admin/users/<int:user_id>/toggle-role/<role_name>', methods=['POST'])
 @login_required
@@ -469,7 +469,7 @@ def manage_images():
     except Exception as e:
         flash('Error loading image management.', 'danger')
         current_app.logger.error(f"Image management error: {e}")
-        return redirect(url_for('admin_bp.dashboard'))
+        return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/admin/images/delete/<path:image_path>', methods=['POST'])
 @login_required
@@ -499,20 +499,20 @@ def delete_image(image_path):
         if any(pattern in image_path for pattern in dangerous_patterns):
             current_app.logger.warning(f'Path traversal attempt detected by user {current_user.id}: {image_path}')
             flash('Invalid image path detected.', 'danger')
-            return redirect(url_for('admin_bp.manage_images'))
+            return redirect(url_for('admin.manage_images'))
 
         # Reject absolute paths
         if image_path.startswith('/') or (len(image_path) > 1 and image_path[1] == ':'):
             current_app.logger.warning(f'Absolute path rejected for user {current_user.id}: {image_path}')
             flash('Invalid image path detected.', 'danger')
-            return redirect(url_for('admin_bp.manage_images'))
+            return redirect(url_for('admin.manage_images'))
 
         # Ensure the path is within allowed directories
         allowed_prefixes = ['uploads/', 'app/static/img/']
         if not any(image_path.startswith(prefix) for prefix in allowed_prefixes):
             current_app.logger.warning(f'Path outside allowed directories for user {current_user.id}: {image_path}')
             flash('Invalid image path.', 'danger')
-            return redirect(url_for('admin_bp.manage_images'))
+            return redirect(url_for('admin.manage_images'))
 
         file_path = Path(image_path)
 
@@ -534,22 +534,22 @@ def delete_image(image_path):
             if not is_within_allowed:
                 current_app.logger.warning(f'Resolved path outside allowed directories for user {current_user.id}: {resolved_path}')
                 flash('Invalid image path.', 'danger')
-                return redirect(url_for('admin_bp.manage_images'))
+                return redirect(url_for('admin.manage_images'))
         except (OSError, RuntimeError) as e:
             current_app.logger.error(f'Path resolution failed for user {current_user.id}, path {image_path}: {e}')
             flash('Invalid image path.', 'danger')
-            return redirect(url_for('admin_bp.manage_images'))
+            return redirect(url_for('admin.manage_images'))
 
         # Security check: ensure file exists and is a file
         if not file_path.exists():
             current_app.logger.warning(f'File not found for deletion by user {current_user.id}: {image_path}')
             flash('Image not found.', 'danger')
-            return redirect(url_for('admin_bp.manage_images'))
+            return redirect(url_for('admin.manage_images'))
 
         if not file_path.is_file():
             current_app.logger.warning(f'Attempted to delete non-file by user {current_user.id}: {image_path}')
             flash('Invalid file path.', 'danger')
-            return redirect(url_for('admin_bp.manage_images'))
+            return redirect(url_for('admin.manage_images'))
 
         # Get file info for logging before deletion
         file_size = file_path.stat().st_size
@@ -571,7 +571,7 @@ def delete_image(image_path):
         current_app.logger.error(f'Unexpected error during image deletion for user {current_user.id}: {image_path} - {e}')
         flash('An unexpected error occurred while deleting the image.', 'danger')
 
-    return redirect(url_for('admin_bp.manage_images'))
+    return redirect(url_for('admin.manage_images'))
 
 @admin_bp.route('/admin/images/purge-orphaned', methods=['POST'])
 @login_required
@@ -658,4 +658,4 @@ def purge_orphaned_images():
         flash(f'Error purging orphaned images: {str(e)}', 'danger')
         current_app.logger.error(f"Purge orphaned images error: {e}")
 
-    return redirect(url_for('admin_bp.manage_images'))
+    return redirect(url_for('admin.manage_images'))

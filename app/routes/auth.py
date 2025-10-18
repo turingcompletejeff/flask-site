@@ -3,9 +3,9 @@ from flask_login import login_user, logout_user, login_required
 from app import db
 from app.models import User
 
-auth = Blueprint('auth',__name__)
+auth_bp = Blueprint('auth',__name__)
 
-@auth.route('/login', methods=['GET','POST'])
+@auth_bp.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -15,17 +15,17 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             flash(f"welcome, {user.username}",'success')
-            return redirect(url_for('main_bp.index'))
+            return redirect(url_for('main.index'))
         else:
             flash('invalid username or password', 'danger')
 
     return render_template('login.html', registration_enabled=current_app.config['REGISTRATION_ENABLED'])
 
-@auth.route('/register', methods=['GET','POST'])
+@auth_bp.route('/register', methods=['GET','POST'])
 def register():
     if not current_app.config.get('REGISTRATION_ENABLED', True):
         flash("registration is temporarily disabled.","warning")
-        return redirect(url_for('main_bp.index'))
+        return redirect(url_for('main.index'))
 
     if request.method == 'POST':
         username = request.form['username']
@@ -43,9 +43,9 @@ def register():
             return redirect(url_for('auth.login'))
     return render_template('register.html')
 
-@auth.route('/logout')
+@auth_bp.route('/logout')
 @login_required
 def logout():
     logout_user()
     flash("logged out", "info")
-    return redirect(url_for('main_bp.index'))
+    return redirect(url_for('main.index'))

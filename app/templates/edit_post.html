@@ -9,7 +9,7 @@
 {% block content %}
 
 <div class="blog-post">
-  <form action="{{ url_for('blogpost_bp.edit_post', post_id=post.id) }}" method="post">
+  <form action="{{ url_for('blogpost.edit_post', post_id=post.id) }}" method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <h2 id="edit-title"><input type="text" name="title" value="{{ post.title }}" /></h2>
     <textarea name="content" rows="20" cols="50">{{ post.content }}</textarea>
@@ -64,7 +64,7 @@
 
       <div id="image-preview" class="visible">
         <label class="form__label">Preview (as it will appear in view):</label>
-        <img id="preview-image" class="blog-portrait" src="{{ url_for('main_bp.uploaded_file', filename=post.portrait) }}"
+        <img id="preview-image" class="blog-portrait" src="{{ url_for('main.uploaded_file', filename=post.portrait) }}"
              {% if portrait_style %}style="{{ portrait_style }}"{% endif %} />
       </div>
     </div>

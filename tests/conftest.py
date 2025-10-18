@@ -82,7 +82,7 @@ def app():
     login_manager.login_view = 'auth.login'  # Critical: enables proper 302 redirects
 
     # Register filters
-    from app.filters import register_filters
+    from app.utils.filters import register_filters
     register_filters(test_app)
 
     # Create upload directories
@@ -90,19 +90,22 @@ def app():
     os.makedirs(test_app.config['PROFILE_UPLOAD_FOLDER'], exist_ok=True)
 
     # Register blueprints
-    from app.routes import main_bp
+    from app.routes import (
+        main_bp,
+        auth_bp,
+        blogpost_bp,
+        mc_bp,
+        admin_bp,
+        health_bp,
+        profile_bp
+    )
+
     test_app.register_blueprint(main_bp)
-    from app.routes_auth import auth
-    test_app.register_blueprint(auth)
-    from app.routes_blogpost import blogpost_bp
+    test_app.register_blueprint(auth_bp)
     test_app.register_blueprint(blogpost_bp)
-    from app.routes_mc import mc_bp
     test_app.register_blueprint(mc_bp)
-    from app.routes_health import health_bp
     test_app.register_blueprint(health_bp)
-    from app.routes_profile import profile_bp
     test_app.register_blueprint(profile_bp)
-    from app.routes_admin import admin_bp
     test_app.register_blueprint(admin_bp)
 
     # Exempt health endpoint from CSRF

@@ -36,7 +36,7 @@ for more info
   var prevCommand = "";
   
   function getCommandList() {
-    $.get("{{ url_for('mc_bp.list') }}")
+    $.get("{{ url_for('mc.list') }}")
       .done(function(data) {
         commandList = data;
       }).fail(function(err) {
@@ -45,7 +45,7 @@ for more info
   }
   
   function runBaseRconQuery() {
-    $.get("{{ url_for('mc_bp.rconQuery') }}")
+    $.get("{{ url_for('mc.rconQuery') }}")
       .done(function(data) {
         queryData = data;
         // show motd
@@ -84,7 +84,7 @@ for more info
   function rconCommand() {
     let cmd = $("#mc-input").val();
     
-    $.post("{{ url_for('mc_bp.rconCommand') }}",
+    $.post("{{ url_for('mc.rconCommand') }}",
       { 
         "command": cmd
       }
@@ -99,7 +99,7 @@ for more info
   }
 
   function kickPlayer(playerName) {
-    $.post("{{ url_for('mc_bp.rconCommand') }}",
+    $.post("{{ url_for('mc.rconCommand') }}",
       { 
         "command": "/kick " + playerName
       }

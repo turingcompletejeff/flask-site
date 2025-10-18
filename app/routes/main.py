@@ -7,7 +7,7 @@ import smtplib
 from email.message import EmailMessage
 
 # Create a blueprint for main routes
-main_bp = Blueprint('main_bp', __name__)
+main_bp = Blueprint('main', __name__)
 
 # Home page
 @main_bp.route('/')
@@ -54,11 +54,11 @@ def contact():
                 return jsonify({
                     'success': True,
                     'message': f'message sent from {form.email.data}',
-                    'redirect': url_for('main_bp.index')
+                    'redirect': url_for('main.index')
                 })
             else:
                 flash(f'message sent from {form.email.data}', "success")
-                return redirect(url_for('main_bp.index'))
+                return redirect(url_for('main.index'))
 
         except Exception as e:
             current_app.logger.error(f'Error sending email: {e}')

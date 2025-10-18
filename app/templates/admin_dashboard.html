@@ -10,7 +10,7 @@
     <div class="admin-widget">
         <h2>Quick Actions</h2>
         <div class="quick-actions">
-            <button type="button" class="clicky-primary" onclick="window.location.href='{{ url_for('admin_bp.manage_images') }}'">
+            <button type="button" class="clicky-primary" onclick="window.location.href='{{ url_for('admin.manage_images') }}'">
                 📁 Manage Images
             </button>
         </div>
@@ -43,7 +43,7 @@
     <div class="admin-widget">
         <div class="widget-header">
             <h2>User Management</h2>
-            <button type="button" class="clicky-success" onclick="window.location.href='{{ url_for('admin_bp.create_user') }}'">
+            <button type="button" class="clicky-success" onclick="window.location.href='{{ url_for('admin.create_user') }}'">
                 Create New User
             </button>
         </div>
@@ -87,7 +87,7 @@
                         </td>
                         <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
                         <td class="actions-cell">
-                            <button type="button" class="clicky-primary action-btn" onclick="window.location.href='{{ url_for('admin_bp.edit_user', user_id=user.id) }}'">
+                            <button type="button" class="clicky-primary action-btn" onclick="window.location.href='{{ url_for('admin.edit_user', user_id=user.id) }}'">
                                 Edit
                             </button>
                             <button type="button" class="clicky-danger action-btn" onclick="confirmDelete({{ user.id }}, '{{ user.username }}')">
@@ -103,7 +103,7 @@
             {% if total_pages > 1 %}
             <div class="pagination">
                 {% if has_prev %}
-                    <button type="button" class="pagination-button clicky-secondary" onclick="window.location.href='{{ url_for('admin_bp.dashboard', page=current_page-1) }}'">
+                    <button type="button" class="pagination-button clicky-secondary" onclick="window.location.href='{{ url_for('admin.dashboard', page=current_page-1) }}'">
                         Previous
                     </button>
                 {% else %}
@@ -113,7 +113,7 @@
                 <span class="page-info">Page {{ current_page }} of {{ total_pages }}</span>
 
                 {% if has_next %}
-                    <button type="button" class="pagination-button clicky-secondary" onclick="window.location.href='{{ url_for('admin_bp.dashboard', page=current_page+1) }}'">
+                    <button type="button" class="pagination-button clicky-secondary" onclick="window.location.href='{{ url_for('admin.dashboard', page=current_page+1) }}'">
                         Next
                     </button>
                 {% else %}
