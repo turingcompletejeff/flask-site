@@ -117,7 +117,7 @@ Then visit: http://localhost:8000
 
 **Testing with docker:**
 ```bash
-docker-compose down flask-site
+docker-compose down
 docker-compose up --build -d flask-site
 ```
 or 
