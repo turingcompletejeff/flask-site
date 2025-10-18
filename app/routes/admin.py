@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 
 # Create a blueprint for admin routes
-admin = Blueprint('admin', __name__)
+admin_bp = Blueprint('admin', __name__)
 
 def admin_required(f):
     """Decorator to require admin role for route access"""
@@ -28,7 +28,7 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@admin.route('/admin')
+@admin_bp.route('/admin')
 @login_required
 @admin_required
 def dashboard():
@@ -83,7 +83,7 @@ def dashboard():
                              has_next=False,
                              page='admin')
 
-@admin.route('/admin/users/<int:user_id>/edit', methods=['GET', 'POST'])
+@admin_bp.route('/admin/users/<int:user_id>/edit', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def edit_user(user_id):
@@ -154,7 +154,7 @@ def edit_user(user_id):
         current_app.logger.error(f"Edit user error: {e}")
         return redirect(url_for('admin.dashboard'))
 
-@admin.route('/admin/users/create', methods=['GET', 'POST'])
+@admin_bp.route('/admin/users/create', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def create_user():
@@ -191,7 +191,7 @@ def create_user():
 
     return render_template('admin_create_user.html', form=form)
 
-@admin.route('/admin/users/<int:user_id>/delete', methods=['POST'])
+@admin_bp.route('/admin/users/<int:user_id>/delete', methods=['POST'])
 @login_required
 @admin_required
 def delete_user(user_id):
@@ -252,7 +252,7 @@ def delete_user(user_id):
         current_app.logger.error(f"Delete user error: {e}")
         return redirect(url_for('admin.dashboard'))
 
-@admin.route('/admin/users/<int:user_id>/toggle-role/<role_name>', methods=['POST'])
+@admin_bp.route('/admin/users/<int:user_id>/toggle-role/<role_name>', methods=['POST'])
 @login_required
 @admin_required
 def toggle_user_role(user_id, role_name):
@@ -300,7 +300,7 @@ def toggle_user_role(user_id, role_name):
             'error': 'Database error occurred'
         }), 500
 
-@admin.route('/admin/images')
+@admin_bp.route('/admin/images')
 @login_required
 @admin_required
 def manage_images():
@@ -471,7 +471,7 @@ def manage_images():
         current_app.logger.error(f"Image management error: {e}")
         return redirect(url_for('admin.dashboard'))
 
-@admin.route('/admin/images/delete/<path:image_path>', methods=['POST'])
+@admin_bp.route('/admin/images/delete/<path:image_path>', methods=['POST'])
 @login_required
 @admin_required
 def delete_image(image_path):
@@ -573,7 +573,7 @@ def delete_image(image_path):
 
     return redirect(url_for('admin.manage_images'))
 
-@admin.route('/admin/images/purge-orphaned', methods=['POST'])
+@admin_bp.route('/admin/images/purge-orphaned', methods=['POST'])
 @login_required
 @admin_required
 def purge_orphaned_images():

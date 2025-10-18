@@ -91,25 +91,25 @@ def app():
 
     # Register blueprints
     from app.routes import (
-        main,
-        auth,
-        blogpost,
-        mc,
-        admin,
-        health,
-        profile
+        main_bp,
+        auth_bp,
+        blogpost_bp,
+        mc_bp,
+        admin_bp,
+        health_bp,
+        profile_bp
     )
 
-    test_app.register_blueprint(main)
-    test_app.register_blueprint(auth)
-    test_app.register_blueprint(blogpost)
-    test_app.register_blueprint(mc)
-    test_app.register_blueprint(health)
-    test_app.register_blueprint(profile)
-    test_app.register_blueprint(admin)
+    test_app.register_blueprint(main_bp)
+    test_app.register_blueprint(auth_bp)
+    test_app.register_blueprint(blogpost_bp)
+    test_app.register_blueprint(mc_bp)
+    test_app.register_blueprint(health_bp)
+    test_app.register_blueprint(profile_bp)
+    test_app.register_blueprint(admin_bp)
 
     # Exempt health endpoint from CSRF
-    csrf.exempt(health)
+    csrf.exempt(health_bp)
 
     # User loader for Flask-Login
     @login_manager.user_loader

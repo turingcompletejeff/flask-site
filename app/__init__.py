@@ -35,25 +35,25 @@ def create_app():
 
     # Register blueprints
     from app.routes import (
-        main,
-        auth,
-        blogpost,
-        mc,
-        admin,
-        health,
-        profile
+        main_bp,
+        auth_bp,
+        blogpost_bp,
+        mc_bp,
+        admin_bp,
+        health_bp,
+        profile_bp
     )
 
-    app.register_blueprint(main)
-    app.register_blueprint(auth)
-    app.register_blueprint(blogpost)
-    app.register_blueprint(mc)
-    app.register_blueprint(admin)
-    app.register_blueprint(health)
-    app.register_blueprint(profile)
+    app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(blogpost_bp)
+    app.register_blueprint(mc_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(health_bp)
+    app.register_blueprint(profile_bp)
 
     # Exempt health endpoint from CSRF (read-only, no auth required)
-    csrf.exempt(health)
+    csrf.exempt(health_bp)
 
     # init global.... RCON object
     app.rcon = rcon

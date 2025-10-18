@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from app import db, __version__
 import time
 
-health = Blueprint('health', __name__)
+health_bp = Blueprint('health', __name__)
 
 # Cache for database health check (30 second TTL)
 _db_health_cache = {
@@ -62,7 +62,7 @@ def check_database():
 
         return result
 
-@health.route('/health')
+@health_bp.route('/health')
 def health_check():
     """
     Health check endpoint for monitoring and container orchestration.

@@ -13,10 +13,10 @@ from app.utils.file_validation import validate_image_file, sanitize_filename
 from app.utils.image_utils import delete_uploaded_images
 
 # Create a blueprint for main routes
-blogpost = Blueprint('blogpost', __name__)
+blogpost_bp = Blueprint('blogpost', __name__)
 
 # Route to view a single blog post
-@blogpost.route('/post/<int:post_id>')
+@blogpost_bp.route('/post/<int:post_id>')
 def view_post(post_id):
     # Query the specific blog post by ID
     post = BlogPost.query.get_or_404(post_id)
@@ -29,7 +29,7 @@ def view_post(post_id):
     return render_template('view_post.html', post=post)
 
 # Route to create a new blog post
-@blogpost.route('/post/new', methods=['GET', 'POST'])
+@blogpost_bp.route('/post/new', methods=['GET', 'POST'])
 @login_required
 @require_any_role(['blogger', 'admin'])
 def new_post():
@@ -171,7 +171,7 @@ def new_post():
     return render_template('new_post.html', form=form)
 
 # Route to delete a blog post
-@blogpost.route('/post/delete', methods=['POST'])
+@blogpost_bp.route('/post/delete', methods=['POST'])
 @login_required
 @require_any_role(['blogger', 'admin'])
 def delete_post():
@@ -202,7 +202,7 @@ def delete_post():
     return redirect(url_for('main.index'))
 
 # Route to edit an existing blog post
-@blogpost.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
+@blogpost_bp.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
 @login_required
 @require_any_role(['blogger', 'admin'])
 def edit_post(post_id):

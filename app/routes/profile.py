@@ -9,15 +9,15 @@ from app.forms import ProfileEditForm, PasswordChangeForm
 from app.utils.file_validation import validate_image_file, sanitize_filename
 
 # Create a blueprint for profile routes
-profile = Blueprint('profile', __name__)
+profile_bp = Blueprint('profile', __name__)
 
-@profile.route('/profile')
+@profile_bp.route('/profile')
 @login_required
 def view_profile():
     """Display user profile"""
     return render_template('profile.html', user=current_user, current_page='profile')
 
-@profile.route('/profile/edit', methods=['GET', 'POST'])
+@profile_bp.route('/profile/edit', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
     """Edit user profile information"""
@@ -97,7 +97,7 @@ def edit_profile():
 
     return render_template('edit_profile.html', form=form, current_page='profile')
 
-@profile.route('/profile/change-password', methods=['GET', 'POST'])
+@profile_bp.route('/profile/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
     """Change user password"""
@@ -118,7 +118,7 @@ def change_password():
 
     return render_template('change_password.html', form=form)
 
-@profile.route('/uploads/profiles/<filename>')
+@profile_bp.route('/uploads/profiles/<filename>')
 def profile_picture(filename):
     """Serve profile picture files"""
     return send_from_directory(current_app.config['PROFILE_UPLOAD_FOLDER'], filename)

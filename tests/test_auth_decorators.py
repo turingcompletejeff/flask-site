@@ -11,7 +11,7 @@ Tests cover:
 import pytest
 from flask import Blueprint
 from flask_login import login_required
-from app.auth_decorators import require_role, require_any_role
+from app.utils import require_role, require_any_role
 
 
 # ============================================================================

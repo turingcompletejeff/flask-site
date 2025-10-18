@@ -155,12 +155,12 @@ class TestHealthFailureScenarios:
     def test_health_database_failure_returns_503(self, client, db):
         """Test that database failure returns 503 Service Unavailable."""
         # Clear the cache first
-        from app import routes_health
-        routes_health._db_health_cache['result'] = None
-        routes_health._db_health_cache['timestamp'] = None
+        from app.routes import health
+        health._db_health_cache['result'] = None
+        health._db_health_cache['timestamp'] = None
 
         # Mock database failure
-        with patch('app.routes_health.db.session.execute') as mock_execute:
+        with patch('app.routes.health.db.session.execute') as mock_execute:
             mock_execute.side_effect = Exception('Database connection failed')
 
             response = client.get('/health')
@@ -174,11 +174,11 @@ class TestHealthFailureScenarios:
     def test_health_database_failure_details(self, client, db):
         """Test that database failure includes error details."""
         # Clear the cache first
-        from app import routes_health
-        routes_health._db_health_cache['result'] = None
-        routes_health._db_health_cache['timestamp'] = None
+        from app.routes import health
+        health._db_health_cache['result'] = None
+        health._db_health_cache['timestamp'] = None
 
-        with patch('app.routes_health.db.session.execute') as mock_execute:
+        with patch('app.routes.health.db.session.execute') as mock_execute:
             mock_execute.side_effect = Exception('Connection timeout')
 
             response = client.get('/health')
@@ -192,11 +192,11 @@ class TestHealthFailureScenarios:
     def test_health_app_still_up_when_db_down(self, client, db):
         """Test that app check is still 'up' even when database is down."""
         # Clear the cache first
-        from app import routes_health
-        routes_health._db_health_cache['result'] = None
-        routes_health._db_health_cache['timestamp'] = None
+        from app.routes import health
+        health._db_health_cache['result'] = None
+        health._db_health_cache['timestamp'] = None
 
-        with patch('app.routes_health.db.session.execute') as mock_execute:
+        with patch('app.routes.health.db.session.execute') as mock_execute:
             mock_execute.side_effect = Exception('Database error')
 
             response = client.get('/health')
