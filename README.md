@@ -58,19 +58,70 @@ flask-site/
 └── README.md               # Project documentation
 ```
 
-## ⚙️ Installation (Unchanged)
+## ⚙️ Installation
 
-[Previous installation instructions remain the same]
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/turingcompletejeff/flask-site.git
+   cd flask-site
+   ```
 
-## 🛡️ Environment Configuration (Unchanged)
+2. **Set up a Python virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-[Previous environment configuration remains the same]
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 🚀 Running the Application (Unchanged)
 
-[Previous running instructions remain the same]
+## 🛡️ Environment Configuration
 
-## 🔧 Key Components (Minor Update)
+Never hardcode sensitive information! Create a `.env` file in the root directory:
+
+```bash
+DATABASE_URL=your_database_url_here
+DB_USERNAME=your_db_username
+DB_PASSWORD=your_db_password
+RCON_PASS=your_rcon_password
+MC_HOST=your_minecraft_server_host
+MC_PORT=your_minecraft_server_port
+SECRET_KEY=your_secret_key_here
+REGISTRATION_ENABLED=true_or_false
+```
+
+Load environment variables in your application:
+
+```python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+```
+
+## 🚀 Running the Application
+
+**Development mode:**
+```bash
+python run.py
+```
+Then visit: http://localhost:8000
+
+**Testing with docker:**
+```bash
+docker-compose down flask-site
+docker-compose up --build -d flask-site
+```
+or 
+```bash
+docker-compose restart flask-site
+```
+
+## 🔧 Key Components
 
 - **Authentication**: Modular user registration and login system
 - **Blog Management**: Create, read, update, and delete blog posts
@@ -79,7 +130,7 @@ flask-site/
 - **Responsive Design**: Mobile-friendly interface
 - **Modular Architecture**: Improved code organization with directory-based separation of concerns
 
-## 📝 Import Patterns (New Section)
+## 📝 Import Patterns
 
 ### Importing from Modular Components
 

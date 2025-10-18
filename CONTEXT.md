@@ -46,15 +46,12 @@ Required in `.env` file:
 3. **Security**: Never hardcode credentials; use environment variables
 4. **Deployment**: Use Docker for production, run.py for local dev
 
-## Agent Touchpoints (Unchanged)
-[Previous agent touchpoints remain the same]
-
 ## Common Tasks
 1. **Adding new environment variable**: Update `config.py` Config class, document in README.md
 2. **Modifying database settings**: Edit Config.SQLALCHEMY_* properties
 3. **Changing upload limits**: Modify Config.MAX_CONTENT_LENGTH
 4. **Adding Python dependency**: Update requirements.txt, rebuild Docker image
-5. **Deployment**: Use `./run.py` for development, Docker for production (UPDATED FROM grun.sh)
+5. **Deployment**: Use `docker-compose restart flask-site` or other docker commands when necessary.
 
 ## Related Directories
 - `app/` - Main application code with new modular structure
