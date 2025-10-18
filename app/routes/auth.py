@@ -15,7 +15,7 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             flash(f"welcome, {user.username}",'success')
-            return redirect(url_for('main_bp.index'))
+            return redirect(url_for('main.index'))
         else:
             flash('invalid username or password', 'danger')
 
@@ -25,7 +25,7 @@ def login():
 def register():
     if not current_app.config.get('REGISTRATION_ENABLED', True):
         flash("registration is temporarily disabled.","warning")
-        return redirect(url_for('main_bp.index'))
+        return redirect(url_for('main.index'))
 
     if request.method == 'POST':
         username = request.form['username']
@@ -48,4 +48,4 @@ def register():
 def logout():
     logout_user()
     flash("logged out", "info")
-    return redirect(url_for('main_bp.index'))
+    return redirect(url_for('main.index'))

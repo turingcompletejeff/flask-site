@@ -8,15 +8,15 @@ from sqlalchemy.orm.attributes import flag_modified
 from app import db
 from app.models import BlogPost
 from app.forms import BlogPostForm
-from app.auth_decorators import require_any_role
+from app.utils.auth_decorators import require_any_role
 from app.utils.file_validation import validate_image_file, sanitize_filename
 from app.utils.image_utils import delete_uploaded_images
 
 # Create a blueprint for main routes
-blogpost_bp = Blueprint('blogpost_bp', __name__)
+blogpost = Blueprint('blogpost', __name__)
 
 # Route to view a single blog post
-@blogpost_bp.route('/post/<int:post_id>')
+@blogpost.route('/post/<int:post_id>')
 def view_post(post_id):
     # Query the specific blog post by ID
     post = BlogPost.query.get_or_404(post_id)
@@ -24,12 +24,12 @@ def view_post(post_id):
     # Check if post is draft and user is not authenticated
     if post.is_draft and not current_user.is_authenticated:
         flash('This post is not available.', 'error')
-        return redirect(url_for('main_bp.index'))
+        return redirect(url_for('main.index'))
 
     return render_template('view_post.html', post=post)
 
 # Route to create a new blog post
-@blogpost_bp.route('/post/new', methods=['GET', 'POST'])
+@blogpost.route('/post/new', methods=['GET', 'POST'])
 @login_required
 @require_any_role(['blogger', 'admin'])
 def new_post():
@@ -171,7 +171,7 @@ def new_post():
     return render_template('new_post.html', form=form)
 
 # Route to delete a blog post
-@blogpost_bp.route('/post/delete', methods=['POST'])
+@blogpost.route('/post/delete', methods=['POST'])
 @login_required
 @require_any_role(['blogger', 'admin'])
 def delete_post():
@@ -199,10 +199,10 @@ def delete_post():
     else:
         flash('Post and associated images deleted!', 'success')
 
-    return redirect(url_for('main_bp.index'))
+    return redirect(url_for('main.index'))
 
 # Route to edit an existing blog post
-@blogpost_bp.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
+@blogpost.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
 @login_required
 @require_any_role(['blogger', 'admin'])
 def edit_post(post_id):
@@ -249,6 +249,6 @@ def edit_post(post_id):
 
         db.session.commit()
         flash(flash_message, 'success')
-        return redirect(url_for('blogpost_bp.view_post', post_id=post.id))
+        return redirect(url_for('blogpost.view_post', post_id=post.id))
 
     return render_template('edit_post.html', form=form, post=post)

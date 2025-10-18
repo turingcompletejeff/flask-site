@@ -12,7 +12,7 @@
 
     <!-- Back to Dashboard Button -->
     <div class="back-button-container">
-        <button type="button" class="clicky-secondary" onclick="window.location.href='{{ url_for('admin_bp.dashboard') }}'">
+        <button type="button" class="clicky-secondary" onclick="window.location.href='{{ url_for('admin.dashboard') }}'">
             ← Back to Dashboard
         </button>
     </div>
@@ -173,7 +173,7 @@
         <p>Are you sure you want to delete <strong>ALL {{ stats.total_orphaned }} orphaned images</strong>?</p>
         <p class="info-text">This will free up {{ stats.orphaned_size_mb }} MB of disk space.</p>
         <p class="warning-text">This action cannot be undone.</p>
-        <form id="purgeOrphanedForm" method="POST" action="{{ url_for('admin_bp.purge_orphaned_images') }}">
+        <form id="purgeOrphanedForm" method="POST" action="{{ url_for('admin.purge_orphaned_images') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="modal-actions">
                 <button type="button" class="clicky-secondary" onclick="closePurgeOrphanedModal()">Cancel</button>

@@ -96,22 +96,22 @@
             <ul class="nav-main">
 		{% if current_user.is_authenticated %}
 		<li>welcome, {{ current_user.username }}</li>
-		<li class="{% if current_page == 'profile' %}selected{% endif %}"><a href="{{ url_for('profile_bp.view_profile') }}">profile</a></li>
+		<li class="{% if current_page == 'profile' %}selected{% endif %}"><a href="{{ url_for('profile.view_profile') }}">profile</a></li>
 		<li><a href="{{ url_for('auth.logout') }}">logout</a></li>
 		{% else %}
 		<li><a href="{{ url_for('auth.login') }}">login</a></li>
 		{% endif %}
 		<hr />
-                <li class="{% if current_page == 'blog' %}selected{% endif %}"><a href="{{ url_for('main_bp.index') }}">blog</a></li>
-                <li class="{% if current_page == 'about' %}selected{% endif %}"><a href="{{ url_for('main_bp.about') }}">about</a></li>
-                <li class="{% if current_page == 'contact' %}selected{% endif %}"><a href="{{ url_for('main_bp.contact') }}">contact</a></li>
+                <li class="{% if current_page == 'blog' %}selected{% endif %}"><a href="{{ url_for('main.index') }}">blog</a></li>
+                <li class="{% if current_page == 'about' %}selected{% endif %}"><a href="{{ url_for('main.about') }}">about</a></li>
+                <li class="{% if current_page == 'contact' %}selected{% endif %}"><a href="{{ url_for('main.contact') }}">contact</a></li>
 		{% if current_user.is_authenticated and (current_user.has_role('minecrafter') or current_user.is_admin()) %}
-                <li class="{% if current_page == 'minecraf' %}selected{% endif %}"><a href="{{ url_for('mc_bp.index') }}">minecraf</a></li>
+                <li class="{% if current_page == 'minecraf' %}selected{% endif %}"><a href="{{ url_for('mc.index') }}">minecraf</a></li>
 		{% endif %}
             </ul>
 		{% if current_user.is_authenticated and current_user.is_admin() %}
             <ul class="nav-admin">
-                <li class="{% if current_page == 'admin' %}selected{% endif %}"><a href="{{ url_for('admin_bp.dashboard') }}">admin</a></li>
+                <li class="{% if current_page == 'admin' %}selected{% endif %}"><a href="{{ url_for('admin.dashboard') }}">admin</a></li>
             </ul>
 		{% endif %}
         </nav>

@@ -7,9 +7,9 @@ from mctools import RCONClient, QUERYClient
 import socket
 
 # Create a blueprint for main routes
-mc_bp = Blueprint('mc_bp', __name__)
+mc = Blueprint('mc', __name__)
 
-@mc_bp.before_request
+@mc.before_request
 def require_login_and_role():
     if not current_user.is_authenticated:
         flash("you must be logged in to access this page.", "warning")
@@ -27,11 +27,11 @@ def rconConnect():
     return rcon.login(Config.RCON_PASS)
 
 # Home page
-@mc_bp.route('/mc')
+@mc.route('/mc')
 def index():
     return render_template('mc.html', current_page="minecraf")
 
-@mc_bp.route('/mc/init')
+@mc.route('/mc/init')
 def rconInit():
     global rcon
     if rconConnect():
@@ -39,7 +39,7 @@ def rconInit():
         return resp
     return 'FAIL'
 
-@mc_bp.route('/mc/stop')
+@mc.route('/mc/stop')
 def rconStop():
     global rcon
     if rcon is not None:
@@ -47,7 +47,7 @@ def rconStop():
         rcon = None
     return 'OK'
     
-@mc_bp.route('/mc/command', methods = ['POST'])
+@mc.route('/mc/command', methods = ['POST'])
 def rconCommand():
     global rcon
     if rconConnect():
@@ -55,7 +55,7 @@ def rconCommand():
         return resp
     return 'FAIL'
 
-@mc_bp.route('/mc/query')
+@mc.route('/mc/query')
 def rconQuery():
     try:
         query = QUERYClient(Config.RCON_HOST)
@@ -63,7 +63,7 @@ def rconQuery():
     except (socket.error, ConnectionResetError) as e:
         return jsonify({"error": "Connection closed", "message": str(e)}), 500
 
-@mc_bp.route('/mc/list')
+@mc.route('/mc/list')
 def list():
     commands = MinecraftCommand.query.order_by(MinecraftCommand.command_id.asc()).all()
     return jsonify([cmd.to_dict() for cmd in commands])

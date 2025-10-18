@@ -82,7 +82,7 @@ def app():
     login_manager.login_view = 'auth.login'  # Critical: enables proper 302 redirects
 
     # Register filters
-    from app.filters import register_filters
+    from app.utils.filters import register_filters
     register_filters(test_app)
 
     # Create upload directories
@@ -90,23 +90,26 @@ def app():
     os.makedirs(test_app.config['PROFILE_UPLOAD_FOLDER'], exist_ok=True)
 
     # Register blueprints
-    from app.routes import main_bp
-    test_app.register_blueprint(main_bp)
-    from app.routes_auth import auth
+    from app.routes import (
+        main,
+        auth,
+        blogpost,
+        mc,
+        admin,
+        health,
+        profile
+    )
+
+    test_app.register_blueprint(main)
     test_app.register_blueprint(auth)
-    from app.routes_blogpost import blogpost_bp
-    test_app.register_blueprint(blogpost_bp)
-    from app.routes_mc import mc_bp
-    test_app.register_blueprint(mc_bp)
-    from app.routes_health import health_bp
-    test_app.register_blueprint(health_bp)
-    from app.routes_profile import profile_bp
-    test_app.register_blueprint(profile_bp)
-    from app.routes_admin import admin_bp
-    test_app.register_blueprint(admin_bp)
+    test_app.register_blueprint(blogpost)
+    test_app.register_blueprint(mc)
+    test_app.register_blueprint(health)
+    test_app.register_blueprint(profile)
+    test_app.register_blueprint(admin)
 
     # Exempt health endpoint from CSRF
-    csrf.exempt(health_bp)
+    csrf.exempt(health)
 
     # User loader for Flask-Login
     @login_manager.user_loader

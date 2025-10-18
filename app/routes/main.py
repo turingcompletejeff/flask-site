@@ -7,10 +7,10 @@ import smtplib
 from email.message import EmailMessage
 
 # Create a blueprint for main routes
-main_bp = Blueprint('main_bp', __name__)
+main = Blueprint('main', __name__)
 
 # Home page
-@main_bp.route('/')
+@main.route('/')
 def index():
     from flask_login import current_user
     msg = request.args.get("flash")
@@ -29,12 +29,12 @@ def index():
     return render_template('index.html', blog_posts=blog_posts, current_page="blog")
 
 # About page
-@main_bp.route('/about')
+@main.route('/about')
 def about():
     return render_template('about.html', current_page="about")
     
 # Contact form
-@main_bp.route('/contact', methods=['GET', 'POST'])
+@main.route('/contact', methods=['GET', 'POST'])
 def contact():
     form = ContactForm()
     
@@ -54,11 +54,11 @@ def contact():
                 return jsonify({
                     'success': True,
                     'message': f'message sent from {form.email.data}',
-                    'redirect': url_for('main_bp.index')
+                    'redirect': url_for('main.index')
                 })
             else:
                 flash(f'message sent from {form.email.data}', "success")
-                return redirect(url_for('main_bp.index'))
+                return redirect(url_for('main.index'))
 
         except Exception as e:
             current_app.logger.error(f'Error sending email: {e}')
@@ -75,7 +75,7 @@ def contact():
 
     return render_template('contact.html', current_page="contact", form=form)
 
-@main_bp.route('/uploads/blog-posts/<filename>')
+@main.route('/uploads/blog-posts/<filename>')
 def uploaded_file(filename):
     return send_from_directory(current_app.config['BLOG_POST_UPLOAD_FOLDER'], filename)
 

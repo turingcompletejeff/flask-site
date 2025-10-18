@@ -9,15 +9,15 @@ from app.forms import ProfileEditForm, PasswordChangeForm
 from app.utils.file_validation import validate_image_file, sanitize_filename
 
 # Create a blueprint for profile routes
-profile_bp = Blueprint('profile_bp', __name__)
+profile = Blueprint('profile', __name__)
 
-@profile_bp.route('/profile')
+@profile.route('/profile')
 @login_required
 def view_profile():
     """Display user profile"""
     return render_template('profile.html', user=current_user, current_page='profile')
 
-@profile_bp.route('/profile/edit', methods=['GET', 'POST'])
+@profile.route('/profile/edit', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
     """Edit user profile information"""
@@ -45,7 +45,7 @@ def edit_profile():
             is_valid, error_msg = validate_image_file(profile_picture_file)
             if not is_valid:
                 flash(f'Profile picture upload failed: {error_msg}', 'danger')
-                return redirect(url_for('profile_bp.edit_profile'))
+                return redirect(url_for('profile.edit_profile'))
 
             # Get sanitized extension
             safe_name = sanitize_filename(profile_picture_file.filename)
@@ -85,19 +85,19 @@ def edit_profile():
             except IOError as e:
                 current_app.logger.error(f'Profile picture upload failed: {e}')
                 flash('Failed to save profile picture. Please try again.', 'danger')
-                return redirect(url_for('profile_bp.edit_profile'))
+                return redirect(url_for('profile.edit_profile'))
             except Exception as e:
                 current_app.logger.error(f'Unexpected error during profile picture upload: {e}')
                 flash('An error occurred. Please try again.', 'danger')
-                return redirect(url_for('profile_bp.edit_profile'))
+                return redirect(url_for('profile.edit_profile'))
 
         db.session.commit()
         flash('Profile updated successfully!', 'success')
-        return redirect(url_for('profile_bp.view_profile'))
+        return redirect(url_for('profile.view_profile'))
 
     return render_template('edit_profile.html', form=form, current_page='profile')
 
-@profile_bp.route('/profile/change-password', methods=['GET', 'POST'])
+@profile.route('/profile/change-password', methods=['GET', 'POST'])
 @login_required
 def change_password():
     """Change user password"""
@@ -107,18 +107,18 @@ def change_password():
         # Verify current password
         if not current_user.check_password(form.current_password.data):
             flash('Current password is incorrect', 'danger')
-            return redirect(url_for('profile_bp.change_password'))
+            return redirect(url_for('profile.change_password'))
 
         # Update password
         current_user.set_password(form.new_password.data)
         db.session.commit()
 
         flash('Password changed successfully!', 'success')
-        return redirect(url_for('profile_bp.view_profile'))
+        return redirect(url_for('profile.view_profile'))
 
     return render_template('change_password.html', form=form)
 
-@profile_bp.route('/uploads/profiles/<filename>')
+@profile.route('/uploads/profiles/<filename>')
 def profile_picture(filename):
     """Serve profile picture files"""
     return send_from_directory(current_app.config['PROFILE_UPLOAD_FOLDER'], filename)
