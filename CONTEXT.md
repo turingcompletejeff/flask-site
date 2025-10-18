@@ -27,6 +27,25 @@ Project root containing configuration, deployment scripts, and entry points for 
 - **db-init/seed_roles.py** - Database seeding script for initial roles/data (UPDATED LOCATION)
 - **requirements.txt** - Python package dependencies (pip install -r)
 
+
+## Agent Touchpoints
+
+### backend-architect
+- Needs: config.py structure, database settings, upload paths
+- Common tasks: Adding new config variables, modifying database pooling
+
+### python-pro
+- Needs: requirements.txt dependencies, config patterns
+- Common tasks: Optimizing config loading, adding new dependencies
+
+### security-auditor
+- Needs: config.py for secret handling, MAX_CONTENT_LENGTH for DoS prevention
+- Common tasks: Validating environment variable usage, checking upload limits
+
+### documentation-expert
+- Needs: README.md, CLAUDE.md for documentation updates
+- Common tasks: Keeping setup instructions current with config changes
+
 ### Documentation
 - **README.md** - Project overview and setup instructions
 - **CLAUDE.md** - AI agent coordination and development workflow guide

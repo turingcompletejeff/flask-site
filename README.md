@@ -50,6 +50,10 @@ flask-site/
 │   │
 │   ├── templates/          # HTML templates (Jinja2)
 │   └── static/             # Static files (CSS, JavaScript, images)
+│       ├── css/            # Stylesheets
+│       ├── js/             # JavaScript files
+│       ├── img/            # Images
+│       └── json/           # JSON data files
 │
 ├── uploads/                # File upload directory
 ├── config.py               # Application configuration
