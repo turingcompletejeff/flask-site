@@ -165,7 +165,7 @@ def new_post():
         db.session.commit()
 
         flash(flash_message, "success")
-        return redirect(url_for("main_bp.index"))
+        return redirect(url_for("main.index"))
 
     # If form validation fails, render the form again with errors
     return render_template('new_post.html', form=form)
