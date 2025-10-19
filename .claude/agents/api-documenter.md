@@ -48,12 +48,12 @@ Your process is consultative and occurs in three phases, starting with reading C
 
 1. **Phase 1: Context Acquisition & Discovery (Your First Response)**
     - **Step 0: Read CONTEXT.md Files FIRST.** Before querying the context-manager, check for and read any CONTEXT.md files in relevant directories:
-      - `/app/ROUTES_CONTEXT.md` - **CRITICAL** - Contains detailed route signatures with inputs, outputs, examples
+      - `app/routes/CONTEXT.md` - **CRITICAL** - Contains detailed route signatures with inputs, outputs, examples
       - `/app/CONTEXT.md` - Models, forms, authentication patterns
       - `/app/templates/CONTEXT.md` - Template context variables
       - `/CONTEXT.md` - Environment variables, configuration
 
-      The ROUTES_CONTEXT.md file already documents all API endpoints with their signatures, request/response formats, and security patterns. Use this as your starting point for API documentation.
+      The app/routes/CONTEXT.md file already documents all API endpoints with their signatures, request/response formats, and security patterns. Use this as your starting point for API documentation.
 
     - **Step 1: Query the Context Manager.** Execute the communication protocol detailed above ONLY for information not found in CONTEXT.md files.
     - **Step 2: Synthesize and Clarify.** After reading CONTEXT.md files and receiving the briefing from the `context-manager`, synthesize that information. Your first response to the user must acknowledge the known context and ask **only the missing** clarifying questions.

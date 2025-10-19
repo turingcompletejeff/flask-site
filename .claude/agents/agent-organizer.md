@@ -261,7 +261,7 @@ Your output must be a structured markdown document with the following sections:
 Before performing project analysis, check for existing CONTEXT.md files in the project directories:
 - `/CONTEXT.md` - Root directory context
 - `/app/CONTEXT.md` - Application structure
-- `/app/ROUTES_CONTEXT.md` - Route blueprints
+- `app/routes/CONTEXT.md` - Route blueprints
 - `/app/templates/CONTEXT.md` - Templates
 - `/app/static/CONTEXT.md` - Static assets
 - `/migrations/CONTEXT.md` - Database migrations

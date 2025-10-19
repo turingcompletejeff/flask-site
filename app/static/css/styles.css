@@ -557,6 +557,13 @@ textarea.form__field:focus {
   margin-right: 8px;
 }
 
+/* Required Field Asterisk */
+.required-asterisk {
+  color: var(--danger);
+  font-weight: bold;
+  margin-left: 4px;
+}
+
 /* Blog Title Input - Styled to look like H2 */
 #blog-title-input {
   font-size: 1.5em;
