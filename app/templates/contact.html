@@ -19,6 +19,7 @@
       {{ render_text_field(form.email) }}
       {{ render_text_field(form.phone, placeholder="(888) 888-8888") }}
       {{ render_select(form.reason) }}
+      {{ render_text_field(form.other_reason, placeholder="Please specify...") }}
       {{ render_textarea(form.message) }}
       <hr />
       {{ form.submit(class_="form__submit clicky-success") }}

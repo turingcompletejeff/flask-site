@@ -10,6 +10,35 @@ function initContactFormHandlers() {
     const $submitBtn = $('.form__submit');
     const $formFields = $form.find('input, textarea, select');
 
+    // ==========================================
+    // TC-56: OTHER REASON FIELD SHOW/HIDE
+    // ==========================================
+    const $reasonSelect = $('#reason');
+    const $otherReasonGroup = $('#other_reason').closest('.form__group');
+    const $otherReasonInput = $('#other_reason');
+
+    function updateOtherReasonVisibility() {
+        const selectedReason = $reasonSelect.val();
+
+        if (selectedReason === 'other') {
+            $otherReasonGroup.addClass('visible');
+            $otherReasonInput.attr('aria-hidden', 'false');
+            // Optional: Auto-focus after transition
+            setTimeout(() => $otherReasonInput.focus(), 300);
+        } else {
+            $otherReasonGroup.removeClass('visible');
+            $otherReasonInput.attr('aria-hidden', 'true');
+            $otherReasonInput.val(''); // Clear value when hidden
+        }
+    }
+
+    // Initialize visibility on page load
+    updateOtherReasonVisibility();
+
+    // Listen for changes with namespace
+    $reasonSelect.off('change.otherReasonToggle');
+    $reasonSelect.on('change.otherReasonToggle', updateOtherReasonVisibility);
+
     // Remove any existing spinner to avoid duplicates
     $('#form-spinner').remove();
 

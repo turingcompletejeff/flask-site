@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, SubmitField
-from wtforms.validators import DataRequired, Email, ValidationError
+from wtforms.validators import DataRequired, Email, ValidationError, Optional
 import re
 
 
@@ -37,5 +37,21 @@ class ContactForm(FlaskForm):
         ],
         validators=[DataRequired()]
     )
+    other_reason = StringField(
+        "please specify",
+        validators=[Optional()],
+        render_kw={
+            'placeholder': 'Please describe your reason for contacting us',
+            'maxlength': 200
+        }
+    )
     message = TextAreaField("message", validators=[DataRequired()])
     submit = SubmitField("send")
+
+    def validate_other_reason(self, field):
+        """Custom validator: other_reason is required when reason='other'."""
+        if self.reason.data == 'other':
+            if not field.data or not field.data.strip():
+                raise ValidationError('Please specify your reason when selecting "Other".')
+            if len(field.data.strip()) < 4:
+                raise ValidationError('Please provide a more detailed reason (at least 4 characters).')

@@ -4,3 +4,29 @@
 .contact-social-icons img {
     height: 12px;
 }
+
+/* ==========================================
+   TC-56: Other Reason Field Dynamic Show/Hide
+   ========================================== */
+
+/* Hidden state (default) */
+#other_reason {
+    transition: opacity 0.3s ease;
+}
+
+.form__group:has(#other_reason) {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+}
+
+/* Visible state (when reason === 'other') */
+.form__group:has(#other_reason).visible {
+    max-height: 150px;
+    opacity: 1;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
