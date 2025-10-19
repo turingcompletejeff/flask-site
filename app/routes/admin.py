@@ -757,11 +757,18 @@ def update_role_badge():
                 'message': 'Invalid hex color format. Use #RGB or #RRGGBB format.'
             }), 400
 
+        # Capture old color for audit logging
+        old_color = role.badge_color
+
         # Update badge color
         role.badge_color = badge_color
         db.session.commit()
 
-        current_app.logger.info(f"Role '{role.name}' badge color updated to {badge_color} by user {current_user.id}")
+        # Enhanced audit logging with old → new color change
+        current_app.logger.info(
+            f"Role '{role.name}' badge color updated from {old_color} to {badge_color} "
+            f"by user {current_user.id} ({current_user.username})"
+        )
 
         return jsonify({
             'status': 'success',
