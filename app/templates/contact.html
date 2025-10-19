@@ -1,4 +1,4 @@
-{% from "macros/fields.html" import render_text_field %}
+{% from "macros/fields.html" import render_text_field, render_select, render_textarea %}
 
 {% extends "layout.html" %}
 
@@ -18,8 +18,8 @@
       {{ render_text_field(form.name) }}
       {{ render_text_field(form.email) }}
       {{ render_text_field(form.phone, placeholder="(888) 888-8888") }}
-      {{ render_text_field(form.reason) }}
-      {{ render_text_field(form.message) }}
+      {{ render_select(form.reason) }}
+      {{ render_textarea(form.message) }}
       <hr />
       {{ form.submit(class_="form__submit clicky-success") }}
       <hr />

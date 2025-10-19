@@ -1,11 +1,64 @@
 {% macro render_text_field(field, placeholder=None) %}
 <div class="form__group">
     {{ field.label(class_="form__label") }}
+    {% if field.flags.required %}
+        <span class="required-asterisk">*</span>
+    {% endif %}
+
     {% if placeholder %}
         {{ field(class_="form__field", id=field.name, placeholder=placeholder)}}
     {% else %}
         {{ field(class_="form__field", id=field.name)}}
     {% endif %}
+
+    {%- for error in field.errors %}
+        <span class="form__error">{{ error }}</span>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro render_textarea(field, placeholder=None, rows=5) %}
+<div class="form__group">
+    {{ field.label(class_="form__label") }}
+    {% if field.flags.required %}
+        <span class="required-asterisk">*</span>
+    {% endif %}
+
+    {% if placeholder %}
+        {{ field(class_="form__field", id=field.name, placeholder=placeholder, rows=rows)}}
+    {% else %}
+        {{ field(class_="form__field", id=field.name, rows=rows)}}
+    {% endif %}
+
+    {%- for error in field.errors %}
+        <span class="form__error">{{ error }}</span>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro render_select(field) %}
+<div class="form__group">
+    {{ field.label(class_="form__label") }}
+    {% if field.flags.required %}
+        <span class="required-asterisk">*</span>
+    {% endif %}
+
+    {{ field(class_="form__field", id=field.name) }}
+
+    {%- for error in field.errors %}
+        <span class="form__error">{{ error }}</span>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro render_file_field(field) %}
+<div class="form__group">
+    {{ field.label(class_="form__label") }}
+    {% if field.flags.required %}
+        <span class="required-asterisk">*</span>
+    {% endif %}
+
+    {{ field(class_="form__field", id=field.name) }}
 
     {%- for error in field.errors %}
         <span class="form__error">{{ error }}</span>
