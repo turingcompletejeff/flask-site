@@ -81,13 +81,20 @@ def uploaded_file(filename):
 
 # formats the user's form contents as an email message
 def formatContactEmail(contactForm):
-    return f'a person has contacted you from the site form:\n' \
+    email_body = f'a person has contacted you from the site form:\n' \
            f'----------------------------------------------\n' \
            f'name: {contactForm.name.data}\n' \
            f'email: {contactForm.email.data}\n' \
            f'phone: {contactForm.phone.data}\n' \
-           f'reason: {contactForm.reason.data}\n' \
-           f'message: {contactForm.message.data}\n'
+           f'reason: {contactForm.reason.data}\n'
+
+    # Conditionally include custom reason
+    if contactForm.reason.data == 'other' and contactForm.other_reason.data:
+        email_body += f'custom reason: {contactForm.other_reason.data.strip()}\n'
+
+    email_body += f'message: {contactForm.message.data}\n'
+
+    return email_body
 
 # DIRECTLY sends an email, set up from an auto mailer acct
 def sendAnEmail(message):
