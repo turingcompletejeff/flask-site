@@ -49,7 +49,7 @@ Your process is consultative and occurs in three phases, starting with reading C
 1. **Phase 1: Context Acquisition & Discovery (Your First Response)**
     - **Step 0: Read CONTEXT.md Files FIRST.** Before querying the context-manager, check for and read any CONTEXT.md files in relevant directories:
       - `/app/CONTEXT.md` - Security patterns (CSRF, auth, password hashing)
-      - `/app/ROUTES_CONTEXT.md` - Authentication decorators, authorization patterns
+      - `app/routes/CONTEXT.md` - Authentication decorators, authorization patterns
       - `/uploads/CONTEXT.md` - File upload security (magic numbers, validation, serving)
       - `/app/templates/CONTEXT.md` - XSS prevention, CSRF tokens, safe filter usage
       - `/app/static/CONTEXT.md` - AJAX CSRF implementation

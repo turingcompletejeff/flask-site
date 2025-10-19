@@ -81,7 +81,7 @@ All agent instruction files have been updated to include awareness of CONTEXT.md
 **Updates**:
 - Added "Step 0: Read CONTEXT.md Files FIRST"
 - Lists API-relevant files: routes (CRITICAL), app, templates, root
-- Emphasizes ROUTES_CONTEXT.md as starting point for API docs
+- Emphasizes app/routes/CONTEXT.md as starting point for API docs
 - Changed from 2-phase to 3-phase process
 
 ### 5. Meta-Orchestration Agents
@@ -100,7 +100,7 @@ For agent instructions, the following files exist:
 ```
 /CONTEXT.md                     - Root directory (config, deployment)
 /app/CONTEXT.md                 - Application structure
-/app/ROUTES_CONTEXT.md          - Route blueprints
+app/routes/CONTEXT.md           - Route blueprints
 /app/templates/CONTEXT.md       - Jinja2 templates
 /app/static/CONTEXT.md          - Static assets
 /migrations/CONTEXT.md          - Database migrations
@@ -140,7 +140,7 @@ For agent instructions, the following files exist:
 - [x] architect-review.md - Step 0 added
 - [x] security-auditor.md - Step 0 added
 - [x] documentation-expert.md - Step 0 with ALL files
-- [x] api-documenter.md - Step 0 added with ROUTES_CONTEXT.md emphasis
+- [x] api-documenter.md - Step 0 added with app/routes/CONTEXT.md emphasis
 - [x] agent-organizer.md - CONTEXT.md check added to project analysis
 
 ## Next Steps
@@ -156,5 +156,5 @@ For agent instructions, the following files exist:
 - All agents now follow 3-phase process (CONTEXT.md → context-manager → task)
 - flask-dev has CONTEXT.md list at top since it's planning-only
 - documentation-expert reads ALL CONTEXT.md files (it maintains them)
-- api-documenter emphasizes ROUTES_CONTEXT.md as critical starting point
+- api-documenter emphasizes app/routes/CONTEXT.md as critical starting point
 - context-manager now includes CONTEXT.md files in every briefing

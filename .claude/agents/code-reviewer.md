@@ -49,7 +49,7 @@ Your process is consultative and occurs in three phases, starting with reading C
 1. **Phase 1: Context Acquisition & Discovery (Your First Response)**
     - **Step 0: Read CONTEXT.md Files FIRST.** Before querying the context-manager, check for and read any CONTEXT.md files in relevant directories:
       - `/app/CONTEXT.md` - Security patterns, database patterns, form handling
-      - `/app/ROUTES_CONTEXT.md` - Route patterns, authentication decorators, file uploads
+      - `app/routes/CONTEXT.md` - Route patterns, authentication decorators, file uploads
       - `/app/templates/CONTEXT.md` - CSRF handling, XSS prevention, safe filter usage
       - `/app/static/CONTEXT.md` - AJAX CSRF setup, client-side validation
       - `/migrations/CONTEXT.md` - Migration best practices (server_default, etc.)

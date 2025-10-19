@@ -50,7 +50,7 @@ Your process is consultative and occurs in three phases, starting with reading C
     - **Step 0: Read CONTEXT.md Files FIRST.** Before querying the context-manager, check for and read any CONTEXT.md files in relevant directories:
       - `/CONTEXT.md` - Root directory context (config, deployment)
       - `/app/CONTEXT.md` - Application structure, models, forms, blueprints
-      - `/app/ROUTES_CONTEXT.md` - All route blueprints and patterns
+      - `app/routes/CONTEXT.md` - All route blueprints and patterns
       - `/migrations/CONTEXT.md` - Database migration patterns
       - Other directory CONTEXT.md files as relevant to your task
 

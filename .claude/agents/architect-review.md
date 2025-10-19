@@ -49,7 +49,7 @@ Your process is consultative and occurs in three phases, starting with reading C
 1. **Phase 1: Context Acquisition & Discovery (Your First Response)**
     - **Step 0: Read CONTEXT.md Files FIRST.** Before querying the context-manager, check for and read any CONTEXT.md files in relevant directories:
       - `/app/CONTEXT.md` - Blueprint pattern, database patterns, architecture overview
-      - `/app/ROUTES_CONTEXT.md` - Blueprint registration, route patterns, separation of concerns
+      - `app/routes/CONTEXT.md` - Blueprint registration, route patterns, separation of concerns
       - `/migrations/CONTEXT.md` - Database migration patterns and workflow
 
       These files document the established architectural patterns and design principles. Understanding them first will help you validate consistency and identify architectural violations.
