@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from config import Config
 from app.utils.filters import register_filters
+import logging
 
 __version__ = "0.2.4" # initial testing fmwk
 
@@ -17,6 +18,9 @@ login_manager = LoginManager()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # Configure log level
+    app.logger.setLevel(app.config.get('LOGGING_LEVEL','WARN'))
 
     # enable CSRF globally
     csrf.init_app(app)

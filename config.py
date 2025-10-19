@@ -15,6 +15,8 @@ class Config:
             'pool_recycle': 300,
             'pool_pre_ping': True
             }
+
+  LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL')
   RCON_PASS = os.environ.get('RCON_PASS')
   RCON_HOST = os.environ.get('MC_HOST')
   RCON_PORT = os.environ.get('MC_PORT')
