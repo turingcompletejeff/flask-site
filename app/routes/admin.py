@@ -659,3 +659,125 @@ def purge_orphaned_images():
         current_app.logger.error(f"Purge orphaned images error: {e}")
 
     return redirect(url_for('admin.manage_images'))
+
+@admin_bp.route('/admin/roles')
+@login_required
+@admin_required
+def roles():
+    """
+    Role management page - view and edit all roles and their badge colors.
+
+    Displays a table of all roles with their properties:
+    - Name
+    - Description
+    - Badge color (with live preview)
+    - Edit capabilities
+
+    Returns:
+        Rendered admin_roles.html template with all roles
+
+    Requires:
+        - User must be authenticated (@login_required)
+        - User must have admin role (@admin_required)
+    """
+    try:
+        # Get all roles ordered by name
+        all_roles = Role.query.order_by(Role.name).all()
+
+        return render_template('admin_roles.html',
+                             roles=all_roles,
+                             page='admin')
+
+    except SQLAlchemyError as e:
+        flash('Database error occurred while loading roles.', 'danger')
+        current_app.logger.error(f"Roles management error: {e}")
+        return redirect(url_for('admin.dashboard'))
+
+@admin_bp.route('/admin/update_role_badge', methods=['POST'])
+@login_required
+@admin_required
+def update_role_badge():
+    """
+    Update a role's badge color via AJAX.
+
+    Expects JSON payload:
+        {
+            'role_id': int,
+            'badge_color': str (hex color code)
+        }
+
+    Returns:
+        JSON response:
+            Success: {'status': 'success', 'badge_color': str}
+            Error: {'status': 'error', 'message': str}
+
+    Requires:
+        - User must be authenticated (@login_required)
+        - User must have admin role (@admin_required)
+        - Valid hex color code format
+
+    Security:
+        - Validates hex color format server-side
+        - Prevents SQL injection through ORM
+        - Returns 404 for non-existent roles
+        - Returns 400 for invalid color formats
+    """
+    try:
+        # Get JSON data
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                'status': 'error',
+                'message': 'No data provided'
+            }), 400
+
+        role_id = data.get('role_id')
+        badge_color = data.get('badge_color')
+
+        # Validate required fields
+        if not role_id or not badge_color:
+            return jsonify({
+                'status': 'error',
+                'message': 'Missing role_id or badge_color'
+            }), 400
+
+        # Get the role
+        role = Role.query.get(role_id)
+        if not role:
+            return jsonify({
+                'status': 'error',
+                'message': 'Role not found'
+            }), 404
+
+        # Validate hex color format
+        if not Role.validate_hex_color(badge_color):
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid hex color format. Use #RGB or #RRGGBB format.'
+            }), 400
+
+        # Update badge color
+        role.badge_color = badge_color
+        db.session.commit()
+
+        current_app.logger.info(f"Role '{role.name}' badge color updated to {badge_color} by user {current_user.id}")
+
+        return jsonify({
+            'status': 'success',
+            'badge_color': badge_color
+        }), 200
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error updating role badge color: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Database error occurred'
+        }), 500
+    except Exception as e:
+        current_app.logger.error(f"Unexpected error updating role badge color: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'An unexpected error occurred'
+        }), 500

@@ -13,6 +13,9 @@
             <button type="button" class="clicky-primary" onclick="window.location.href='{{ url_for('admin.manage_images') }}'">
                 📁 Manage Images
             </button>
+            <button type="button" class="clicky-primary" onclick="window.location.href='{{ url_for('admin.roles') }}'">
+                🎨 Manage Roles
+            </button>
         </div>
     </div>
 
@@ -75,11 +78,8 @@
                                            data-role="{{ role.name }}"
                                            data-csrf="{{ csrf_token() }}"
                                            {% if has_role %}checked{% endif %}>
-                                    <span class="role-badge
-                                                 {% if role.name == 'admin' %}role-badge-admin
-                                                 {% elif role.name == 'blogger' %}role-badge-moderator
-                                                 {% else %}role-badge-user{% endif %}
-                                                 {% if not has_role %}unchecked{% endif %}">
+                                    <span class="role-badge{% if not has_role %} unchecked{% endif %}"
+                                          style="background-color: {{ role.badge_color }};">
                                         {{ role.name }}
                                     </span>
                                 </label>

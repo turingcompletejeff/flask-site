@@ -18,6 +18,21 @@ class Role(db.Model):
     name = db.Column(db.String(50), unique=True, nullable=False, index=True)
     description = db.Column(db.String(200))
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    badge_color = db.Column(db.String(7), nullable=False, default=lambda: '#58cc02')
+
+    def __init__(self, **kwargs):
+        """Initialize Role with default badge_color if not provided."""
+        if 'badge_color' not in kwargs:
+            kwargs['badge_color'] = '#58cc02'
+        super(Role, self).__init__(**kwargs)
+
+    @classmethod
+    def validate_hex_color(cls, color):
+        """Validate hex color code format."""
+        if color is None or not isinstance(color, str):
+            return False
+        import re
+        return bool(re.match(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$', color))
 
     def __repr__(self):
         return f'<Role {self.name}>'
