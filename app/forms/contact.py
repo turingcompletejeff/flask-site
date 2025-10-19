@@ -32,7 +32,7 @@ class ContactForm(FlaskForm):
         choices=[
             ('informational','informational'),
             ('personal','personal'),
-            ('hiring / recruitment','hiring'),
+            ('hiring','hiring / recruitment'),
             ('other','other')
         ],
         validators=[DataRequired()]
