@@ -7,7 +7,7 @@ from config import Config
 from app.utils.filters import register_filters
 import logging
 
-__version__ = "0.3.0" # REFACTOR.
+__version__ = "0.3.1" # minecraft commands widget
 
 db = SQLAlchemy()
 rcon = None
