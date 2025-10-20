@@ -1,0 +1,146 @@
+{% extends "layout.html" %}
+
+{% block title %}Minecraft Commands{% endblock %}
+
+{% block js %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_roles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mc_commands.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1>Minecraft Command Management</h1>
+
+    <div class="admin-widget">
+        <div class="widget-header">
+            <h2>Saved Commands</h2>
+	    <button type="button" class="clicky-secondary" onclick="window.location.href='{{ url_for('admin.dashboard') }}'">
+                ← Back to Dashboard
+            </button>
+        </div>
+
+        <div class="widget-content">
+            <table class="commands-table">
+                <thead>
+                    <tr>
+                        <th>Command Name</th>
+                        <th>Arguments</th>
+                        <th>Preview</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cmd in commands %}
+                    <tr data-command-id="{{ cmd.command_id }}" class="command-row">
+                        <!-- Command Name Column -->
+                        <td>
+                            <strong class="command-name-display">{{ cmd.command_name }}</strong>
+                            <input type="text"
+                                   class="command-name-input"
+                                   value="{{ cmd.command_name }}"
+                                   maxlength="20"
+                                   placeholder="e.g., tp, give, weather"
+                                   style="display: none;">
+                        </td>
+
+                        <!-- Arguments Column -->
+                        <td>
+                            <div class="command-args-display">
+                                {% if cmd.options and cmd.options.args %}
+                                    {% for arg in cmd.options.args %}
+                                    <span class="arg-badge">{{ arg }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="no-args">No arguments</span>
+                                {% endif %}
+                            </div>
+                            <input type="text"
+                                   class="command-args-input"
+                                   value="{{ cmd.options.args|join(' ') if cmd.options and cmd.options.args else '' }}"
+                                   placeholder="e.g., player1 100 64 -200"
+                                   style="display: none;">
+                        </td>
+
+                        <!-- Preview Column -->
+                        <td>
+                            <code class="command-preview">
+                                /{{ cmd.command_name }}
+                                {% if cmd.options and cmd.options.args %}
+                                    {{ cmd.options.args|join(' ') }}
+                                {% endif %}
+                            </code>
+                        </td>
+
+                        <!-- Actions Column -->
+                        <td class="actions-cell">
+                            <!-- View mode actions -->
+                            <div class="view-mode-actions">
+                                <button type="button"
+                                        class="btn-icon edit-command-btn"
+                                        data-command-id="{{ cmd.command_id }}"
+                                        title="Edit command">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button type="button"
+                                        class="btn-icon delete-command-btn"
+                                        data-command-id="{{ cmd.command_id }}"
+                                        data-command-name="{{ cmd.command_name }}"
+                                        title="Delete command">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+
+                            <!-- Edit mode actions (hidden by default) -->
+                            <div class="edit-mode-actions" style="display: none;">
+                                <button type="button"
+                                        class="btn-icon save-command-btn"
+                                        data-command-id="{{ cmd.command_id }}"
+                                        title="Save">
+                                    <span class="material-symbols-outlined">check</span>
+                                </button>
+                                <button type="button"
+                                        class="btn-icon cancel-edit-btn"
+                                        data-command-id="{{ cmd.command_id }}"
+                                        title="Cancel">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <!-- Add command row -->
+                    <tr class="add-command-row">
+                        <td colspan="4">
+                            <button type="button" class="clicky-success add-command-btn">
+                                <span class="material-symbols-outlined">add</span>
+                                Create New Command
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteCommandModal" class="modal" style="display: none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <h2>Confirm Command Deletion</h2>
+        <p id="deleteCommandMessage"></p>
+        <form id="deleteCommandForm" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-actions">
+                <button type="button" class="clicky-secondary cancel-delete-btn">Cancel</button>
+                <button type="submit" class="clicky-danger">Delete Command</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block endjs %}
+<script src="{{ url_for('static', filename='js/mc_commands.js') }}"></script>
+{% endblock %}
