@@ -7,7 +7,7 @@ from config import Config
 from app.utils.filters import register_filters
 import logging
 
-__version__ = "0.2.4" # initial testing fmwk
+__version__ = "0.3.0" # REFACTOR.
 
 db = SQLAlchemy()
 rcon = None
