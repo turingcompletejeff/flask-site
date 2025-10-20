@@ -4,8 +4,7 @@ Tests for admin role CRUD operations (TC-55).
 Tests cover:
 - GET /admin/roles/create - Display create role form
 - POST /admin/roles/create - Create new role
-- GET /admin/roles/<id>/edit - Display edit role form
-- POST /admin/roles/<id>/edit - Update existing role
+- POST /admin/update_role - AJAX in-line role update (replaces old edit route)
 - POST /admin/roles/<id>/delete - Delete role
 - Authentication and authorization requirements
 - Form validation (name, description, badge color)
@@ -13,6 +12,7 @@ Tests cover:
 """
 
 import pytest
+import json
 from flask import url_for
 from app.models import Role, User
 from app import db
@@ -140,109 +140,6 @@ class TestRoleCreation:
 
             assert response.status_code == 200
             # Form should show validation error
-
-
-class TestRoleEditing:
-    """Tests for editing roles."""
-
-    def test_edit_role_page_admin_access(self, admin_client, admin_role, app):
-        """Test admin can access the edit role page."""
-        with app.app_context():
-            response = admin_client.get(url_for('admin.edit_role', role_id=admin_role.id))
-            assert response.status_code == 200
-            assert admin_role.name.encode() in response.data
-
-    def test_edit_role_page_requires_authentication(self, client, admin_role, app):
-        """Test unauthenticated access is denied."""
-        with app.app_context():
-            response = client.get(url_for('admin.edit_role', role_id=admin_role.id), follow_redirects=False)
-            assert response.status_code == 302  # Redirect to login
-
-    def test_edit_role_page_regular_user_denied(self, auth_client, admin_role, app):
-        """Test regular user cannot access edit role page."""
-        with app.app_context():
-            response = auth_client.get(url_for('admin.edit_role', role_id=admin_role.id), follow_redirects=False)
-            assert response.status_code == 403  # Forbidden
-
-    def test_edit_role_nonexistent(self, admin_client, app):
-        """Test editing non-existent role returns 404."""
-        with app.app_context():
-            response = admin_client.get(url_for('admin.edit_role', role_id=9999))
-            assert response.status_code == 404
-
-    def test_edit_role_success(self, admin_client, app):
-        """Test successfully editing a role."""
-        with app.app_context():
-            # Create a role to edit
-            role = Role(name='moderator', description='Old description', badge_color='#123456')
-            db.session.add(role)
-            db.session.commit()
-            role_id = role.id
-
-            data = {
-                'name': 'moderator_updated',
-                'description': 'New description',
-                'badge_color': '#ABCDEF',
-                'csrf_token': 'test_token'
-            }
-
-            response = admin_client.post(
-                url_for('admin.edit_role', role_id=role_id),
-                data=data,
-                follow_redirects=True
-            )
-
-            assert response.status_code == 200
-
-            # Check role was updated
-            updated_role = Role.query.get(role_id)
-            assert updated_role.name == 'moderator_updated'
-            assert updated_role.description == 'New description'
-            assert updated_role.badge_color == '#ABCDEF'
-
-    def test_edit_role_duplicate_name(self, admin_client, admin_role, app):
-        """Test editing role to duplicate name fails."""
-        with app.app_context():
-            # Create another role
-            role = Role(name='editor', description='Editor role', badge_color='#123456')
-            db.session.add(role)
-            db.session.commit()
-            role_id = role.id
-
-            data = {
-                'name': admin_role.name,  # Try to use admin role's name
-                'description': 'Description',
-                'badge_color': '#ABCDEF',
-                'csrf_token': 'test_token'
-            }
-
-            response = admin_client.post(
-                url_for('admin.edit_role', role_id=role_id),
-                data=data,
-                follow_redirects=True
-            )
-
-            assert response.status_code == 200
-            assert b'already exists' in response.data
-
-    def test_edit_role_invalid_color(self, admin_client, admin_role, app):
-        """Test editing role with invalid color fails."""
-        with app.app_context():
-            data = {
-                'name': 'updated_name',
-                'description': 'Description',
-                'badge_color': 'not-a-hex-color',
-                'csrf_token': 'test_token'
-            }
-
-            response = admin_client.post(
-                url_for('admin.edit_role', role_id=admin_role.id),
-                data=data,
-                follow_redirects=True
-            )
-
-            assert response.status_code == 200
-            assert b'Invalid hex color' in response.data or b'invalid' in response.data.lower()
 
 
 class TestRoleDeletion:
@@ -388,3 +285,301 @@ class TestRoleFormValidation:
             )
 
             assert b'Invalid hex color' in response.data or b'invalid' in response.data.lower()
+
+
+class TestInlineRoleUpdate:
+    """Tests for AJAX in-line role update endpoint."""
+
+    def test_update_role_requires_authentication(self, client, app):
+        """Test unauthenticated access is denied."""
+        with app.app_context():
+            response = client.post(
+                url_for('admin.update_role'),
+                json={'role_id': 1, 'name': 'test', 'badge_color': '#000000'}
+            )
+            assert response.status_code == 302  # Redirect to login
+
+    def test_update_role_regular_user_denied(self, auth_client, admin_role, app):
+        """Test regular user cannot update roles."""
+        with app.app_context():
+            response = auth_client.post(
+                url_for('admin.update_role'),
+                json={'role_id': admin_role.id, 'name': 'test', 'badge_color': '#000000'}
+            )
+            assert response.status_code == 403  # Forbidden
+
+    def test_update_role_success(self, admin_client, app):
+        """Test successfully updating a role via AJAX."""
+        with app.app_context():
+            # Create a role to update
+            role = Role(name='moderator', description='Old description', badge_color='#123456')
+            db.session.add(role)
+            db.session.commit()
+            role_id = role.id
+
+            # Update role via AJAX
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': role_id,
+                    'name': 'moderator_updated',
+                    'description': 'New description',
+                    'badge_color': '#ABCDEF'
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 200
+            data = response.get_json()
+            assert data['status'] == 'success'
+            assert data['role']['name'] == 'moderator_updated'
+            assert data['role']['description'] == 'New description'
+            assert data['role']['badge_color'] == '#ABCDEF'
+
+            # Verify database was updated
+            updated_role = Role.query.get(role_id)
+            assert updated_role.name == 'moderator_updated'
+            assert updated_role.description == 'New description'
+            assert updated_role.badge_color == '#ABCDEF'
+
+    def test_update_role_empty_description(self, admin_client, app):
+        """Test updating role with empty description sets it to None."""
+        with app.app_context():
+            role = Role(name='test_role', description='Original', badge_color='#123456')
+            db.session.add(role)
+            db.session.commit()
+            role_id = role.id
+
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': role_id,
+                    'name': 'test_role',
+                    'description': '',  # Empty description
+                    'badge_color': '#123456'
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 200
+            updated_role = Role.query.get(role_id)
+            assert updated_role.description is None
+
+    def test_update_role_missing_data(self, admin_client, app):
+        """Test update fails with missing required fields."""
+        with app.app_context():
+            # Missing badge_color
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={'role_id': 1, 'name': 'test'},
+                content_type='application/json'
+            )
+
+            assert response.status_code == 400
+            data = response.get_json()
+            assert data['status'] == 'error'
+            assert 'Missing required fields' in data['message']
+
+    def test_update_role_no_json_data(self, admin_client, app):
+        """Test update fails when empty JSON data provided."""
+        with app.app_context():
+            # Send properly-formed request with correct header but empty body
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={},  # Empty JSON object
+                content_type='application/json'
+            )
+
+            assert response.status_code == 400
+            data = response.get_json()
+            assert data['status'] == 'error'
+            assert 'No data provided' in data['message']
+
+    def test_update_role_nonexistent(self, admin_client, app):
+        """Test updating non-existent role returns 404."""
+        with app.app_context():
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': 9999,
+                    'name': 'test',
+                    'description': 'test',
+                    'badge_color': '#000000'
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 404
+            data = response.get_json()
+            assert data['status'] == 'error'
+            assert 'Role not found' in data['message']
+
+    def test_update_role_duplicate_name(self, admin_client, admin_role, app):
+        """Test updating role to duplicate name fails."""
+        with app.app_context():
+            # Create another role
+            role = Role(name='editor', description='Editor role', badge_color='#123456')
+            db.session.add(role)
+            db.session.commit()
+            role_id = role.id
+
+            # Try to rename to admin role's name
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': role_id,
+                    'name': admin_role.name,  # Duplicate name
+                    'description': 'Description',
+                    'badge_color': '#ABCDEF'
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 400
+            data = response.get_json()
+            assert data['status'] == 'error'
+            assert 'already exists' in data['message']
+
+    def test_update_role_name_too_short(self, admin_client, app):
+        """Test updating role with name too short fails."""
+        with app.app_context():
+            role = Role(name='test_role', description='Test', badge_color='#123456')
+            db.session.add(role)
+            db.session.commit()
+            role_id = role.id
+
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': role_id,
+                    'name': 'a',  # Too short (min 2)
+                    'description': 'Test',
+                    'badge_color': '#123456'
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 400
+            data = response.get_json()
+            assert data['status'] == 'error'
+            assert 'between 2 and 50 characters' in data['message']
+
+    def test_update_role_name_too_long(self, admin_client, app):
+        """Test updating role with name too long fails."""
+        with app.app_context():
+            role = Role(name='test_role', description='Test', badge_color='#123456')
+            db.session.add(role)
+            db.session.commit()
+            role_id = role.id
+
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': role_id,
+                    'name': 'x' * 51,  # Too long (max 50)
+                    'description': 'Test',
+                    'badge_color': '#123456'
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 400
+            data = response.get_json()
+            assert data['status'] == 'error'
+            assert 'between 2 and 50 characters' in data['message']
+
+    def test_update_role_description_too_long(self, admin_client, app):
+        """Test updating role with description too long fails."""
+        with app.app_context():
+            role = Role(name='test_role', description='Test', badge_color='#123456')
+            db.session.add(role)
+            db.session.commit()
+            role_id = role.id
+
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': role_id,
+                    'name': 'test_role',
+                    'description': 'x' * 201,  # Too long (max 200)
+                    'badge_color': '#123456'
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 400
+            data = response.get_json()
+            assert data['status'] == 'error'
+            assert 'must not exceed 200 characters' in data['message']
+
+    def test_update_role_invalid_hex_color(self, admin_client, app):
+        """Test updating role with invalid hex color fails."""
+        with app.app_context():
+            role = Role(name='test_role', description='Test', badge_color='#123456')
+            db.session.add(role)
+            db.session.commit()
+            role_id = role.id
+
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': role_id,
+                    'name': 'test_role',
+                    'description': 'Test',
+                    'badge_color': 'not-a-color'
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 400
+            data = response.get_json()
+            assert data['status'] == 'error'
+            assert 'Invalid hex color format' in data['message']
+
+    def test_update_role_valid_3_digit_hex(self, admin_client, app):
+        """Test updating role with valid 3-digit hex color succeeds."""
+        with app.app_context():
+            role = Role(name='test_role', description='Test', badge_color='#123456')
+            db.session.add(role)
+            db.session.commit()
+            role_id = role.id
+
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': role_id,
+                    'name': 'test_role',
+                    'description': 'Test',
+                    'badge_color': '#F0A'  # Valid 3-digit hex
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 200
+            data = response.get_json()
+            assert data['status'] == 'success'
+            assert data['role']['badge_color'] == '#F0A'
+
+    def test_update_role_valid_6_digit_hex(self, admin_client, app):
+        """Test updating role with valid 6-digit hex color succeeds."""
+        with app.app_context():
+            role = Role(name='test_role', description='Test', badge_color='#123456')
+            db.session.add(role)
+            db.session.commit()
+            role_id = role.id
+
+            response = admin_client.post(
+                url_for('admin.update_role'),
+                json={
+                    'role_id': role_id,
+                    'name': 'test_role',
+                    'description': 'Test',
+                    'badge_color': '#FF00AA'  # Valid 6-digit hex
+                },
+                content_type='application/json'
+            )
+
+            assert response.status_code == 200
+            data = response.get_json()
+            assert data['status'] == 'success'
+            assert data['role']['badge_color'] == '#FF00AA'

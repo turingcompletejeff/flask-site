@@ -31,16 +31,27 @@
                 </thead>
                 <tbody>
                     {% for role in roles %}
-                    <tr data-role-id="{{ role.id }}">
-                        <td><strong>{{ role.name }}</strong></td>
-                        <td>{{ role.description or 'No description' }}</td>
+                    <tr data-role-id="{{ role.id }}" class="role-row">
+                        <td>
+                            <strong class="role-name-display">{{ role.name }}</strong>
+                            <input type="text"
+                                   class="role-name-input"
+                                   value="{{ role.name }}"
+                                   style="display: none;">
+                        </td>
+                        <td>
+                            <span class="role-description-display">{{ role.description or 'No description' }}</span>
+                            <textarea class="role-description-input"
+                                      style="display: none;">{{ role.description or '' }}</textarea>
+                        </td>
                         <td>
                             <input type="color"
                                    class="role-color-picker"
                                    id="color-{{ role.id }}"
                                    value="{{ role.badge_color }}"
                                    data-role-id="{{ role.id }}"
-                                   data-original-color="{{ role.badge_color }}">
+                                   data-original-color="{{ role.badge_color }}"
+                                   disabled>
                             <span class="color-hex" id="hex-{{ role.id }}">{{ role.badge_color }}</span>
                         </td>
                         <td>
@@ -51,35 +62,36 @@
                             </span>
                         </td>
                         <td class="actions-cell">
-                            <div class="action-buttons">
+                            <!-- View mode actions -->
+                            <div class="view-mode-actions">
                                 <button type="button"
-                                        class="clicky-primary btn-sm"
-                                        onclick="window.location.href='{{ url_for('admin.edit_role', role_id=role.id) }}'">
+                                        class="btn-icon edit-role-btn"
+                                        data-role-id="{{ role.id }}"
+                                        title="Edit role">
                                     <span class="material-symbols-outlined">edit</span>
-                                    Edit
                                 </button>
                                 <button type="button"
-                                        class="clicky-danger btn-sm delete-role-btn"
+                                        class="btn-icon delete-role-btn"
                                         data-role-id="{{ role.id }}"
                                         data-role-name="{{ role.name }}"
-                                        data-user-count="{{ role.assigned_users|length }}">
+                                        data-user-count="{{ role.assigned_users|length }}"
+                                        title="Delete role">
                                     <span class="material-symbols-outlined">delete</span>
-                                    Delete
                                 </button>
                             </div>
-                            <div class="color-buttons" style="display: none;">
+                            <!-- Edit mode actions (hidden by default) -->
+                            <div class="edit-mode-actions" style="display: none;">
                                 <button type="button"
-                                        class="clicky-success save-color-btn btn-sm"
+                                        class="btn-icon save-role-btn"
                                         data-role-id="{{ role.id }}"
-                                        data-update-url="{{ url_for('admin.update_role_badge') }}"
-                                        id="save-{{ role.id }}">
-                                    Save Color
+                                        title="Save">
+                                    <span class="material-symbols-outlined">check</span>
                                 </button>
                                 <button type="button"
-                                        class="clicky-secondary reset-color-btn btn-sm"
+                                        class="btn-icon cancel-edit-btn"
                                         data-role-id="{{ role.id }}"
-                                        id="reset-{{ role.id }}">
-                                    Reset
+                                        title="Cancel">
+                                    <span class="material-symbols-outlined">close</span>
                                 </button>
                             </div>
                         </td>
