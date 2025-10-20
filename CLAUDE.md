@@ -45,10 +45,38 @@ Optional:
   - Draft button uses clicky-draft class, Publish uses clicky-success
   - Edit form supports both save modes via different submit buttons
 
-## Database Models
-- User: Authentication with bcrypt password hashing
-- BlogPost: title, content, portrait, thumbnail, dates, is_draft (Boolean)
-- MinecraftCommand: RCON integration for game server
+## Project Structure (Modular Architecture)
+
+**Models** (`app/models/`):
+- `user.py`: User and Role models with authentication and bcrypt password hashing
+- `blog.py`: BlogPost model with title, content, portrait, thumbnail, dates, is_draft (Boolean)
+- `minecraft.py`: MinecraftCommand model for RCON integration
+
+**Forms** (`app/forms/`):
+- `contact.py`: Contact form with custom "other" reason field
+- `blog.py`: BlogPost creation and editing forms with draft support
+- `profile.py`: User profile and settings forms
+- `admin.py`: Administrative forms (user, role management)
+
+**Routes** (`app/routes/`):
+- `main.py`: Homepage, about, contact routes
+- `auth.py`: Login, register, logout routes
+- `blogpost.py`: Blog CRUD operations
+- `admin.py`: Admin dashboard, user management, role management, image management
+- `mc.py`: Minecraft RCON server integration
+- `profile.py`: User profile management
+- `health.py`: Health check endpoint
+
+**Import Pattern:**
+```python
+# Models
+from app.models import User, BlogPost, Role, MinecraftCommand
+
+# Forms
+from app.forms import ContactForm, BlogPostForm, EditUserForm, CreateRoleForm
+
+# In route files - blueprints are auto-registered
+```
 
 ---
 
@@ -82,7 +110,7 @@ Optional:
 - Ask flask-dev to analyze code and create detailed plans
 - Implement changes yourself using Edit/Write tools after reviewing flask-dev's plan
 - This prevents agents from overwriting files incorrectly
-- Example: "flask-dev, analyze routes_blogpost.py and create a plan for adding tags" → Then implement the plan yourself
+- Example: "flask-dev, analyze app/routes/blogpost.py and create a plan for adding tags" → Then implement the plan yourself
 
 **General Agent Best Practices:**
 - Let `agent-organizer` coordinate complex tasks automatically
@@ -294,8 +322,8 @@ RCON integration with admin UI, command validation, and player management #close
 
 # Step 6: Document
 Update Anytype "TC-47 MC sprint" with implementation notes.
-context-manager, store TC-47: RCON uses mctools library, admin routes 
-in routes_mc.py, validation in MinecraftCommand model.
+context-manager, store TC-47: RCON uses mctools library, admin routes
+in app/routes/mc.py, validation in app/models/minecraft.py MinecraftCommand model.
 ```
 
 ---
@@ -397,7 +425,7 @@ code-reviewer, final review before commit.
 
 ### Pattern 3: Planning Only (Use flask-dev)
 ```
-flask-dev, analyze routes_blogpost.py and create a detailed plan for 
+flask-dev, analyze app/routes/blogpost.py and create a detailed plan for
 adding tag functionality. DO NOT modify files.
 
 → Review flask-dev's plan

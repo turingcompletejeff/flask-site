@@ -20,3 +20,7 @@ class CreateUserForm(FlaskForm):
 
 class DeleteUserForm(FlaskForm):
     submit = SubmitField('Delete User')
+
+
+class DeleteRoleForm(FlaskForm):
+    submit = SubmitField('Delete Role')

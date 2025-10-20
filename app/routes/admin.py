@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from functools import wraps
 from app import db
 from app.models import User, Role, BlogPost
-from app.forms import EditUserForm, CreateUserForm, DeleteUserForm
+from app.forms import EditUserForm, CreateUserForm, DeleteUserForm, DeleteRoleForm
 from app.utils.pagination import paginate_query
 from app.utils.image_utils import delete_uploaded_images
 from sqlalchemy.exc import SQLAlchemyError
@@ -693,34 +693,32 @@ def roles():
         current_app.logger.error(f"Roles management error: {e}")
         return redirect(url_for('admin.dashboard'))
 
-@admin_bp.route('/admin/update_role_badge', methods=['POST'])
+@admin_bp.route('/admin/roles/<int:role_id>/update', methods=['POST'])
 @login_required
 @admin_required
-def update_role_badge():
+def update_role(role_id):
     """
-    Update a role's badge color via AJAX.
+    Update a role's properties (name, description, badge_color) via AJAX.
+
+    Args:
+        role_id: Role ID from URL parameter
 
     Expects JSON payload:
         {
-            'role_id': int,
+            'name': str,
+            'description': str (optional),
             'badge_color': str (hex color code)
         }
 
     Returns:
         JSON response:
-            Success: {'status': 'success', 'badge_color': str}
+            Success: {'status': 'success', 'role': {name, description, badge_color}}
             Error: {'status': 'error', 'message': str}
 
-    Requires:
-        - User must be authenticated (@login_required)
-        - User must have admin role (@admin_required)
-        - Valid hex color code format
-
-    Security:
-        - Validates hex color format server-side
-        - Prevents SQL injection through ORM
-        - Returns 404 for non-existent roles
-        - Returns 400 for invalid color formats
+    Validation:
+        - Name: 2-50 characters, unique across roles
+        - Badge color: Valid hex format (#RGB or #RRGGBB)
+        - Description: Optional, max 200 characters
     """
     try:
         # Get JSON data
@@ -732,14 +730,15 @@ def update_role_badge():
                 'message': 'No data provided'
             }), 400
 
-        role_id = data.get('role_id')
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip()
         badge_color = data.get('badge_color')
 
         # Validate required fields
-        if not role_id or not badge_color:
+        if not name or not badge_color:
             return jsonify({
                 'status': 'error',
-                'message': 'Missing role_id or badge_color'
+                'message': 'Missing required fields'
             }), 400
 
         # Get the role
@@ -750,6 +749,31 @@ def update_role_badge():
                 'message': 'Role not found'
             }), 404
 
+        # Validate name length
+        if len(name) < 2 or len(name) > 50:
+            return jsonify({
+                'status': 'error',
+                'message': 'Role name must be between 2 and 50 characters'
+            }), 400
+
+        # Check if new name conflicts with existing role (excluding current)
+        existing_role = Role.query.filter(
+            Role.name == name,
+            Role.id != role_id
+        ).first()
+        if existing_role:
+            return jsonify({
+                'status': 'error',
+                'message': f'Role name "{name}" already exists'
+            }), 400
+
+        # Validate description length
+        if description and len(description) > 200:
+            return jsonify({
+                'status': 'error',
+                'message': 'Description must not exceed 200 characters'
+            }), 400
+
         # Validate hex color format
         if not Role.validate_hex_color(badge_color):
             return jsonify({
@@ -757,34 +781,181 @@ def update_role_badge():
                 'message': 'Invalid hex color format. Use #RGB or #RRGGBB format.'
             }), 400
 
-        # Capture old color for audit logging
-        old_color = role.badge_color
+        # Capture old values for audit logging
+        old_name = role.name
 
-        # Update badge color
+        # Update role
+        role.name = name
+        role.description = description if description else None
         role.badge_color = badge_color
         db.session.commit()
 
-        # Enhanced audit logging with old → new color change
+        # Audit logging
         current_app.logger.info(
-            f"Role '{role.name}' badge color updated from {old_color} to {badge_color} "
-            f"by user {current_user.id} ({current_user.username})"
+            f"Role '{old_name}' updated by user {current_user.id} ({current_user.username}): "
+            f"name='{name}', desc='{description}', color={badge_color}"
         )
 
         return jsonify({
             'status': 'success',
-            'badge_color': badge_color
+            'role': {
+                'name': role.name,
+                'description': role.description,
+                'badge_color': role.badge_color
+            }
         }), 200
 
     except SQLAlchemyError as e:
         db.session.rollback()
-        current_app.logger.error(f"Error updating role badge color: {e}")
+        current_app.logger.error(f"Error updating role: {e}")
         return jsonify({
             'status': 'error',
             'message': 'Database error occurred'
         }), 500
     except Exception as e:
-        current_app.logger.error(f"Unexpected error updating role badge color: {e}")
+        current_app.logger.error(f"Unexpected error updating role: {e}")
         return jsonify({
             'status': 'error',
             'message': 'An unexpected error occurred'
         }), 500
+
+
+@admin_bp.route('/admin/roles/create', methods=['POST'])
+@login_required
+@admin_required
+def create_role():
+    """
+    Create a new role via AJAX.
+
+    Expects JSON payload:
+        {
+            'name': str,
+            'description': str (optional),
+            'badge_color': str (hex color code)
+        }
+
+    Returns:
+        JSON response:
+            Success: {'status': 'success', 'role': {id, name, description, badge_color}}
+            Error: {'status': 'error', 'message': str}
+    """
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                'status': 'error',
+                'message': 'No data provided'
+            }), 400
+
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip()
+        badge_color = data.get('badge_color', '#58cc02')
+
+        # Validate name
+        if not name or len(name) < 2:
+            return jsonify({
+                'status': 'error',
+                'message': 'Role name must be at least 2 characters'
+            }), 400
+
+        if len(name) > 50:
+            return jsonify({
+                'status': 'error',
+                'message': 'Role name must not exceed 50 characters'
+            }), 400
+
+        # Check for duplicate name
+        existing_role = Role.query.filter_by(name=name).first()
+        if existing_role:
+            return jsonify({
+                'status': 'error',
+                'message': f'Role "{name}" already exists'
+            }), 400
+
+        # Validate description
+        if description and len(description) > 200:
+            return jsonify({
+                'status': 'error',
+                'message': 'Description must not exceed 200 characters'
+            }), 400
+
+        # Validate color
+        if not Role.validate_hex_color(badge_color):
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid hex color format'
+            }), 400
+
+        # Create role
+        role = Role(
+            name=name,
+            description=description if description else None,
+            badge_color=badge_color
+        )
+        db.session.add(role)
+        db.session.commit()
+
+        # Audit logging
+        current_app.logger.info(
+            f"Role '{role.name}' created via AJAX by user {current_user.id} ({current_user.username})"
+        )
+
+        return jsonify({
+            'status': 'success',
+            'role': {
+                'id': role.id,
+                'name': role.name,
+                'description': role.description,
+                'badge_color': role.badge_color
+            }
+        }), 201
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error creating role via AJAX: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Database error occurred'
+        }), 500
+    except Exception as e:
+        current_app.logger.error(f"Unexpected error creating role: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'An unexpected error occurred'
+        }), 500
+
+
+@admin_bp.route('/admin/roles/<int:role_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_role(role_id):
+    """Delete role"""
+    try:
+        role = Role.query.get_or_404(role_id)
+        form = DeleteRoleForm()
+
+        if form.validate_on_submit():
+            # Check if role is assigned to any users
+            if role.assigned_users:
+                flash(f'Cannot delete role "{role.name}" - it is assigned to {len(role.assigned_users)} user(s).', 'danger')
+                return redirect(url_for('admin.roles'))
+
+            role_name = role.name
+            db.session.delete(role)
+            db.session.commit()
+
+            current_app.logger.info(f"Role '{role_name}' deleted by user {current_user.id} ({current_user.username})")
+            flash(f'Role "{role_name}" deleted successfully!', 'success')
+        else:
+            flash('Invalid request.', 'danger')
+
+        return redirect(url_for('admin.roles'))
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash('Database error occurred while deleting role.', 'danger')
+        current_app.logger.error(f"Delete role error: {e}")
+        return redirect(url_for('admin.roles'))
+
+

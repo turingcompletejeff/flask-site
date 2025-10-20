@@ -171,11 +171,10 @@ def new_post():
     return render_template('new_post.html', form=form)
 
 # Route to delete a blog post
-@blogpost_bp.route('/post/delete', methods=['POST'])
+@blogpost_bp.route('/post/<int:post_id>/delete', methods=['POST'])
 @login_required
 @require_any_role(['blogger', 'admin'])
-def delete_post():
-    post_id = request.form.get("id")
+def delete_post(post_id):
     post = BlogPost.query.get_or_404(post_id)
 
     # Store image filenames before database deletion

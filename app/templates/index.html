@@ -65,8 +65,8 @@
 
       if(button.hasClass("delete-confirm")) {
         // delete the post for real
-        $.post("{{ url_for('blogpost.delete_post') }}",
-             { id: button.data("id") }, function() {
+        let postId = button.data("id");
+        $.post(`/post/${postId}/delete`, function() {
 
           button.parents(".blog-post").fadeOut(400,function() {
               $(this).remove();

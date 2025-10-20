@@ -31,16 +31,27 @@
                 </thead>
                 <tbody>
                     {% for role in roles %}
-                    <tr data-role-id="{{ role.id }}">
-                        <td><strong>{{ role.name }}</strong></td>
-                        <td>{{ role.description or 'No description' }}</td>
+                    <tr data-role-id="{{ role.id }}" class="role-row">
+                        <td>
+                            <strong class="role-name-display">{{ role.name }}</strong>
+                            <input type="text"
+                                   class="role-name-input"
+                                   value="{{ role.name }}"
+                                   style="display: none;">
+                        </td>
+                        <td>
+                            <span class="role-description-display">{{ role.description or 'No description' }}</span>
+                            <textarea class="role-description-input"
+                                      style="display: none;">{{ role.description or '' }}</textarea>
+                        </td>
                         <td>
                             <input type="color"
                                    class="role-color-picker"
                                    id="color-{{ role.id }}"
                                    value="{{ role.badge_color }}"
                                    data-role-id="{{ role.id }}"
-                                   data-original-color="{{ role.badge_color }}">
+                                   data-original-color="{{ role.badge_color }}"
+                                   disabled>
                             <span class="color-hex" id="hex-{{ role.id }}">{{ role.badge_color }}</span>
                         </td>
                         <td>
@@ -50,28 +61,69 @@
                                 {{ role.name }}
                             </span>
                         </td>
-                        <td>
-                            <button type="button"
-                                    class="clicky-success save-color-btn"
-                                    data-role-id="{{ role.id }}"
-                                    data-update-url="{{ url_for('admin.update_role_badge') }}"
-                                    id="save-{{ role.id }}"
-                                    style="display: none;">
-                                Save Color
-                            </button>
-                            <button type="button"
-                                    class="clicky-secondary reset-color-btn"
-                                    data-role-id="{{ role.id }}"
-                                    id="reset-{{ role.id }}"
-                                    style="display: none;">
-                                Reset
-                            </button>
+                        <td class="actions-cell">
+                            <!-- View mode actions -->
+                            <div class="view-mode-actions">
+                                <button type="button"
+                                        class="btn-icon edit-role-btn"
+                                        data-role-id="{{ role.id }}"
+                                        title="Edit role">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button type="button"
+                                        class="btn-icon delete-role-btn"
+                                        data-role-id="{{ role.id }}"
+                                        data-role-name="{{ role.name }}"
+                                        data-user-count="{{ role.assigned_users|length }}"
+                                        title="Delete role">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                            <!-- Edit mode actions (hidden by default) -->
+                            <div class="edit-mode-actions" style="display: none;">
+                                <button type="button"
+                                        class="btn-icon save-role-btn"
+                                        data-role-id="{{ role.id }}"
+                                        title="Save">
+                                    <span class="material-symbols-outlined">check</span>
+                                </button>
+                                <button type="button"
+                                        class="btn-icon cancel-edit-btn"
+                                        data-role-id="{{ role.id }}"
+                                        title="Cancel">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
+                    <tr class="add-role-row">
+                        <td colspan="5">
+                            <button type="button" class="clicky-success add-role-btn">
+                                <span class="material-symbols-outlined">add</span>
+                                Create New Role
+                            </button>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteRoleModal" class="modal" style="display: none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <h2>Confirm Role Deletion</h2>
+        <p id="deleteRoleMessage"></p>
+        <form id="deleteRoleForm" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-actions">
+                <button type="button" class="clicky-secondary cancel-delete-btn">Cancel</button>
+                <button type="submit" class="clicky-danger">Delete Role</button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

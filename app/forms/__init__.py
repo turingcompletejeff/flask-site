@@ -2,7 +2,7 @@
 from .contact import ContactForm
 from .blog import BlogPostForm
 from .profile import ProfileEditForm, PasswordChangeForm
-from .admin import EditUserForm, CreateUserForm, DeleteUserForm
+from .admin import EditUserForm, CreateUserForm, DeleteUserForm, DeleteRoleForm
 
 __all__ = [
     'ContactForm',
@@ -12,4 +12,5 @@ __all__ = [
     'EditUserForm',
     'CreateUserForm',
     'DeleteUserForm',
+    'DeleteRoleForm',
 ]
