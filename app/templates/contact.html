@@ -13,15 +13,15 @@
 <div class="blog-post-strip">
 <h1 class="blog-header">contact form</h1>
 <div class="blog-post">
-    <form method="POST" action="/contact">
+    <form id="contact-form" method="POST" action="/contact">
       {{ form.hidden_tag() }}
-      {{ render_text_field(form.name) }}
-      {{ render_text_field(form.email) }}
+      {{ render_text_field(form.name, placeholder="Your Name") }}
+      {{ render_text_field(form.email, placeholder="your.email@example.com") }}
       {{ render_text_field(form.phone, placeholder="(888) 888-8888") }}
       {{ render_select(form.reason) }}
       {{ render_text_field(form.other_reason, placeholder="Please specify...") }}
-      {{ render_textarea(form.message) }}
-      <hr />
+      {{ render_textarea(form.message, placeholder="Message") }}
+      <br />
       {{ form.submit(class_="form__submit clicky-success") }}
       <hr />
       or connect with me here:<br />

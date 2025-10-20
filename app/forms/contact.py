@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, SubmitField
-from wtforms.validators import DataRequired, Email, ValidationError, Optional
+from wtforms.validators import DataRequired, Email, ValidationError, Optional, NoneOf
 import re
 
 
@@ -30,12 +30,16 @@ class ContactForm(FlaskForm):
     reason = SelectField(
         "reason for contact",
         choices=[
+            ('', 'reason for contact'),
             ('informational','informational'),
             ('personal','personal'),
             ('hiring','hiring / recruitment'),
             ('other','other')
         ],
-        validators=[DataRequired()]
+        validators=[
+            DataRequired(message='Please select a reason for contact.'),
+            NoneOf([''], message='Please select a valid reason.')
+        ]
     )
     other_reason = StringField(
         "please specify",
