@@ -523,11 +523,53 @@ ul[aria-label]::before {
 
 .form__group {
   margin-left: 4%;
+  margin-bottom: 16px;
 }
 
-.form__field {
-  margin-left: 12%;
-  margin-bottom: 2%;
+/* Hide labels visually but keep for accessibility (screen readers) */
+.form__label {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* General Form Field Styling */
+.form__field,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select.form__field {
+  margin-left: 1%;
+  width: 90%;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 5px;
+  font-family: "Share Tech Mono", sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background-color: var(--bg-light);
+  box-sizing: border-box;
+}
+
+.form__field:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+select.form__field:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px oklch(from var(--primary) l c h / 0.2);
+}
+
+/* Placeholder Styling */
+.form__field::placeholder,
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 /* Textarea Fields */
@@ -535,20 +577,26 @@ textarea.form__field {
   margin-left: 1%;
   width: 90%;
   height: 150px;
-  padding: 10px;
+  padding: 14px 16px;
   border: 2px solid var(--border);
   border-radius: 5px;
-  font-family: Share Tech Mono, sans-serif;
+  font-family: "Share Tech Mono", sans-serif;
   font-size: 16px;
   color: var(--text);
   background-color: var(--bg-light);
   resize: vertical;
+  box-sizing: border-box;
 }
 
 textarea.form__field:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px oklch(from var(--primary) l c h / 0.2);
+}
+
+textarea.form__field::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 .form__submit {
@@ -607,11 +655,15 @@ textarea.form__field:focus {
   min-width: 200px;
 }
 
+/* Contact Form Spacing */
+#contact-form {
+  margin-top: 28px;
+}
+
 /* Contact Form Phone Field */
 #phone {
-  width: 92px;
   position: relative;
-  right: -22px;
+  right: -16px;
 }
 
 /* Contact Form Loading States */

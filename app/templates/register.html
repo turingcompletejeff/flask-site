@@ -7,14 +7,14 @@
 		<h2>register</h2>
 		<form method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-			<label>username</label>
-			<input type="text" name="username" required>
+			<label for="username" class="form__label">username</label>
+			<input type="text" name="username" id="username" placeholder="Choose a username" required>
 
-			<label>password</label>
-			<input type="password" name="password" required>
+			<label for="password" class="form__label">password</label>
+			<input type="password" name="password" id="password" placeholder="Choose a password" required>
 
-			<label>email</label>
-			<input type="email" name="email" required>
+			<label for="email" class="form__label">email</label>
+			<input type="email" name="email" id="email" placeholder="your.email@example.com" required>
 
 			<button type="submit" class="clicky-success">register</button>
 		</form>
