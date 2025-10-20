@@ -60,22 +60,25 @@ $(function() {
     }
 
     /**
-     * Exit edit mode without saving (restore original values)
+     * Exit edit mode
      * @param {number} roleId - The role ID
+     * @param {boolean} restoreValues - Whether to restore original values (default: true)
      */
-    function exitEditMode(roleId) {
+    function exitEditMode(roleId, restoreValues = true) {
         const $row = $(`.role-row[data-role-id="${roleId}"]`);
         const original = originalRowData.get(roleId);
 
         if (!original) return;
 
-        // Restore original values
-        $row.find('.role-name-input').val(original.name);
-        $row.find('.role-description-input').val(original.description);
-        $row.find('.role-color-picker').val(original.badgeColor);
-        $row.find('.color-hex').text(original.badgeColor);
-        $row.find('.role-badge-preview').css('background-color', original.badgeColor);
-        $row.find('.role-badge-preview').text(original.name);
+        // Restore original values only when canceling (not when saving)
+        if (restoreValues) {
+            $row.find('.role-name-input').val(original.name);
+            $row.find('.role-description-input').val(original.description);
+            $row.find('.role-color-picker').val(original.badgeColor);
+            $row.find('.color-hex').text(original.badgeColor);
+            $row.find('.role-badge-preview').css('background-color', original.badgeColor);
+            $row.find('.role-badge-preview').text(original.name);
+        }
 
         // Clear any error states
         $row.find('.role-name-input, .role-description-input').removeClass('error');
@@ -187,11 +190,21 @@ $(function() {
                     );
                     $row.find('.role-badge-preview').text(newData.name);
 
+                    // Update input elements with new values (critical for subsequent edits)
+                    $row.find('.role-name-input').val(newData.name);
+                    $row.find('.role-description-input').val(newData.description);
+                    $row.find('.role-color-picker').val(newData.badge_color);
+                    $row.find('.color-hex').text(newData.badge_color);
+                    $row.find('.role-badge-preview').css('background-color', newData.badge_color);
+
                     // Update original color data attribute
                     $row.find('.role-color-picker').data('original-color', newData.badge_color);
 
-                    // Exit edit mode
-                    exitEditMode(roleId);
+                    // Restore button state before exiting edit mode
+                    restoreButton();
+
+                    // Exit edit mode (don't restore values - we just saved them)
+                    exitEditMode(roleId, false);
 
                     // Show success message
                     addFlashMessage('success', 'Role updated successfully!');
