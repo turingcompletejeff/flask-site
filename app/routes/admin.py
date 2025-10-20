@@ -693,16 +693,18 @@ def roles():
         current_app.logger.error(f"Roles management error: {e}")
         return redirect(url_for('admin.dashboard'))
 
-@admin_bp.route('/admin/update_role', methods=['POST'])
+@admin_bp.route('/admin/roles/<int:role_id>/update', methods=['POST'])
 @login_required
 @admin_required
-def update_role():
+def update_role(role_id):
     """
     Update a role's properties (name, description, badge_color) via AJAX.
 
+    Args:
+        role_id: Role ID from URL parameter
+
     Expects JSON payload:
         {
-            'role_id': int,
             'name': str,
             'description': str (optional),
             'badge_color': str (hex color code)
@@ -728,13 +730,12 @@ def update_role():
                 'message': 'No data provided'
             }), 400
 
-        role_id = data.get('role_id')
         name = data.get('name', '').strip()
         description = data.get('description', '').strip()
         badge_color = data.get('badge_color')
 
         # Validate required fields
-        if not role_id or not name or not badge_color:
+        if not name or not badge_color:
             return jsonify({
                 'status': 'error',
                 'message': 'Missing required fields'

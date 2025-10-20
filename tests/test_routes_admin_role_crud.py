@@ -305,8 +305,8 @@ class TestInlineRoleUpdate:
         """Test unauthenticated access is denied."""
         with app.app_context():
             response = client.post(
-                url_for('admin.update_role'),
-                json={'role_id': 1, 'name': 'test', 'badge_color': '#000000'}
+                url_for('admin.update_role', role_id=1),
+                json={'name': 'test', 'badge_color': '#000000'}
             )
             assert response.status_code == 302  # Redirect to login
 
@@ -314,8 +314,8 @@ class TestInlineRoleUpdate:
         """Test regular user cannot update roles."""
         with app.app_context():
             response = auth_client.post(
-                url_for('admin.update_role'),
-                json={'role_id': admin_role.id, 'name': 'test', 'badge_color': '#000000'}
+                url_for('admin.update_role', role_id=admin_role.id),
+                json={'name': 'test', 'badge_color': '#000000'}
             )
             assert response.status_code == 403  # Forbidden
 
@@ -330,9 +330,8 @@ class TestInlineRoleUpdate:
 
             # Update role via AJAX
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=role_id),
                 json={
-                    'role_id': role_id,
                     'name': 'moderator_updated',
                     'description': 'New description',
                     'badge_color': '#ABCDEF'
@@ -362,9 +361,8 @@ class TestInlineRoleUpdate:
             role_id = role.id
 
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=role_id),
                 json={
-                    'role_id': role_id,
                     'name': 'test_role',
                     'description': '',  # Empty description
                     'badge_color': '#123456'
@@ -381,8 +379,8 @@ class TestInlineRoleUpdate:
         with app.app_context():
             # Missing badge_color
             response = admin_client.post(
-                url_for('admin.update_role'),
-                json={'role_id': 1, 'name': 'test'},
+                url_for('admin.update_role', role_id=1),
+                json={'name': 'test'},
                 content_type='application/json'
             )
 
@@ -396,7 +394,7 @@ class TestInlineRoleUpdate:
         with app.app_context():
             # Send properly-formed request with correct header but empty body
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=1),
                 json={},  # Empty JSON object
                 content_type='application/json'
             )
@@ -410,9 +408,8 @@ class TestInlineRoleUpdate:
         """Test updating non-existent role returns 404."""
         with app.app_context():
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=9999),
                 json={
-                    'role_id': 9999,
                     'name': 'test',
                     'description': 'test',
                     'badge_color': '#000000'
@@ -436,9 +433,8 @@ class TestInlineRoleUpdate:
 
             # Try to rename to admin role's name
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=role_id),
                 json={
-                    'role_id': role_id,
                     'name': admin_role.name,  # Duplicate name
                     'description': 'Description',
                     'badge_color': '#ABCDEF'
@@ -460,9 +456,8 @@ class TestInlineRoleUpdate:
             role_id = role.id
 
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=role_id),
                 json={
-                    'role_id': role_id,
                     'name': 'a',  # Too short (min 2)
                     'description': 'Test',
                     'badge_color': '#123456'
@@ -484,9 +479,8 @@ class TestInlineRoleUpdate:
             role_id = role.id
 
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=role_id),
                 json={
-                    'role_id': role_id,
                     'name': 'x' * 51,  # Too long (max 50)
                     'description': 'Test',
                     'badge_color': '#123456'
@@ -508,9 +502,8 @@ class TestInlineRoleUpdate:
             role_id = role.id
 
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=role_id),
                 json={
-                    'role_id': role_id,
                     'name': 'test_role',
                     'description': 'x' * 201,  # Too long (max 200)
                     'badge_color': '#123456'
@@ -532,9 +525,8 @@ class TestInlineRoleUpdate:
             role_id = role.id
 
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=role_id),
                 json={
-                    'role_id': role_id,
                     'name': 'test_role',
                     'description': 'Test',
                     'badge_color': 'not-a-color'
@@ -556,9 +548,8 @@ class TestInlineRoleUpdate:
             role_id = role.id
 
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=role_id),
                 json={
-                    'role_id': role_id,
                     'name': 'test_role',
                     'description': 'Test',
                     'badge_color': '#F0A'  # Valid 3-digit hex
@@ -580,9 +571,8 @@ class TestInlineRoleUpdate:
             role_id = role.id
 
             response = admin_client.post(
-                url_for('admin.update_role'),
+                url_for('admin.update_role', role_id=role_id),
                 json={
-                    'role_id': role_id,
                     'name': 'test_role',
                     'description': 'Test',
                     'badge_color': '#FF00AA'  # Valid 6-digit hex

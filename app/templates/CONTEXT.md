@@ -163,56 +163,289 @@ Jinja2 HTML templates for server-side rendering. All templates follow template i
 
 ## JavaScript Patterns
 
+### jQuery Usage
+**Project uses jQuery + jQuery UI. All JavaScript should use jQuery conventions.**
+
+```javascript
+// ✅ CORRECT - Use jQuery
+$(document).ready(function() {
+  $('#myButton').on('click', function() {
+    // Handle click
+  });
+});
+
+// ❌ AVOID - Vanilla JS (for consistency)
+document.getElementById('myButton').addEventListener('click', function() {
+  // Inconsistent with project
+});
+```
+
 ### AJAX Form Submission
 ```javascript
+// Standard AJAX pattern with CSRF
 $.ajax({
   url: "{{ url_for('route') }}",
   method: "POST",
   data: formData,
   success: function(response) {
     if (response.success) {
+      addFlashMessage('success', response.message);
       window.location.href = response.redirect;
+    } else {
+      addFlashMessage('danger', response.error);
     }
+  },
+  error: function(xhr, status, error) {
+    addFlashMessage('danger', 'An error occurred. Please try again.');
+    console.error('AJAX error:', error);
   }
 });
 ```
 
+**AJAX Best Practices:**
+- Always handle both `success` and `error` callbacks
+- Use `addFlashMessage()` for user feedback
+- Return JSON from routes: `return jsonify({'success': True, 'message': '...'})`
+- CSRF token is automatically added via global `$.ajaxSetup()` in layout.html
+
 ### Flash Messages (Client-Side)
 ```javascript
+// Add flash message from JavaScript
 addFlashMessage('success', 'Operation completed!');
+addFlashMessage('danger', 'An error occurred');
+addFlashMessage('warning', 'Please review your input');
+addFlashMessage('info', 'Information message');
+
 // Available categories: success, danger, warning, info
+// Messages appear in the #flash-messages container
 ```
 
 ### CSRF Token Retrieval
 ```javascript
+// CSRF token from meta tag
 let csrfToken = $("meta[name=csrf-token]").attr("content");
-xhr.setRequestHeader("X-CSRFToken", csrfToken);
+
+// Manual AJAX with CSRF
+$.ajax({
+  url: '/some/route',
+  method: 'POST',
+  headers: {
+    'X-CSRFToken': csrfToken
+  },
+  data: { /* data */ }
+});
+
+// Note: Global $.ajaxSetup() already handles this automatically
+```
+
+### Event Handling Patterns
+```javascript
+// ✅ CORRECT - Delegated events for dynamic content
+$(document).on('click', '.dynamic-button', function() {
+  // Handles buttons added after page load
+});
+
+// ✅ CORRECT - Direct events for static content
+$('#staticButton').on('click', function() {
+  // For elements that exist on page load
+});
+
+// ❌ AVOID - Inline event handlers
+<button onclick="handleClick()">Click</button>
+```
+
+### Form Validation (Client-Side)
+```javascript
+$('#myForm').on('submit', function(e) {
+  // Validate before submission
+  let isValid = true;
+
+  if ($('#username').val().trim() === '') {
+    addFlashMessage('danger', 'Username is required');
+    isValid = false;
+  }
+
+  if (!isValid) {
+    e.preventDefault();  // Prevent form submission
+    return false;
+  }
+
+  // Allow form to submit
+  return true;
+});
+```
+
+### Common JavaScript Utilities
+```javascript
+// Redirect to URL
+window.location.href = "{{ url_for('route') }}";
+
+// Confirm before dangerous action
+if (confirm('Are you sure you want to delete this?')) {
+  // Proceed with deletion
+}
+
+// Toggle element visibility
+$('#element').toggle();
+$('#element').show();
+$('#element').hide();
+
+// Add/remove CSS classes
+$('#element').addClass('active');
+$('#element').removeClass('inactive');
+$('#element').toggleClass('highlight');
 ```
 
 ## Styling Patterns
 
-### Duolingo Button Classes
-- `.duolingo-primary` - Default actions (blue)
-- `.duolingo-success` - Publish/confirm actions (green)
-- `.duolingo-secondary` - Cancel/back actions (gray)
-- `.duolingo-draft` - Save as draft actions (yellow)
-- `.duolingo-danger` - Delete/destructive actions (red)
+### Button Styling (clicky-buttons.css)
+**Project uses custom clicky-button classes for consistent UI.**
 
-**IMPORTANT**: Use `<button>` tags, not `<a>` tags for proper styling:
+**Available Classes:**
+- `.clicky-primary` - Default actions (blue)
+- `.clicky-success` - Publish/confirm actions (green)
+- `.clicky-secondary` - Cancel/back actions (gray)
+- `.clicky-draft` - Save as draft actions (yellow)
+- `.clicky-danger` - Delete/destructive actions (red)
+
+**CRITICAL**: Always use `<button>` elements, NOT `<a>` tags:
 ```html
-<!-- CORRECT -->
-<button type="submit" class="duolingo-success">Publish</button>
-<button type="button" onclick="location.href='...'" class="duolingo-secondary">Cancel</button>
+<!-- ✅ CORRECT - Button elements -->
+<button type="submit" class="clicky-success">Publish</button>
+<button type="submit" name="action" value="draft" class="clicky-draft">Save Draft</button>
+<button type="button" onclick="location.href='{{ url_for('route') }}'" class="clicky-secondary">Cancel</button>
 
-<!-- INCORRECT (renders with link styling) -->
-<a href="..." class="duolingo-primary">Button</a>
+<!-- ❌ INCORRECT - Link elements render incorrectly -->
+<a href="..." class="clicky-primary">Button</a>
 ```
 
-### Draft Badge
+**Button Usage Guidelines:**
+
+| Action Type | Class | Element | Example |
+|-------------|-------|---------|---------|
+| Submit form | `clicky-primary` | `<button type="submit">` | Create Post |
+| Confirm/Publish | `clicky-success` | `<button type="submit">` | Publish |
+| Save draft | `clicky-draft` | `<button type="submit">` | Save as Draft |
+| Cancel/Back | `clicky-secondary` | `<button type="button">` | Cancel |
+| Delete | `clicky-danger` | `<button type="submit">` | Delete |
+
+**Navigation Buttons:**
+```html
+<!-- For navigation (not form submission) -->
+<button type="button" class="clicky-secondary" onclick="window.location.href='{{ url_for('main.index') }}'">
+  Back to Home
+</button>
+```
+
+**Dual Submit Buttons (Draft Pattern):**
+```html
+<form method="POST">
+  {{ form.hidden_tag() }}
+
+  <!-- Form fields -->
+  {{ form.title(class="form-control") }}
+  {{ form.content(class="form-control") }}
+
+  <!-- Dual submit buttons -->
+  <button type="submit" name="action" value="draft" class="clicky-draft">Save as Draft</button>
+  <button type="submit" name="action" value="publish" class="clicky-success">Publish</button>
+</form>
+```
+
+**In routes, handle dual submit:**
+```python
+@blogpost_bp.route('/post/new', methods=['POST'])
+def new_post():
+    action = request.form.get('action')
+
+    if action == 'draft':
+        post.is_draft = True
+    else:  # publish
+        post.is_draft = False
+
+    db.session.commit()
+```
+
+### Status Badges
+
+#### Draft Badge
 ```html
 {% if post.is_draft %}
-<div class="draft-badge">DRAFT</div>
+<span class="draft-badge">DRAFT</span>
 {% endif %}
+```
+
+#### Custom Status Badges
+```html
+<!-- Success badge -->
+<span class="badge badge-success">Published</span>
+
+<!-- Warning badge -->
+<span class="badge badge-warning">Pending</span>
+
+<!-- Danger badge -->
+<span class="badge badge-danger">Archived</span>
+```
+
+### Form Styling
+```html
+<!-- Standard form input -->
+<div class="form-group">
+  {{ form.username.label(class="form-label") }}
+  {{ form.username(class="form-control", placeholder="Enter username") }}
+
+  {% if form.username.errors %}
+    <div class="form-error">
+      {{ form.username.errors[0] }}
+    </div>
+  {% endif %}
+</div>
+```
+
+### CSS Class Naming Conventions
+**Follow BEM-like naming for custom classes:**
+```css
+/* Block */
+.blog-post { }
+
+/* Element */
+.blog-post__title { }
+.blog-post__content { }
+
+/* Modifier */
+.blog-post--draft { }
+.blog-post--featured { }
+```
+
+### Responsive Design
+```html
+<!-- Mobile-friendly layouts -->
+<div class="container">
+  <div class="row">
+    <div class="col-md-8">
+      <!-- Main content -->
+    </div>
+    <div class="col-md-4">
+      <!-- Sidebar -->
+    </div>
+  </div>
+</div>
+```
+
+### Icons (Material Symbols)
+```html
+<!-- Material Symbols icons are loaded globally -->
+<span class="material-symbols-outlined">
+  edit
+</span>
+
+<span class="material-symbols-outlined">
+  delete
+</span>
+
+<span class="material-symbols-outlined">
+  visibility
+</span>
 ```
 
 ## Security Considerations
@@ -325,16 +558,208 @@ xhr.setRequestHeader("X-CSRFToken", csrfToken);
 {% endif %}
 ```
 
+## Frontend Best Practices
+
+### Template Variable Naming
+```jinja2
+{# ✅ GOOD - Descriptive names #}
+{{ blog_posts }}
+{{ current_user }}
+{{ form_data }}
+
+{# ❌ BAD - Vague names #}
+{{ posts }}
+{{ user }}
+{{ data }}
+```
+
+### Conditional Logic
+```jinja2
+{# ✅ GOOD - Clear conditions #}
+{% if current_user.is_authenticated and post.is_draft %}
+  <span class="draft-badge">DRAFT</span>
+{% endif %}
+
+{# ✅ GOOD - Negative conditions #}
+{% if not current_user.has_role('admin') %}
+  <p>Access denied</p>
+{% endif %}
+```
+
+### Loop Performance
+```jinja2
+{# ✅ GOOD - Check before looping #}
+{% if blog_posts %}
+  {% for post in blog_posts %}
+    {{ post.title }}
+  {% endfor %}
+{% else %}
+  <p>No posts available.</p>
+{% endif %}
+
+{# Also acceptable - loop.else #}
+{% for post in blog_posts %}
+  {{ post.title }}
+{% else %}
+  <p>No posts available.</p>
+{% endfor %}
+```
+
+### DRY Principle (Don't Repeat Yourself)
+```jinja2
+{# ✅ GOOD - Use macros for repeated HTML #}
+{% macro render_button(text, type='primary', action='submit') %}
+  <button type="{{ action }}" class="clicky-{{ type }}">{{ text }}</button>
+{% endmacro %}
+
+{{ render_button('Save', 'success') }}
+{{ render_button('Cancel', 'secondary', 'button') }}
+
+{# ✅ GOOD - Use includes for partials #}
+{% include 'partials/flash_messages.html' %}
+```
+
+### Accessibility
+```html
+<!-- ✅ GOOD - Include labels -->
+<label for="username">Username</label>
+<input type="text" id="username" name="username">
+
+<!-- ✅ GOOD - ARIA attributes for screen readers -->
+<button aria-label="Delete post">
+  <span class="material-symbols-outlined">delete</span>
+</button>
+
+<!-- ✅ GOOD - Alt text for images -->
+<img src="{{ post.portrait }}" alt="{{ post.title }}">
+```
+
+### Performance Considerations
+```jinja2
+{# Minimize database queries in templates #}
+{# ✅ GOOD - Pass data from route #}
+{% for post in blog_posts %}
+  {{ post.author.username }}  {# ✓ If using joinedload in route #}
+{% endfor %}
+
+{# ❌ BAD - N+1 query problem #}
+{% for post in blog_posts %}
+  {{ post.author.query.first().username }}  {# ✗ Queries database in loop #}
+{% endfor %}
+```
+
+### Template Debugging
+```jinja2
+{# Debug variable output (development only) #}
+<pre>{{ blog_posts|pprint }}</pre>
+
+{# Check if variable exists #}
+{% if post is defined %}
+  {{ post.title }}
+{% endif %}
+
+{# Debug filters #}
+{{ post.date_posted|string }}  {# Convert to string to inspect #}
+```
+
+## Common Patterns
+
+### Flash Message Display
+```jinja2
+{# In layout.html (already implemented) #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-messages">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+```
+
+### Pagination (Future Enhancement)
+```jinja2
+{# Example pagination pattern #}
+<div class="pagination">
+  {% if posts.has_prev %}
+    <a href="{{ url_for('main.index', page=posts.prev_num) }}">Previous</a>
+  {% endif %}
+
+  <span>Page {{ posts.page }} of {{ posts.pages }}</span>
+
+  {% if posts.has_next %}
+    <a href="{{ url_for('main.index', page=posts.next_num) }}">Next</a>
+  {% endif %}
+</div>
+```
+
+### Image Display with Fallback
+```jinja2
+{# Blog post with optional portrait #}
+{% if post.portrait %}
+  <img src="{{ url_for('main.uploaded_file', filename=post.portrait) }}"
+       alt="{{ post.title }}"
+       onerror="this.src='/static/img/default-post.png'">
+{% else %}
+  <img src="/static/img/default-post.png" alt="Default image">
+{% endif %}
+```
+
+### Dynamic Form Actions
+```jinja2
+{# Form that submits to different routes based on context #}
+<form method="POST" action="{{ url_for('blogpost.edit_post', post_id=post.id) if post else url_for('blogpost.new_post') }}">
+  {{ form.hidden_tag() }}
+  {# Form fields #}
+</form>
+```
+
+## Troubleshooting
+
+### Common Template Errors
+
+**Error:** `jinja2.exceptions.UndefinedError: 'post' is undefined`
+- **Cause:** Variable not passed from route
+- **Solution:** Add variable to `render_template()` call
+
+**Error:** `TemplateSyntaxError: expected token 'end of statement block', got 'is'`
+- **Cause:** Invalid Jinja2 syntax in attribute
+- **Solution:** Move Jinja2 logic outside HTML attributes
+
+**Error:** CSRF token missing
+- **Cause:** Missing `{{ form.hidden_tag() }}` in form
+- **Solution:** Add `form.hidden_tag()` immediately after `<form>` tag
+
+**Error:** Static files not loading (404)
+- **Cause:** Incorrect path in `url_for('static', filename='...')`
+- **Solution:** Verify file exists in `app/static/` and path is correct
+
+### Template Debugging Tips
+```python
+# In route - pass debug info
+return render_template('template.html',
+                      debug=app.config['DEBUG'],
+                      all_vars=locals())  # All local variables
+```
+
+```jinja2
+{# In template - display all passed variables #}
+{% if debug %}
+  <pre>{{ all_vars|pprint }}</pre>
+{% endif %}
+```
+
 ## Related Directories
-- `/app/routes_*.py` - Routes that render these templates
-- `/app/forms.py` - Form objects passed to templates
-- `/app/static/` - CSS, JavaScript, images referenced in templates
-- `/app/filters.py` - Custom Jinja2 filters (|localtime, etc.)
+- `app/routes/*.py` - Routes that render these templates
+- `app/forms/*.py` - Form objects passed to templates
+- `app/static/` - CSS, JavaScript, images referenced in templates
+- `app/utils/filters.py` - Custom Jinja2 filters (|localtime, etc.)
 
 ## Custom Filters Available
 - `|localtime` - Convert UTC datetime to configured timezone
-- `|safe` - Mark string as safe HTML (USE CAREFULLY)
-- Standard Jinja2 filters: `|length`, `|lower`, `|upper`, `|title`, etc.
+- `|safe` - Mark string as safe HTML (USE CAREFULLY - see docs/SECURITY.md)
+- Standard Jinja2 filters: `|length`, `|lower`, `|upper`, `|title`, `|tojson`, `|pprint`, etc.
 
 ## Block Structure in layout.html
 ```jinja2
@@ -342,3 +767,9 @@ xhr.setRequestHeader("X-CSRFToken", csrfToken);
 {% block js %}<!-- Additional JavaScript -->{% endblock %}
 {% block content %}<!-- Main page content -->{% endblock %}
 ```
+
+## Related Documentation
+- `docs/SECURITY.md` - XSS prevention, CSRF protection, safe filter usage
+- `app/routes/CONTEXT.md` - Route naming and structure
+- `app/static/CONTEXT.md` - Static file organization
+- `CLAUDE.md` - Development workflow and agent usage

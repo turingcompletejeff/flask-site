@@ -167,9 +167,8 @@ $(function() {
         const $row = $(`.role-row[data-role-id="${roleId}"]`);
         const $saveBtn = $row.find('.save-role-btn');
 
-        // Get new values
+        // Get new values (role_id now in URL, not payload)
         const newData = {
-            role_id: roleId,
             name: $row.find('.role-name-input').val().trim(),
             description: $row.find('.role-description-input').val().trim(),
             badge_color: $row.find('.role-color-picker').val()
@@ -184,7 +183,7 @@ $(function() {
         $saveBtn.find('.material-symbols-outlined').text('hourglass_empty');
 
         $.ajax({
-            url: '/admin/update_role',
+            url: `/admin/roles/${roleId}/update`,
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(newData),
