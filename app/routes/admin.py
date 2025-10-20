@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from functools import wraps
 from app import db
 from app.models import User, Role, BlogPost
-from app.forms import EditUserForm, CreateUserForm, DeleteUserForm
+from app.forms import EditUserForm, CreateUserForm, DeleteUserForm, CreateRoleForm, EditRoleForm, DeleteRoleForm
 from app.utils.pagination import paginate_query
 from app.utils.image_utils import delete_uploaded_images
 from sqlalchemy.exc import SQLAlchemyError
@@ -692,6 +692,127 @@ def roles():
         flash('Database error occurred while loading roles.', 'danger')
         current_app.logger.error(f"Roles management error: {e}")
         return redirect(url_for('admin.dashboard'))
+
+@admin_bp.route('/admin/roles/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_role():
+    """Create new role"""
+    form = CreateRoleForm()
+
+    if form.validate_on_submit():
+        try:
+            # Check if role name already exists
+            existing_role = Role.query.filter_by(name=form.name.data).first()
+            if existing_role:
+                flash(f'Role "{form.name.data}" already exists.', 'danger')
+                return render_template('admin_role_create.html', form=form, page='admin')
+
+            # Validate hex color format
+            if not Role.validate_hex_color(form.badge_color.data):
+                flash('Invalid hex color format. Use #RGB or #RRGGBB format.', 'danger')
+                return render_template('admin_role_create.html', form=form, page='admin')
+
+            # Create new role
+            role = Role(
+                name=form.name.data,
+                description=form.description.data,
+                badge_color=form.badge_color.data
+            )
+            db.session.add(role)
+            db.session.commit()
+
+            current_app.logger.info(f"Role '{role.name}' created by user {current_user.id} ({current_user.username})")
+            flash(f'Role "{role.name}" created successfully!', 'success')
+            return redirect(url_for('admin.roles'))
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash('Database error occurred while creating role.', 'danger')
+            current_app.logger.error(f"Create role error: {e}")
+
+    return render_template('admin_role_create.html', form=form, page='admin')
+
+
+@admin_bp.route('/admin/roles/<int:role_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_role(role_id):
+    """Edit existing role"""
+    try:
+        role = Role.query.get_or_404(role_id)
+        form = EditRoleForm(obj=role)
+
+        if form.validate_on_submit():
+            # Check if new name conflicts with existing role (excluding current)
+            existing_role = Role.query.filter(Role.name == form.name.data, Role.id != role_id).first()
+            if existing_role:
+                flash(f'Role name "{form.name.data}" already exists.', 'danger')
+                return render_template('admin_role_edit.html', form=form, role=role, page='admin')
+
+            # Validate hex color format
+            if not Role.validate_hex_color(form.badge_color.data):
+                flash('Invalid hex color format. Use #RGB or #RRGGBB format.', 'danger')
+                return render_template('admin_role_edit.html', form=form, role=role, page='admin')
+
+            # Update role
+            old_name = role.name
+            role.name = form.name.data
+            role.description = form.description.data
+            role.badge_color = form.badge_color.data
+            db.session.commit()
+
+            current_app.logger.info(f"Role '{old_name}' updated to '{role.name}' by user {current_user.id} ({current_user.username})")
+            flash(f'Role "{role.name}" updated successfully!', 'success')
+            return redirect(url_for('admin.roles'))
+
+        # Pre-populate form on GET request
+        if request.method == 'GET':
+            form.name.data = role.name
+            form.description.data = role.description
+            form.badge_color.data = role.badge_color
+
+        return render_template('admin_role_edit.html', form=form, role=role, page='admin')
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash('Database error occurred while editing role.', 'danger')
+        current_app.logger.error(f"Edit role error: {e}")
+        return redirect(url_for('admin.roles'))
+
+
+@admin_bp.route('/admin/roles/<int:role_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_role(role_id):
+    """Delete role"""
+    try:
+        role = Role.query.get_or_404(role_id)
+        form = DeleteRoleForm()
+
+        if form.validate_on_submit():
+            # Check if role is assigned to any users
+            if role.assigned_users:
+                flash(f'Cannot delete role "{role.name}" - it is assigned to {len(role.assigned_users)} user(s).', 'danger')
+                return redirect(url_for('admin.roles'))
+
+            role_name = role.name
+            db.session.delete(role)
+            db.session.commit()
+
+            current_app.logger.info(f"Role '{role_name}' deleted by user {current_user.id} ({current_user.username})")
+            flash(f'Role "{role_name}" deleted successfully!', 'success')
+        else:
+            flash('Invalid request.', 'danger')
+
+        return redirect(url_for('admin.roles'))
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        flash('Database error occurred while deleting role.', 'danger')
+        current_app.logger.error(f"Delete role error: {e}")
+        return redirect(url_for('admin.roles'))
+
 
 @admin_bp.route('/admin/update_role_badge', methods=['POST'])
 @login_required

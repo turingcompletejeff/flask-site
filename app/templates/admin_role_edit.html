@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit Role{% endblock %}
+
+{% block js %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_role_form.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="breadcrumb">
+        <a href="{{ url_for('admin.dashboard') }}">Dashboard</a> &gt;
+        <a href="{{ url_for('admin.roles') }}">Roles</a> &gt;
+        Edit: {{ role.name }}
+    </div>
+
+    <h1>Edit Role: {{ role.name }}</h1>
+
+    <div class="form-container">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.name.label }}
+                {{ form.name(class="form-control", placeholder="Enter role name") }}
+                {% if form.name.errors %}
+                    <div class="error-messages">
+                        {% for error in form.name.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.description.label }}
+                {{ form.description(class="form-control", placeholder="Brief description of this role (optional)", rows=3) }}
+                {% if form.description.errors %}
+                    <div class="error-messages">
+                        {% for error in form.description.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.badge_color.label }}
+                <div class="color-picker-group">
+                    {{ form.badge_color(type="color", class="color-picker-input", id="badge_color_picker") }}
+                    <input type="text" class="form-control color-hex-input" id="badge_color_hex" value="{{ role.badge_color }}" readonly>
+                    <span class="role-badge-preview" id="badge_preview" style="background-color: {{ role.badge_color }};">{{ role.name }}</span>
+                </div>
+                {% if form.badge_color.errors %}
+                    <div class="error-messages">
+                        {% for error in form.badge_color.errors %}
+                            <p class="error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="info-box">
+                <p><strong>Note:</strong> Editing a role will affect all users currently assigned to it.</p>
+                {% if role.assigned_users %}
+                    <p style="margin-top: 8px;"><strong>Currently assigned to:</strong> {{ role.assigned_users|length }} user(s)</p>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="clicky-secondary" onclick="window.location.href='{{ url_for('admin.roles') }}'">
+                    Cancel
+                </button>
+                {{ form.submit(class="clicky-success") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block endjs %}
+<script src="{{ url_for('static', filename='js/admin_role_form.js') }}"></script>
+{% endblock %}

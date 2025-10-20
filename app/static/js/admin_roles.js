@@ -98,4 +98,52 @@ $(function() {
             $resetBtn.hide();
         }
     });
+
+    // Delete role confirmation modal handling
+    const $deleteModal = $('#deleteRoleModal');
+    const $deleteForm = $('#deleteRoleForm');
+    const $deleteMessage = $('#deleteRoleMessage');
+
+    // Handle delete button clicks
+    $('.delete-role-btn').on('click', function() {
+        const roleId = $(this).data('role-id');
+        const roleName = $(this).data('role-name');
+        const userCount = $(this).data('user-count');
+
+        // Set the form action to the delete URL
+        $deleteForm.attr('action', `/admin/roles/${roleId}/delete`);
+
+        // Set the confirmation message
+        if (userCount > 0) {
+            $deleteMessage.html(
+                `<strong>Warning:</strong> Cannot delete role "<strong>${roleName}</strong>" - ` +
+                `it is currently assigned to <strong>${userCount}</strong> user(s).<br><br>` +
+                `Please remove this role from all users before deleting it.`
+            );
+            // Disable the delete button
+            $deleteForm.find('button[type="submit"]').prop('disabled', true);
+        } else {
+            $deleteMessage.html(
+                `Are you sure you want to delete the role "<strong>${roleName}</strong>"?<br><br>` +
+                `This action cannot be undone.`
+            );
+            // Enable the delete button
+            $deleteForm.find('button[type="submit"]').prop('disabled', false);
+        }
+
+        // Show the modal
+        $deleteModal.fadeIn(200);
+    });
+
+    // Handle cancel button and overlay clicks
+    $('.cancel-delete-btn, .modal-overlay').on('click', function() {
+        $deleteModal.fadeOut(200);
+    });
+
+    // Close modal on escape key
+    $(document).on('keydown', function(e) {
+        if (e.key === 'Escape' && $deleteModal.is(':visible')) {
+            $deleteModal.fadeOut(200);
+        }
+    });
 });

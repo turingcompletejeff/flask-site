@@ -50,28 +50,68 @@
                                 {{ role.name }}
                             </span>
                         </td>
-                        <td>
-                            <button type="button"
-                                    class="clicky-success save-color-btn"
-                                    data-role-id="{{ role.id }}"
-                                    data-update-url="{{ url_for('admin.update_role_badge') }}"
-                                    id="save-{{ role.id }}"
-                                    style="display: none;">
-                                Save Color
-                            </button>
-                            <button type="button"
-                                    class="clicky-secondary reset-color-btn"
-                                    data-role-id="{{ role.id }}"
-                                    id="reset-{{ role.id }}"
-                                    style="display: none;">
-                                Reset
-                            </button>
+                        <td class="actions-cell">
+                            <div class="action-buttons">
+                                <button type="button"
+                                        class="clicky-primary btn-sm"
+                                        onclick="window.location.href='{{ url_for('admin.edit_role', role_id=role.id) }}'">
+                                    <span class="material-symbols-outlined">edit</span>
+                                    Edit
+                                </button>
+                                <button type="button"
+                                        class="clicky-danger btn-sm delete-role-btn"
+                                        data-role-id="{{ role.id }}"
+                                        data-role-name="{{ role.name }}"
+                                        data-user-count="{{ role.assigned_users|length }}">
+                                    <span class="material-symbols-outlined">delete</span>
+                                    Delete
+                                </button>
+                            </div>
+                            <div class="color-buttons" style="display: none;">
+                                <button type="button"
+                                        class="clicky-success save-color-btn btn-sm"
+                                        data-role-id="{{ role.id }}"
+                                        data-update-url="{{ url_for('admin.update_role_badge') }}"
+                                        id="save-{{ role.id }}">
+                                    Save Color
+                                </button>
+                                <button type="button"
+                                        class="clicky-secondary reset-color-btn btn-sm"
+                                        data-role-id="{{ role.id }}"
+                                        id="reset-{{ role.id }}">
+                                    Reset
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
+                    <tr class="add-role-row">
+                        <td colspan="5">
+                            <button type="button" class="clicky-success add-role-btn" onclick="window.location.href='{{ url_for('admin.create_role') }}'">
+                                <span class="material-symbols-outlined">add</span>
+                                Create New Role
+                            </button>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteRoleModal" class="modal" style="display: none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <h2>Confirm Role Deletion</h2>
+        <p id="deleteRoleMessage"></p>
+        <form id="deleteRoleForm" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="modal-actions">
+                <button type="button" class="clicky-secondary cancel-delete-btn">Cancel</button>
+                <button type="submit" class="clicky-danger">Delete Role</button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
