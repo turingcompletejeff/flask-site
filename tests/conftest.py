@@ -28,7 +28,7 @@ os.environ['TESTING'] = 'true'
 
 # Import create_app and db for fixtures to use
 from app import create_app, db as _db
-from app.models import User, Role, BlogPost
+from app.models import User, Role, BlogPost, MinecraftCommand
 
 
 # Mock the database connection in app/__init__.py BEFORE importing
@@ -95,6 +95,7 @@ def app():
         auth_bp,
         blogpost_bp,
         mc_bp,
+        mc_commands_bp,
         admin_bp,
         health_bp,
         profile_bp
@@ -104,6 +105,7 @@ def app():
     test_app.register_blueprint(auth_bp)
     test_app.register_blueprint(blogpost_bp)
     test_app.register_blueprint(mc_bp)
+    test_app.register_blueprint(mc_commands_bp)
     test_app.register_blueprint(health_bp)
     test_app.register_blueprint(profile_bp)
     test_app.register_blueprint(admin_bp)
@@ -208,6 +210,15 @@ def blogger_role(db):
     return role
 
 
+@pytest.fixture(scope='function')
+def minecrafter_role(db):
+    """Create and return a minecrafter role for Minecraft server management."""
+    role = Role(name='minecrafter', description='Minecraft server management role')
+    db.session.add(role)
+    db.session.commit()
+    return role
+
+
 # ============================================================================
 # User Fixtures
 # ============================================================================
@@ -265,6 +276,24 @@ def admin_user(db, admin_role):
     return user
 
 
+@pytest.fixture(scope='function')
+def minecrafter_user(db, minecrafter_role):
+    """
+    Create and return a user with minecrafter role.
+
+    Credentials:
+        username: minecrafter
+        password: mcpass123
+        email: minecrafter@example.com
+    """
+    user = User(username='minecrafter', email='minecrafter@example.com')
+    user.set_password('mcpass123')
+    user.roles.append(minecrafter_role)
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
 # ============================================================================
 # Authenticated Client Fixtures
 # ============================================================================
@@ -307,6 +336,20 @@ def admin_client(client, admin_user):
     client.post('/login', data={
         'username': 'admin',
         'password': 'adminpass123'
+    }, follow_redirects=True)
+    return client
+
+
+@pytest.fixture(scope='function')
+def minecrafter_client(client, minecrafter_user):
+    """
+    Provide a test client authenticated as a minecrafter.
+
+    Automatically logs in the minecrafter_user before test execution.
+    """
+    client.post('/login', data={
+        'username': 'minecrafter',
+        'password': 'mcpass123'
     }, follow_redirects=True)
     return client
 
@@ -379,6 +422,73 @@ def post_with_images(db):
     db.session.add(post)
     db.session.commit()
     return post
+
+
+# ============================================================================
+# MinecraftCommand Fixtures
+# ============================================================================
+
+@pytest.fixture(scope='function')
+def sample_command(db):
+    """
+    Create and return a single Minecraft command for testing.
+
+    Attributes:
+        command_name: tp
+        options: {"args": ["player1", "100", "64", "-200"]}
+    """
+    command = MinecraftCommand(
+        command_name='tp',
+        options={'args': ['player1', '100', '64', '-200']}
+    )
+    db.session.add(command)
+    db.session.commit()
+    return command
+
+
+@pytest.fixture(scope='function')
+def multiple_commands(db):
+    """
+    Create and return multiple Minecraft commands for list testing.
+
+    Returns:
+        list: Three MinecraftCommand objects
+    """
+    commands = [
+        MinecraftCommand(
+            command_name='tp',
+            options={'args': ['player', 'x', 'y', 'z']}
+        ),
+        MinecraftCommand(
+            command_name='give',
+            options={'args': ['player', 'item', 'amount']}
+        ),
+        MinecraftCommand(
+            command_name='weather',
+            options={'args': ['clear']}
+        )
+    ]
+    db.session.add_all(commands)
+    db.session.commit()
+    return commands
+
+
+@pytest.fixture(scope='function')
+def command_with_empty_options(db):
+    """
+    Create and return a command with null/empty options (edge case).
+
+    Attributes:
+        command_name: list
+        options: None
+    """
+    command = MinecraftCommand(
+        command_name='list',
+        options=None
+    )
+    db.session.add(command)
+    db.session.commit()
+    return command
 
 
 # ============================================================================

@@ -43,6 +43,7 @@ def create_app():
         auth_bp,
         blogpost_bp,
         mc_bp,
+        mc_commands_bp,
         admin_bp,
         health_bp,
         profile_bp
@@ -52,6 +53,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(blogpost_bp)
     app.register_blueprint(mc_bp)
+    app.register_blueprint(mc_commands_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(health_bp)
     app.register_blueprint(profile_bp)
