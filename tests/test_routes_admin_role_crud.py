@@ -2,12 +2,11 @@
 Tests for admin role CRUD operations (TC-55).
 
 Tests cover:
-- GET /admin/roles/create - Display create role form
-- POST /admin/roles/create - Create new role
-- POST /admin/update_role - AJAX in-line role update (replaces old edit route)
+- POST /admin/roles/create - Create new role via AJAX (JSON)
+- POST /admin/update_role - AJAX in-line role update
 - POST /admin/roles/<id>/delete - Delete role
 - Authentication and authorization requirements
-- Form validation (name, description, badge color)
+- JSON validation (name, description, badge color)
 - Role assignment protection (cannot delete roles assigned to users)
 """
 
@@ -19,46 +18,51 @@ from app import db
 
 
 class TestRoleCreation:
-    """Tests for creating roles."""
+    """Tests for creating roles via AJAX."""
 
-    def test_create_role_page_admin_access(self, admin_client, app):
-        """Test admin can access the create role page."""
-        with app.app_context():
-            response = admin_client.get(url_for('admin.create_role'))
-            assert response.status_code == 200
-            assert b'Create New Role' in response.data
-
-    def test_create_role_page_requires_authentication(self, client, app):
+    def test_create_role_requires_authentication(self, client, app):
         """Test unauthenticated access is denied."""
         with app.app_context():
-            response = client.get(url_for('admin.create_role'), follow_redirects=False)
+            response = client.post(
+                url_for('admin.create_role'),
+                json={'name': 'test', 'badge_color': '#000000'},
+                content_type='application/json'
+            )
             assert response.status_code == 302  # Redirect to login
 
-    def test_create_role_page_regular_user_denied(self, auth_client, app):
-        """Test regular user cannot access create role page."""
+    def test_create_role_regular_user_denied(self, auth_client, app):
+        """Test regular user cannot create roles."""
         with app.app_context():
-            response = auth_client.get(url_for('admin.create_role'), follow_redirects=False)
+            response = auth_client.post(
+                url_for('admin.create_role'),
+                json={'name': 'test', 'badge_color': '#000000'},
+                content_type='application/json'
+            )
             assert response.status_code == 403  # Forbidden
 
     def test_create_role_success(self, admin_client, app):
-        """Test successfully creating a new role."""
+        """Test successfully creating a new role via AJAX."""
         with app.app_context():
             data = {
                 'name': 'editor',
                 'description': 'Can edit content',
-                'badge_color': '#FF5733',
-                'csrf_token': admin_client.application.config.get('WTF_CSRF_ENABLED', True) and 'test_token' or ''
+                'badge_color': '#FF5733'
             }
 
             response = admin_client.post(
                 url_for('admin.create_role'),
-                data=data,
-                follow_redirects=True
+                json=data,
+                content_type='application/json'
             )
 
-            assert response.status_code == 200
+            assert response.status_code == 201
+            response_data = response.get_json()
+            assert response_data['status'] == 'success'
+            assert response_data['role']['name'] == 'editor'
+            assert response_data['role']['description'] == 'Can edit content'
+            assert response_data['role']['badge_color'] == '#FF5733'
 
-            # Check role was created
+            # Check role was created in database
             role = Role.query.filter_by(name='editor').first()
             assert role is not None
             assert role.description == 'Can edit content'
@@ -70,18 +74,19 @@ class TestRoleCreation:
             data = {
                 'name': admin_role.name,  # Use existing role name
                 'description': 'Duplicate role',
-                'badge_color': '#FF5733',
-                'csrf_token': 'test_token'
+                'badge_color': '#FF5733'
             }
 
             response = admin_client.post(
                 url_for('admin.create_role'),
-                data=data,
-                follow_redirects=True
+                json=data,
+                content_type='application/json'
             )
 
-            assert response.status_code == 200
-            assert b'already exists' in response.data
+            assert response.status_code == 400
+            response_data = response.get_json()
+            assert response_data['status'] == 'error'
+            assert 'already exists' in response_data['message']
 
     def test_create_role_invalid_hex_color(self, admin_client, app):
         """Test creating role with invalid hex color fails."""
@@ -89,19 +94,19 @@ class TestRoleCreation:
             data = {
                 'name': 'tester',
                 'description': 'Test role',
-                'badge_color': 'invalid-color',
-                'csrf_token': 'test_token'
+                'badge_color': 'invalid-color'
             }
 
             response = admin_client.post(
                 url_for('admin.create_role'),
-                data=data,
-                follow_redirects=True
+                json=data,
+                content_type='application/json'
             )
 
-            assert response.status_code == 200
-            # Form should show validation error
-            assert b'Invalid hex color' in response.data or b'invalid' in response.data.lower()
+            assert response.status_code == 400
+            response_data = response.get_json()
+            assert response_data['status'] == 'error'
+            assert 'Invalid hex color format' in response_data['message']
 
     def test_create_role_short_name(self, admin_client, app):
         """Test creating role with name too short fails."""
@@ -109,18 +114,19 @@ class TestRoleCreation:
             data = {
                 'name': 'a',  # Too short (min 2)
                 'description': 'Test role',
-                'badge_color': '#FF5733',
-                'csrf_token': 'test_token'
+                'badge_color': '#FF5733'
             }
 
             response = admin_client.post(
                 url_for('admin.create_role'),
-                data=data,
-                follow_redirects=True
+                json=data,
+                content_type='application/json'
             )
 
-            assert response.status_code == 200
-            # Form should show validation error
+            assert response.status_code == 400
+            response_data = response.get_json()
+            assert response_data['status'] == 'error'
+            assert 'at least 2 characters' in response_data['message']
 
     def test_create_role_long_description(self, admin_client, app):
         """Test creating role with description too long fails."""
@@ -128,18 +134,19 @@ class TestRoleCreation:
             data = {
                 'name': 'test_role',
                 'description': 'x' * 201,  # Too long (max 200)
-                'badge_color': '#FF5733',
-                'csrf_token': 'test_token'
+                'badge_color': '#FF5733'
             }
 
             response = admin_client.post(
                 url_for('admin.create_role'),
-                data=data,
-                follow_redirects=True
+                json=data,
+                content_type='application/json'
             )
 
-            assert response.status_code == 200
-            # Form should show validation error
+            assert response.status_code == 400
+            response_data = response.get_json()
+            assert response_data['status'] == 'error'
+            assert 'must not exceed 200 characters' in response_data['message']
 
 
 class TestRoleDeletion:
@@ -208,7 +215,7 @@ class TestRoleDeletion:
 
 
 class TestRoleFormValidation:
-    """Tests for role form validation."""
+    """Tests for role JSON validation."""
 
     def test_hex_color_validation_3_digit(self, admin_client, app):
         """Test 3-digit hex color is accepted (#RGB)."""
@@ -216,16 +223,16 @@ class TestRoleFormValidation:
             data = {
                 'name': 'rgb_test',
                 'description': 'Test 3-digit hex',
-                'badge_color': '#F0A',  # Valid 3-digit hex
-                'csrf_token': 'test_token'
+                'badge_color': '#F0A'  # Valid 3-digit hex
             }
 
             response = admin_client.post(
                 url_for('admin.create_role'),
-                data=data,
-                follow_redirects=True
+                json=data,
+                content_type='application/json'
             )
 
+            assert response.status_code == 201
             role = Role.query.filter_by(name='rgb_test').first()
             assert role is not None
             assert role.badge_color == '#F0A'
@@ -236,16 +243,16 @@ class TestRoleFormValidation:
             data = {
                 'name': 'rrggbb_test',
                 'description': 'Test 6-digit hex',
-                'badge_color': '#FF00AA',  # Valid 6-digit hex
-                'csrf_token': 'test_token'
+                'badge_color': '#FF00AA'  # Valid 6-digit hex
             }
 
             response = admin_client.post(
                 url_for('admin.create_role'),
-                data=data,
-                follow_redirects=True
+                json=data,
+                content_type='application/json'
             )
 
+            assert response.status_code == 201
             role = Role.query.filter_by(name='rrggbb_test').first()
             assert role is not None
             assert role.badge_color == '#FF00AA'
@@ -256,17 +263,19 @@ class TestRoleFormValidation:
             data = {
                 'name': 'no_hash_test',
                 'description': 'Test missing hash',
-                'badge_color': 'FF00AA',  # Missing #
-                'csrf_token': 'test_token'
+                'badge_color': 'FF00AA'  # Missing #
             }
 
             response = admin_client.post(
                 url_for('admin.create_role'),
-                data=data,
-                follow_redirects=True
+                json=data,
+                content_type='application/json'
             )
 
-            assert b'Invalid hex color' in response.data or b'invalid' in response.data.lower()
+            assert response.status_code == 400
+            response_data = response.get_json()
+            assert response_data['status'] == 'error'
+            assert 'Invalid hex color format' in response_data['message']
 
     def test_hex_color_validation_invalid_chars(self, admin_client, app):
         """Test hex color with invalid characters is rejected."""
@@ -274,17 +283,19 @@ class TestRoleFormValidation:
             data = {
                 'name': 'invalid_chars_test',
                 'description': 'Test invalid chars',
-                'badge_color': '#GGGGGG',  # Invalid chars (G is not hex)
-                'csrf_token': 'test_token'
+                'badge_color': '#GGGGGG'  # Invalid chars (G is not hex)
             }
 
             response = admin_client.post(
                 url_for('admin.create_role'),
-                data=data,
-                follow_redirects=True
+                json=data,
+                content_type='application/json'
             )
 
-            assert b'Invalid hex color' in response.data or b'invalid' in response.data.lower()
+            assert response.status_code == 400
+            response_data = response.get_json()
+            assert response_data['status'] == 'error'
+            assert 'Invalid hex color format' in response_data['message']
 
 
 class TestInlineRoleUpdate:

@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from functools import wraps
 from app import db
 from app.models import User, Role, BlogPost
-from app.forms import EditUserForm, CreateUserForm, DeleteUserForm, CreateRoleForm, EditRoleForm, DeleteRoleForm
+from app.forms import EditUserForm, CreateUserForm, DeleteUserForm, DeleteRoleForm
 from app.utils.pagination import paginate_query
 from app.utils.image_utils import delete_uploaded_images
 from sqlalchemy.exc import SQLAlchemyError
@@ -819,45 +819,110 @@ def update_role():
         }), 500
 
 
-@admin_bp.route('/admin/roles/create', methods=['GET', 'POST'])
+@admin_bp.route('/admin/roles/create', methods=['POST'])
 @login_required
 @admin_required
 def create_role():
-    """Create new role"""
-    form = CreateRoleForm()
+    """
+    Create a new role via AJAX.
 
-    if form.validate_on_submit():
-        try:
-            # Check if role name already exists
-            existing_role = Role.query.filter_by(name=form.name.data).first()
-            if existing_role:
-                flash(f'Role "{form.name.data}" already exists.', 'danger')
-                return render_template('admin_role_create.html', form=form, page='admin')
+    Expects JSON payload:
+        {
+            'name': str,
+            'description': str (optional),
+            'badge_color': str (hex color code)
+        }
 
-            # Validate hex color format
-            if not Role.validate_hex_color(form.badge_color.data):
-                flash('Invalid hex color format. Use #RGB or #RRGGBB format.', 'danger')
-                return render_template('admin_role_create.html', form=form, page='admin')
+    Returns:
+        JSON response:
+            Success: {'status': 'success', 'role': {id, name, description, badge_color}}
+            Error: {'status': 'error', 'message': str}
+    """
+    try:
+        data = request.get_json()
 
-            # Create new role
-            role = Role(
-                name=form.name.data,
-                description=form.description.data,
-                badge_color=form.badge_color.data
-            )
-            db.session.add(role)
-            db.session.commit()
+        if not data:
+            return jsonify({
+                'status': 'error',
+                'message': 'No data provided'
+            }), 400
 
-            current_app.logger.info(f"Role '{role.name}' created by user {current_user.id} ({current_user.username})")
-            flash(f'Role "{role.name}" created successfully!', 'success')
-            return redirect(url_for('admin.roles'))
+        name = data.get('name', '').strip()
+        description = data.get('description', '').strip()
+        badge_color = data.get('badge_color', '#58cc02')
 
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            flash('Database error occurred while creating role.', 'danger')
-            current_app.logger.error(f"Create role error: {e}")
+        # Validate name
+        if not name or len(name) < 2:
+            return jsonify({
+                'status': 'error',
+                'message': 'Role name must be at least 2 characters'
+            }), 400
 
-    return render_template('admin_role_create.html', form=form, page='admin')
+        if len(name) > 50:
+            return jsonify({
+                'status': 'error',
+                'message': 'Role name must not exceed 50 characters'
+            }), 400
+
+        # Check for duplicate name
+        existing_role = Role.query.filter_by(name=name).first()
+        if existing_role:
+            return jsonify({
+                'status': 'error',
+                'message': f'Role "{name}" already exists'
+            }), 400
+
+        # Validate description
+        if description and len(description) > 200:
+            return jsonify({
+                'status': 'error',
+                'message': 'Description must not exceed 200 characters'
+            }), 400
+
+        # Validate color
+        if not Role.validate_hex_color(badge_color):
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid hex color format'
+            }), 400
+
+        # Create role
+        role = Role(
+            name=name,
+            description=description if description else None,
+            badge_color=badge_color
+        )
+        db.session.add(role)
+        db.session.commit()
+
+        # Audit logging
+        current_app.logger.info(
+            f"Role '{role.name}' created via AJAX by user {current_user.id} ({current_user.username})"
+        )
+
+        return jsonify({
+            'status': 'success',
+            'role': {
+                'id': role.id,
+                'name': role.name,
+                'description': role.description,
+                'badge_color': role.badge_color
+            }
+        }), 201
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error creating role via AJAX: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Database error occurred'
+        }), 500
+    except Exception as e:
+        current_app.logger.error(f"Unexpected error creating role: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'An unexpected error occurred'
+        }), 500
 
 
 @admin_bp.route('/admin/roles/<int:role_id>/delete', methods=['POST'])
