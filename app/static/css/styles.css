@@ -845,3 +845,11 @@ pre {
     display: none;
   }
 }
+
+.form-container h2 {
+  color: var(--bg);
+}
+
+#login-form {
+  width: 500px;
+}

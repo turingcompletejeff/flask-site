@@ -5,7 +5,7 @@
 {% block content %}
 	<div class="form-container">
 		<h2>Login</h2>
-		<form method="POST">
+		<form id="login-form" method="POST">
 			<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 			<label for="username" class="form__label">username</label>
 			<input type="text" name="username" id="username" placeholder="Username" required>
