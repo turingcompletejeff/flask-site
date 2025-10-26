@@ -1,15 +1,14 @@
 """
-Unit tests for database models.
+Unit tests for User and Role models.
 
 Tests cover:
-- User model: password hashing, role checking, admin status
-- BlogPost model: creation, draft status, date handling
-- Role model: creation, relationships, uniqueness
+- User model: password hashing, role checking, admin status, uniqueness
+- Role model: creation, relationships, uniqueness, timestamps
 """
 
 import pytest
-from datetime import datetime, timezone, date
-from app.models import User, BlogPost, Role, MinecraftCommand
+from datetime import datetime
+from app.models import User, Role
 
 
 @pytest.mark.unit
@@ -125,95 +124,6 @@ class TestUser:
 
 
 @pytest.mark.unit
-class TestBlogPost:
-    """Test suite for BlogPost model."""
-
-    def test_blogpost_creation(self, db):
-        """Test basic blog post creation."""
-        post = BlogPost(
-            title='Test Post',
-            content='This is test content.',
-            is_draft=False
-        )
-        db.session.add(post)
-        db.session.commit()
-
-        assert post.id is not None
-        assert post.title == 'Test Post'
-        assert post.content == 'This is test content.'
-        assert post.is_draft is False
-
-    def test_blogpost_default_draft_status(self, db):
-        """Test that posts default to draft status."""
-        post = BlogPost(
-            title='Draft Post',
-            content='Draft content'
-        )
-        db.session.add(post)
-        db.session.commit()
-
-        assert post.is_draft is True  # Default is True
-
-    def test_blogpost_published_status(self, published_post):
-        """Test published post has correct status."""
-        assert published_post.is_draft is False
-
-    def test_blogpost_draft_status(self, draft_post):
-        """Test draft post has correct status."""
-        assert draft_post.is_draft is True
-
-    def test_blogpost_date_posted(self, published_post):
-        """Test that date_posted is set."""
-        assert published_post.date_posted is not None
-        # Accept both datetime.date and datetime.datetime (SQLite vs PostgreSQL)
-        assert isinstance(published_post.date_posted, (datetime, date))
-
-    def test_blogpost_last_updated_none_initially(self, published_post):
-        """Test that last_updated is None for new posts."""
-        assert published_post.last_updated is None
-
-    def test_blogpost_last_updated_on_edit(self, db, published_post):
-        """Test that last_updated is set when post is edited."""
-        # Update the post
-        published_post.content = 'Updated content'
-        db.session.commit()
-
-        # Trigger the onupdate by making another change
-        published_post.title = 'Updated Title'
-        db.session.commit()
-
-        # Note: onupdate may not trigger in all test scenarios
-        # This is a known SQLite limitation
-
-    def test_blogpost_has_edits_false(self, published_post):
-        """Test hasEdits returns False for unedited posts."""
-        assert published_post.hasEdits() is False
-
-    def test_blogpost_with_images(self, post_with_images):
-        """Test blog post with portrait and thumbnail."""
-        assert post_with_images.portrait == 'test_portrait.jpg'
-        assert post_with_images.thumbnail == 'test_thumb.jpg'
-
-    def test_blogpost_with_json_themap(self, db):
-        """Test blog post with JSON themap field."""
-        post = BlogPost(
-            title='Post with Map',
-            content='Content',
-            themap={'key': 'value', 'count': 42}
-        )
-        db.session.add(post)
-        db.session.commit()
-
-        assert post.themap is not None
-        assert post.themap['key'] == 'value'
-        assert post.themap['count'] == 42
-
-    def test_blogpost_repr(self, published_post):
-        """Test __repr__ method."""
-        assert repr(published_post) == '<BlogPost Test Published Post>'
-
-
-@pytest.mark.unit
 class TestRole:
     """Test suite for Role model."""
 
@@ -272,66 +182,3 @@ class TestRole:
         assert len(blogger_role.assigned_users) == 2  # Only the users created in this test
         assert user1 in blogger_role.assigned_users
         assert user2 in blogger_role.assigned_users
-
-
-@pytest.mark.unit
-class TestMinecraftCommand:
-    """Test suite for MinecraftCommand model with JSON options field."""
-
-    def test_minecraft_command_creation(self, db):
-        """Test basic MinecraftCommand creation."""
-        command = MinecraftCommand(
-            command_name='give',
-            options={'args': ['player1', 'diamond', '64']}
-        )
-        db.session.add(command)
-        db.session.commit()
-
-        assert command.command_id is not None
-        assert command.command_name == 'give'
-        assert command.options == {'args': ['player1', 'diamond', '64']}
-
-    def test_minecraft_command_options_json(self, db):
-        """Test that options field properly stores JSON data."""
-        command = MinecraftCommand(
-            command_name='tp',
-            options={'args': ['player1', '100', '64', '-200']}
-        )
-        db.session.add(command)
-        db.session.commit()
-
-        # Retrieve and verify
-        retrieved = MinecraftCommand.query.filter_by(command_name='tp').first()
-        assert retrieved.options == {'args': ['player1', '100', '64', '-200']}
-        assert len(retrieved.options['args']) == 4
-
-    def test_minecraft_command_empty_options(self, db):
-        """Test MinecraftCommand with empty options args."""
-        command = MinecraftCommand(
-            command_name='list',
-            options={'args': []}
-        )
-        db.session.add(command)
-        db.session.commit()
-
-        retrieved = MinecraftCommand.query.filter_by(command_name='list').first()
-        assert retrieved.options == {'args': []}
-
-    def test_minecraft_command_to_dict(self, db):
-        """Test to_dict method includes all fields."""
-        command = MinecraftCommand(
-            command_name='ban',
-            options={'args': ['player1', 'griefing']}
-        )
-        db.session.add(command)
-        db.session.commit()
-
-        result = command.to_dict()
-        assert 'command_id' in result
-        assert result['command_name'] == 'ban'
-        assert result['options'] == {'args': ['player1', 'griefing']}
-
-    def test_minecraft_command_repr(self, db):
-        """Test string representation of MinecraftCommand."""
-        command = MinecraftCommand(command_name='kick')
-        assert 'kick' in repr(command)

@@ -43,7 +43,6 @@ class ContactForm(FlaskForm):
     )
     other_reason = StringField(
         "please specify",
-        validators=[Optional()],
         render_kw={
             'placeholder': 'Please describe your reason for contacting us',
             'maxlength': 200
@@ -53,9 +52,11 @@ class ContactForm(FlaskForm):
     submit = SubmitField("send")
 
     def validate_other_reason(self, field):
-        """Custom validator: other_reason is required when reason='other'."""
+        """Custom validator: other_reason is required when reason='other', optional otherwise."""
         if self.reason.data == 'other':
+            # When reason is 'other', other_reason is required
             if not field.data or not field.data.strip():
                 raise ValidationError('Please specify your reason when selecting "Other".')
             if len(field.data.strip()) < 4:
                 raise ValidationError('Please provide a more detailed reason (at least 4 characters).')
+        # When reason is not 'other', other_reason can be empty (no validation needed)

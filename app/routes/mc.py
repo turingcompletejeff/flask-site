@@ -21,10 +21,14 @@ def require_login_and_role():
 
 def rconConnect():
     global rcon
-    if rcon is None:
-        rcon = RCONClient(Config.RCON_HOST, port=Config.RCON_PORT)
-    
-    return rcon.login(Config.RCON_PASS)
+    try:
+        if rcon is None:
+            rcon = RCONClient(Config.RCON_HOST, port=Config.RCON_PORT)
+
+        return rcon.login(Config.RCON_PASS)
+    except (socket.timeout, TimeoutError, socket.error, ConnectionError) as e:
+        # Handle network timeouts and connection errors
+        return False
 
 # Home page
 @mc_bp.route('/mc')
@@ -43,16 +47,22 @@ def rconInit():
 def rconStop():
     global rcon
     if rcon is not None:
-        rcon.stop()
-        rcon = None
+        try:
+            rcon.stop()
+            rcon = None
+        except Exception as e:
+            return 'FAIL', 500
     return 'OK'
     
 @mc_bp.route('/mc/command', methods = ['POST'])
 def rconCommand():
     global rcon
-    if rconConnect():
-        resp = rcon.command(request.form.get('command'))
-        return resp
+    try:
+        if rconConnect():
+            resp = rcon.command(request.form.get('command'))
+            return resp
+    except Exception as e:
+        return 'FAIL', 500
     return 'FAIL'
 
 @mc_bp.route('/mc/query')
