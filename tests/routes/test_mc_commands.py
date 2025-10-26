@@ -420,7 +420,7 @@ class TestCommandDeletion:
         assert response.status_code == 302  # Redirect after delete
 
         # Verify command deleted from database
-        command = MinecraftCommand.query.get(command_id)
+        command = db.session.get(MinecraftCommand, command_id)
         assert command is None
 
     def test_delete_nonexistent_command(self, minecrafter_client):
@@ -458,7 +458,7 @@ class TestCommandDeletion:
         assert response.status_code == 302
 
         # Verify deleted
-        command = MinecraftCommand.query.get(command_id)
+        command = db.session.get(MinecraftCommand, command_id)
         assert command is None
 
     def test_unauthenticated_denied(self, client, sample_command):
@@ -680,3 +680,201 @@ class TestCommandAuthorization:
             data={'csrf_token': 'dummy'}
         )
         assert response.status_code == 302
+
+
+# ============================================================================
+# TestCommandEdgeCases - Error handling and edge cases
+# ============================================================================
+
+class TestCommandListEdgeCases:
+    """Edge case tests for command list route."""
+
+    def test_database_error_when_loading_commands(self, minecrafter_client, app):
+        """Test database error handling when loading commands (lines 62-65)."""
+        from sqlalchemy.exc import SQLAlchemyError
+        from unittest.mock import patch
+
+        with app.app_context():
+            with patch('app.routes.mc_commands.MinecraftCommand.query') as mock_query:
+                mock_query.order_by.return_value.all.side_effect = SQLAlchemyError('Connection failed')
+
+                response = minecrafter_client.get('/mc/commands')
+                assert response.status_code == 200
+                # Should render with empty list and error flash
+                assert b'Error loading commands' in response.data or b'commands' in response.data
+
+
+class TestCommandCreationEdgeCases:
+    """Edge case tests for command creation route."""
+
+    def test_create_database_error_handling(self, minecrafter_client, app):
+        """Test database error during command creation (lines 156-162)."""
+        from sqlalchemy.exc import SQLAlchemyError
+        from unittest.mock import patch
+
+        with app.app_context():
+            with patch('app.routes.mc_commands.db.session.add') as mock_add:
+                mock_add.side_effect = SQLAlchemyError('DB error')
+
+                response = minecrafter_client.post(
+                    '/mc/commands/create',
+                    json={'command_name': 'test_cmd', 'options': {}},
+                    content_type='application/json'
+                )
+
+                assert response.status_code == 500
+                data = response.get_json()
+                assert data['status'] == 'error'
+                assert 'Database error' in data['message']
+
+    def test_create_unexpected_exception_handling(self, minecrafter_client, app):
+        """Test unexpected exception during command creation (lines 164-170)."""
+        from unittest.mock import patch
+
+        with app.app_context():
+            # Mock the command instantiation to raise an unexpected exception
+            with patch('app.routes.mc_commands.MinecraftCommand.__init__', side_effect=Exception('Unexpected error')):
+                response = minecrafter_client.post(
+                    '/mc/commands/create',
+                    json={'command_name': 'test_cmd', 'options': {}},
+                    content_type='application/json'
+                )
+
+                assert response.status_code == 500
+                data = response.get_json()
+                assert data['status'] == 'error'
+                assert 'unexpected error' in data['message'].lower()
+
+    def test_create_rollback_on_database_error(self, minecrafter_client, app, db):
+        """Test that database session is rolled back on error."""
+        from sqlalchemy.exc import SQLAlchemyError
+        from unittest.mock import patch
+
+        with app.app_context():
+            with patch('app.routes.mc_commands.db.session.commit') as mock_commit:
+                mock_commit.side_effect = SQLAlchemyError('Commit failed')
+
+                with patch('app.routes.mc_commands.db.session.rollback') as mock_rollback:
+                    response = minecrafter_client.post(
+                        '/mc/commands/create',
+                        json={'command_name': 'test_cmd', 'options': {}},
+                        content_type='application/json'
+                    )
+
+                    assert response.status_code == 500
+                    # Verify rollback was called
+                    assert mock_rollback.called
+
+
+class TestCommandUpdateEdgeCases:
+    """Edge case tests for command update route."""
+
+    def test_update_database_error_handling(self, minecrafter_client, app, sample_command):
+        """Test database error during command update (lines 277-283)."""
+        from sqlalchemy.exc import SQLAlchemyError
+        from unittest.mock import patch
+
+        with app.app_context():
+            with patch('app.routes.mc_commands.db.session.commit') as mock_commit:
+                mock_commit.side_effect = SQLAlchemyError('DB error')
+
+                response = minecrafter_client.post(
+                    f'/mc/commands/{sample_command.command_id}/update',
+                    json={'command_name': 'updated', 'options': {}},
+                    content_type='application/json'
+                )
+
+                assert response.status_code == 500
+                data = response.get_json()
+                assert data['status'] == 'error'
+                assert 'Database error' in data['message']
+
+    def test_update_unexpected_exception_handling(self, minecrafter_client, app, sample_command):
+        """Test unexpected exception during command update (lines 285-291)."""
+        from unittest.mock import patch, PropertyMock
+
+        with app.app_context():
+            # Mock setting command_name to raise an unexpected exception
+            with patch.object(type(sample_command), 'command_name', new_callable=PropertyMock) as mock_prop:
+                mock_prop.side_effect = Exception('Unexpected error')
+
+                response = minecrafter_client.post(
+                    f'/mc/commands/{sample_command.command_id}/update',
+                    json={'command_name': 'updated', 'options': {}},
+                    content_type='application/json'
+                )
+
+                assert response.status_code == 500
+                data = response.get_json()
+                assert data['status'] == 'error'
+                assert 'unexpected error' in data['message'].lower()
+
+    def test_update_rollback_on_error(self, minecrafter_client, app, sample_command, db):
+        """Test that database session is rolled back on update error."""
+        from sqlalchemy.exc import SQLAlchemyError
+        from unittest.mock import patch
+
+        with app.app_context():
+            with patch('app.routes.mc_commands.db.session.commit') as mock_commit:
+                mock_commit.side_effect = SQLAlchemyError('Commit failed')
+
+                with patch('app.routes.mc_commands.db.session.rollback') as mock_rollback:
+                    response = minecrafter_client.post(
+                        f'/mc/commands/{sample_command.command_id}/update',
+                        json={'command_name': 'updated', 'options': {}},
+                        content_type='application/json'
+                    )
+
+                    assert response.status_code == 500
+                    assert mock_rollback.called
+
+
+class TestCommandDeletionEdgeCases:
+    """Edge case tests for command deletion route."""
+
+    def test_delete_nonexistent_command(self, minecrafter_client, app):
+        """Test deleting nonexistent command returns 404 (line 330)."""
+        with app.app_context():
+            response = minecrafter_client.post(
+                '/mc/commands/99999/delete',
+                data={'csrf_token': 'dummy'}
+            )
+            assert response.status_code == 404
+
+    def test_delete_database_error_handling(self, minecrafter_client, app, sample_command):
+        """Test database error during deletion (lines 335-338)."""
+        from sqlalchemy.exc import SQLAlchemyError
+        from unittest.mock import patch
+
+        with app.app_context():
+            with patch('app.routes.mc_commands.db.session.delete') as mock_delete:
+                mock_delete.side_effect = SQLAlchemyError('DB error')
+
+                response = minecrafter_client.post(
+                    f'/mc/commands/{sample_command.command_id}/delete',
+                    data={'csrf_token': 'dummy'},
+                    follow_redirects=True
+                )
+
+                # Should handle error gracefully
+                assert response.status_code == 200
+                assert b'Error' in response.data or b'error' in response.data
+
+    def test_delete_rollback_on_error(self, minecrafter_client, app, sample_command, db):
+        """Test that database session is rolled back on deletion error."""
+        from sqlalchemy.exc import SQLAlchemyError
+        from unittest.mock import patch
+
+        with app.app_context():
+            with patch('app.routes.mc_commands.db.session.commit') as mock_commit:
+                mock_commit.side_effect = SQLAlchemyError('Commit failed')
+
+                with patch('app.routes.mc_commands.db.session.rollback') as mock_rollback:
+                    response = minecrafter_client.post(
+                        f'/mc/commands/{sample_command.command_id}/delete',
+                        data={'csrf_token': 'dummy'},
+                        follow_redirects=False
+                    )
+
+                    # Verify rollback was called
+                    assert mock_rollback.called

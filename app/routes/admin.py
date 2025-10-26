@@ -89,7 +89,7 @@ def dashboard():
 def edit_user(user_id):
     """Edit user information"""
     try:
-        user = User.query.get_or_404(user_id)
+        user = db.session.get(User, user_id) or abort(404)
 
         # Prevent editing self
         if user.id == current_user.id:
@@ -131,7 +131,7 @@ def edit_user(user_id):
             # Clear and reassign roles
             user.roles = []
             for role_id in selected_role_ids:
-                role = Role.query.get(role_id)
+                role = db.session.get(Role, role_id)
                 if role:
                     user.roles.append(role)
 
@@ -197,7 +197,7 @@ def create_user():
 def delete_user(user_id):
     """Delete user"""
     try:
-        user = User.query.get_or_404(user_id)
+        user = db.session.get(User, user_id) or abort(404)
 
         # Prevent deleting self
         if user.id == current_user.id:
@@ -258,7 +258,7 @@ def delete_user(user_id):
 def toggle_user_role(user_id, role_name):
     """Toggle a role for a user via AJAX"""
     try:
-        user = User.query.get_or_404(user_id)
+        user = db.session.get(User, user_id) or abort(404)
         role = Role.query.filter_by(name=role_name).first_or_404()
 
         has_role = user.has_role(role_name)
@@ -742,7 +742,7 @@ def update_role(role_id):
             }), 400
 
         # Get the role
-        role = Role.query.get(role_id)
+        role = db.session.get(Role, role_id)
         if not role:
             return jsonify({
                 'status': 'error',
@@ -932,7 +932,7 @@ def create_role():
 def delete_role(role_id):
     """Delete role"""
     try:
-        role = Role.query.get_or_404(role_id)
+        role = db.session.get(Role, role_id) or abort(404)
         form = DeleteRoleForm()
 
         if form.validate_on_submit():

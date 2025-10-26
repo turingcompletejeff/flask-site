@@ -184,7 +184,7 @@ class TestRoleDeletion:
             assert response.status_code == 200
 
             # Check role was deleted
-            deleted_role = Role.query.get(role_id)
+            deleted_role = db.session.get(Role, role_id)
             assert deleted_role is None
 
     def test_delete_role_assigned_to_users(self, admin_client, admin_role, admin_user, app):
@@ -203,7 +203,7 @@ class TestRoleDeletion:
             assert b'Cannot delete' in response.data or b'assigned' in response.data
 
             # Check role still exists
-            role = Role.query.get(admin_role.id)
+            role = db.session.get(Role, admin_role.id)
             assert role is not None
 
     def test_delete_role_nonexistent(self, admin_client, app):
@@ -347,7 +347,7 @@ class TestInlineRoleUpdate:
             assert data['role']['badge_color'] == '#ABCDEF'
 
             # Verify database was updated
-            updated_role = Role.query.get(role_id)
+            updated_role = db.session.get(Role, role_id)
             assert updated_role.name == 'moderator_updated'
             assert updated_role.description == 'New description'
             assert updated_role.badge_color == '#ABCDEF'
@@ -371,7 +371,7 @@ class TestInlineRoleUpdate:
             )
 
             assert response.status_code == 200
-            updated_role = Role.query.get(role_id)
+            updated_role = db.session.get(Role, role_id)
             assert updated_role.description is None
 
     def test_update_role_missing_data(self, admin_client, app):

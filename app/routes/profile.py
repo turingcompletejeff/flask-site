@@ -34,28 +34,27 @@ def edit_profile():
         # Update email
         current_user.email = form.email.data
 
-        # Update bio
-        current_user.bio = form.bio.data
+        # Update bio (preserve None if empty string)
+        current_user.bio = form.bio.data if form.bio.data else None
 
         # Handle profile picture upload
         if form.profile_picture.data:
             profile_picture_file = form.profile_picture.data
 
-            # Security: Comprehensive file validation (MIME type, magic number, size)
-            is_valid, error_msg = validate_image_file(profile_picture_file)
-            if not is_valid:
-                flash(f'Profile picture upload failed: {error_msg}', 'danger')
-                return redirect(url_for('profile.edit_profile'))
-
-            # Get sanitized extension
-            safe_name = sanitize_filename(profile_picture_file.filename)
-            file_extension = safe_name.rsplit('.', 1)[1].lower()
-
-            # Create filenames based on user ID
-            filename = f"{current_user.id}_profile.{file_extension}"
-            thumbnailname = f"{current_user.id}_thumb.{file_extension}"
-
             try:
+                # Security: Comprehensive file validation (MIME type, magic number, size)
+                is_valid, error_msg = validate_image_file(profile_picture_file)
+                if not is_valid:
+                    flash(f'Profile picture upload failed: {error_msg}', 'danger')
+                    return redirect(url_for('profile.edit_profile'))
+
+                # Get sanitized extension
+                safe_name = sanitize_filename(profile_picture_file.filename)
+                file_extension = safe_name.rsplit('.', 1)[1].lower()
+
+                # Create filenames based on user ID
+                filename = f"{current_user.id}_profile.{file_extension}"
+                thumbnailname = f"{current_user.id}_thumb.{file_extension}"
                 # Delete old profile pictures if they exist
                 if current_user.profile_picture:
                     # Remove old files with any extension

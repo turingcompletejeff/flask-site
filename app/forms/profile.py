@@ -6,7 +6,7 @@ from wtforms.validators import DataRequired, Email, Length, EqualTo
 
 class ProfileEditForm(FlaskForm):
     email = EmailField('Email', validators=[DataRequired(), Email()])
-    profile_picture = FileField('Profile Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg', 'gif'])])
+    profile_picture = FileField('Profile Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg', 'gif'], 'Invalid file type. Only jpg, png, jpeg, gif files are allowed.')])
     bio = TextAreaField('Bio', validators=[Length(max=500)])
     submit = SubmitField('Update Profile')
 

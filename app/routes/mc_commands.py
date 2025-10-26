@@ -201,7 +201,7 @@ def update_command(command_id):
     """
     try:
         # Get command
-        command = MinecraftCommand.query.get(command_id)
+        command = db.session.get(MinecraftCommand, command_id)
         if not command:
             return jsonify({
                 'status': 'error',
@@ -306,7 +306,7 @@ def delete_command(command_id):
         Redirect to list_commands with flash message
     """
     try:
-        command = MinecraftCommand.query.get(command_id)
+        command = db.session.get(MinecraftCommand, command_id)
         if not command:
             abort(404)
 
