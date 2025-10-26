@@ -577,8 +577,8 @@ class TestDeleteUser:
             }, follow_redirects=True)
 
             assert response.status_code == 200
-            assert User.query.get(regular_user.id) is None
-            assert User.query.get(blogger_user.id) is not None
+            assert db.session.get(User, regular_user.id) is None
+            assert db.session.get(User, blogger_user.id) is not None
 
 
 # ============================================================================
@@ -601,7 +601,7 @@ class TestToggleUserRole:
             assert data['success'] is True
             assert data['has_role'] is True
 
-            user = User.query.get(regular_user.id)
+            user = db.session.get(User, regular_user.id)
             assert user.has_role('blogger')
 
     def test_toggle_role_remove_role(self, admin_client, app, db, blogger_user, blogger_role):
@@ -619,7 +619,7 @@ class TestToggleUserRole:
             assert data['success'] is True
             assert data['has_role'] is False
 
-            user = User.query.get(blogger_user.id)
+            user = db.session.get(User, blogger_user.id)
             assert not user.has_role('blogger')
 
     def test_toggle_role_multiple_toggles(self, admin_client, app, db, regular_user, blogger_role):
@@ -631,7 +631,7 @@ class TestToggleUserRole:
                 content_type='application/json'
             )
             assert response1.status_code == 200
-            user = User.query.get(regular_user.id)
+            user = db.session.get(User, regular_user.id)
             assert user.has_role('blogger')
 
             # Remove role
@@ -640,7 +640,7 @@ class TestToggleUserRole:
                 content_type='application/json'
             )
             assert response2.status_code == 200
-            user = User.query.get(regular_user.id)
+            user = db.session.get(User, regular_user.id)
             assert not user.has_role('blogger')
 
             # Add again
@@ -649,7 +649,7 @@ class TestToggleUserRole:
                 content_type='application/json'
             )
             assert response3.status_code == 200
-            user = User.query.get(regular_user.id)
+            user = db.session.get(User, regular_user.id)
             assert user.has_role('blogger')
 
     def test_toggle_role_prevent_removing_last_admin(self, admin_client, app, db, admin_user, admin_role):
@@ -1330,7 +1330,7 @@ class TestUpdateRole:
             assert data['status'] == 'success'
 
             # Verify in database
-            role = Role.query.get(admin_role.id)
+            role = db.session.get(Role, admin_role.id)
             assert role.name == 'administrator'
             assert role.description == 'Updated description'
             assert role.badge_color == '#ff6b6b'
@@ -1352,7 +1352,7 @@ class TestUpdateRole:
             )
 
             assert response.status_code == 200
-            role = Role.query.get(admin_role.id)
+            role = db.session.get(Role, admin_role.id)
             assert role.description is None or role.description == ''
 
     def test_update_role_nonexistent_returns_404(self, admin_client, app):
@@ -1528,7 +1528,7 @@ class TestDeleteRole:
             )
 
             assert response.status_code == 200
-            role = Role.query.get(blogger_role.id)
+            role = db.session.get(Role, blogger_role.id)
             assert role is None
 
     def test_delete_role_nonexistent_returns_404(self, admin_client, app):
@@ -1555,7 +1555,7 @@ class TestDeleteRole:
             assert 'assigned' in data.lower() or 'cannot delete' in data.lower()
 
             # Role should still exist
-            role = Role.query.get(admin_role.id)
+            role = db.session.get(Role, admin_role.id)
             assert role is not None
 
     def test_delete_role_with_multiple_assigned_users(self, admin_client, app, db, admin_user):
@@ -1581,10 +1581,10 @@ class TestDeleteRole:
             data = response.data.decode('utf-8')
             assert 'assigned' in data.lower() or '2' in data
 
-            role = Role.query.get(admin_role.id)
+            role = db.session.get(Role, admin_role.id)
             assert role is not None
 
-    def test_delete_role_succeeds_when_csrf_disabled(self, admin_client, app, blogger_role):
+    def test_delete_role_succeeds_when_csrf_disabled(self, admin_client, app, db, blogger_role):
         """Delete role succeeds with any POST data when CSRF is disabled (test environment)."""
         with app.app_context():
             response = admin_client.post(
@@ -1597,7 +1597,7 @@ class TestDeleteRole:
             data = response.data.decode('utf-8')
             assert 'deleted successfully' in data.lower()
 
-            role = Role.query.get(blogger_role.id)
+            role = db.session.get(Role, blogger_role.id)
             assert role is None  # Role should be deleted
             assert response.status_code == 200
 
@@ -1644,8 +1644,8 @@ class TestDeleteRole:
             )
 
             assert response.status_code == 200
-            assert Role.query.get(blogger_role.id) is None
-            assert Role.query.get(admin_role.id) is not None
+            assert db.session.get(Role, blogger_role.id) is None
+            assert db.session.get(Role, admin_role.id) is not None
 
 
 @pytest.mark.integration
@@ -1707,7 +1707,7 @@ class TestEditUserEdgeCases:
 
             assert response.status_code == 200
             # User should not have any roles from nonexistent ID
-            user = User.query.get(regular_user.id)
+            user = db.session.get(User, regular_user.id)
             # User roles should remain unchanged or empty
             assert user is not None
 
@@ -1790,7 +1790,7 @@ class TestDeleteUserEdgeCases:
 
             assert response.status_code == 200
             # Verify user is deleted
-            assert User.query.get(regular_user.id) is None
+            assert db.session.get(User, regular_user.id) is None
 
     def test_delete_user_profile_picture_no_thumb_pattern(self, admin_client, app, db):
         """Test deleting user with profile picture without _thumb pattern."""
@@ -2044,7 +2044,7 @@ class TestDeleteUserInvalidRequest:
                 # Should show "Invalid request" flash message
                 assert b'Invalid request' in response.data
                 # User should still exist
-                assert User.query.get(user_id) is not None
+                assert db.session.get(User, user_id) is not None
             finally:
                 # Restore original method
                 DeleteUserForm.validate_on_submit = original_validate
@@ -2355,7 +2355,7 @@ class TestAdminBranchCoverage:
 
         assert response.status_code == 200
         from app.models import User
-        user = User.query.get(regular_user.id)
+        user = db.session.get(User, regular_user.id)
         # Role should not be added
         assert len(user.roles) == 0
 

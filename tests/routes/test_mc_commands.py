@@ -420,7 +420,7 @@ class TestCommandDeletion:
         assert response.status_code == 302  # Redirect after delete
 
         # Verify command deleted from database
-        command = MinecraftCommand.query.get(command_id)
+        command = db.session.get(MinecraftCommand, command_id)
         assert command is None
 
     def test_delete_nonexistent_command(self, minecrafter_client):
@@ -458,7 +458,7 @@ class TestCommandDeletion:
         assert response.status_code == 302
 
         # Verify deleted
-        command = MinecraftCommand.query.get(command_id)
+        command = db.session.get(MinecraftCommand, command_id)
         assert command is None
 
     def test_unauthenticated_denied(self, client, sample_command):

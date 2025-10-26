@@ -468,7 +468,7 @@ class TestDeletePost:
         assert url_for('main.index') in response.location
 
         # Verify post is deleted
-        deleted_post = BlogPost.query.get(post_id)
+        deleted_post = db.session.get(BlogPost, post_id)
         assert deleted_post is None
 
     def test_delete_post_with_images(self, blogger_client, post_with_images):

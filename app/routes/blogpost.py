@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, abort
 import json
 from flask_login import login_required, current_user
 import os
@@ -19,7 +19,7 @@ blogpost_bp = Blueprint('blogpost', __name__)
 @blogpost_bp.route('/post/<int:post_id>')
 def view_post(post_id):
     # Query the specific blog post by ID
-    post = BlogPost.query.get_or_404(post_id)
+    post = db.session.get(BlogPost, post_id) or abort(404)
 
     # Check if post is draft and user is not authenticated
     if post.is_draft and not current_user.is_authenticated:
@@ -175,7 +175,7 @@ def new_post():
 @login_required
 @require_any_role(['blogger', 'admin'])
 def delete_post(post_id):
-    post = BlogPost.query.get_or_404(post_id)
+    post = db.session.get(BlogPost, post_id) or abort(404)
 
     # Store image filenames before database deletion
     portrait = post.portrait
@@ -205,7 +205,7 @@ def delete_post(post_id):
 @login_required
 @require_any_role(['blogger', 'admin'])
 def edit_post(post_id):
-    post = BlogPost.query.get_or_404(post_id)
+    post = db.session.get(BlogPost, post_id) or abort(404)
     form = BlogPostForm()
 
     # Populate the form with the existing post data
