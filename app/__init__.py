@@ -28,6 +28,23 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    
+     # Wait for the database to be ready (retry logic)
+    import time
+    from sqlalchemy.exc import OperationalError
+    max_retries = 10
+    for attempt in range(max_retries):
+        try:
+            with app.app_context():
+                db.session.execute("SELECT 1")
+            print("✅ Database connection established.")
+            break
+        except OperationalError as e:
+            print(f"⚠️ Database not ready (attempt {attempt + 1}/{max_retries}): {e}")
+            time.sleep(3)
+    else:
+        print("❌ Database connection could not be established after multiple retries.")
+        raise
 
     # register timezone filter
     register_filters(app)

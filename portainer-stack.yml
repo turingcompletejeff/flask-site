@@ -2,7 +2,7 @@ services:
   flask-site:
     image: flask-site:latest
     container_name: flask-site-prod
-    restart: unless-stopped
+    restart: on-failure
     ports:
       - "8000:8000"
     environment:
