@@ -31,12 +31,13 @@ def create_app():
     
      # Wait for the database to be ready (retry logic)
     import time
+    from sqlalchemy import text
     from sqlalchemy.exc import OperationalError
     max_retries = 10
     for attempt in range(max_retries):
         try:
             with app.app_context():
-                db.session.execute("SELECT 1")
+                db.session.execute(text("SELECT 1"))
             print("✅ Database connection established.")
             break
         except OperationalError as e:
