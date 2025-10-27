@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, abort, r
 from flask_login import login_required, current_user
 from functools import wraps
 from app import db
-from app.models import User, Role, BlogPost
+from app.models import User, Role, BlogPost, MinecraftCommand
 from app.forms import EditUserForm, CreateUserForm, DeleteUserForm, DeleteRoleForm
 from app.utils.pagination import paginate_query
 from app.utils.image_utils import delete_uploaded_images
@@ -958,4 +958,340 @@ def delete_role(role_id):
         current_app.logger.error(f"Delete role error: {e}")
         return redirect(url_for('admin.roles'))
 
+
+@admin_bp.route('/admin/fix-sequences', methods=['POST'])
+@login_required
+@admin_required
+def fix_all_sequences():
+    """
+    Synchronize all PostgreSQL sequences with current maximum IDs.
+
+    DEPRECATED: This endpoint is maintained for backward compatibility.
+    New code should use /admin/sequences/fix-all which provides better
+    error handling and partial success support.
+
+    This route fixes the common duplicate key error that occurs when sequences
+    get out of sync with the actual data (typically after manual inserts, migrations,
+    or database imports).
+
+    Tables processed:
+        - blog_posts (id -> blog_posts_id_seq)
+        - users (id -> users_id_seq)
+        - roles (id -> roles_id_seq)
+        - minecraft_commands (command_id -> minecraft_commands_command_id_seq)
+
+    Returns:
+        JSON response with status and details about each sequence fix
+
+    Requires:
+        - User must be authenticated (@login_required)
+        - User must have admin role (@admin_required)
+
+    Example response:
+        {
+            "status": "success",
+            "message": "All sequences synchronized successfully",
+            "sequences_fixed": [
+                {"table": "blog_posts", "sequence": "blog_posts_id_seq", "next_id": 42},
+                ...
+            ]
+        }
+    """
+    try:
+        sequences_fixed = []
+
+        # Use shared function for each table (DRY principle)
+        for table_name, table_info in VALID_SEQUENCE_TABLES.items():
+            success, result = fix_single_table_sequence(table_info)
+
+            if success:
+                # Transform result to match old API format
+                sequences_fixed.append({
+                    'table': result['table'],
+                    'sequence': result['sequence_name'],
+                    'next_id': result['new_value']
+                })
+            else:
+                # If any table fails, rollback and return error
+                raise SQLAlchemyError(result.get('message', 'Sequence fix failed'))
+
+        return jsonify({
+            'status': 'success',
+            'message': f'All sequences synchronized successfully',
+            'sequences_fixed': sequences_fixed
+        }), 200
+
+    except SQLAlchemyError as e:
+        current_app.logger.error(f"Error fixing sequences: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Database error occurred while fixing sequences'
+        }), 500
+    except Exception as e:
+        current_app.logger.error(f"Unexpected error fixing sequences: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'An unexpected error occurred: {str(e)}'
+        }), 500
+
+
+# Table name validation mapping for individual sequence endpoints
+VALID_SEQUENCE_TABLES = {
+    'blog-posts': {
+        'table': 'blog_posts',
+        'column': 'id',
+        'sequence': 'blog_posts_id_seq',
+        'model': BlogPost
+    },
+    'users': {
+        'table': 'users',
+        'column': 'id',
+        'sequence': 'users_id_seq',
+        'model': User
+    },
+    'roles': {
+        'table': 'roles',
+        'column': 'id',
+        'sequence': 'roles_id_seq',
+        'model': Role
+    },
+    'minecraft': {
+        'table': 'minecraft_commands',
+        'column': 'command_id',
+        'sequence': 'minecraft_commands_command_id_seq',
+        'model': MinecraftCommand
+    }
+}
+
+
+def fix_single_table_sequence(table_info):
+    """
+    Fix sequence for a single table.
+
+    Args:
+        table_info: Dictionary containing table, column, sequence, and model information
+
+    Returns:
+        Tuple of (success: bool, result: dict)
+    """
+    import time
+    start_time = time.time()
+
+    try:
+        table = table_info['table']
+        column = table_info['column']
+        sequence = table_info['sequence']
+
+        # SECURITY NOTE: Using f-strings with db.text() is safe here because
+        # all values (table, column, sequence) come from the hardcoded
+        # VALID_SEQUENCE_TABLES dictionary, NOT from user input.
+        # The table_name is validated against a whitelist before calling this function.
+
+        # Get the maximum ID from the table
+        max_id_query = db.text(f"SELECT MAX({column}) FROM {table}")
+        max_id_result = db.session.execute(max_id_query).scalar()
+        max_id = max_id_result if max_id_result else 0
+        next_id = max_id + 1
+
+        # Reset the sequence to max_id + 1
+        reset_query = db.text(f"ALTER SEQUENCE {sequence} RESTART WITH {next_id}")
+        db.session.execute(reset_query)
+        db.session.commit()
+
+        execution_time = int((time.time() - start_time) * 1000)
+
+        current_app.logger.info(
+            f"Sequence {sequence} fixed by admin {current_user.username}: "
+            f"Reset to {next_id} (max_id was {max_id})"
+        )
+
+        return True, {
+            'status': 'success',
+            'table': table,
+            'sequence_name': sequence,
+            'old_value': max_id,
+            'new_value': next_id,
+            'execution_time_ms': execution_time
+        }
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        execution_time = int((time.time() - start_time) * 1000)
+        current_app.logger.error(f"Error fixing sequence for {table}: {e}")
+        return False, {
+            'status': 'error',
+            'table': table,
+            'error_type': type(e).__name__,
+            'message': 'Database error occurred while fixing sequence',
+            'execution_time_ms': execution_time
+        }
+    except Exception as e:
+        db.session.rollback()
+        execution_time = int((time.time() - start_time) * 1000)
+        current_app.logger.error(f"Unexpected error fixing sequence for {table}: {e}")
+        return False, {
+            'status': 'error',
+            'table': table,
+            'error_type': type(e).__name__,
+            'message': f'An unexpected error occurred: {str(e)}',
+            'execution_time_ms': execution_time
+        }
+
+
+@admin_bp.route('/admin/sequences/<table_name>', methods=['POST'])
+@login_required
+@admin_required
+def fix_table_sequence(table_name):
+    """
+    Fix sequence for a single table via AJAX.
+
+    Args:
+        table_name: URL-friendly table identifier (e.g., 'blog-posts', 'users')
+
+    Returns:
+        JSON response with detailed status
+
+    Example Success Response (200):
+        {
+            "status": "success",
+            "table": "blog_posts",
+            "sequence_name": "blog_posts_id_seq",
+            "old_value": 42,
+            "new_value": 89,
+            "execution_time_ms": 156
+        }
+
+    Example Error Response (400/500):
+        {
+            "status": "error",
+            "table": "blog_posts",
+            "error_type": "SQLAlchemyError",
+            "message": "Database error occurred",
+            "execution_time_ms": 12
+        }
+    """
+    # Validate table name against whitelist
+    if table_name not in VALID_SEQUENCE_TABLES:
+        return jsonify({
+            'status': 'error',
+            'message': f'Invalid table name: {table_name}'
+        }), 400
+
+    table_info = VALID_SEQUENCE_TABLES[table_name]
+    success, result = fix_single_table_sequence(table_info)
+
+    if success:
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 500
+
+
+@admin_bp.route('/admin/sequences/fix-all', methods=['POST'])
+@login_required
+@admin_required
+def fix_all_sequences_v2():
+    """
+    Orchestrator endpoint: Fix all table sequences sequentially.
+
+    Processes each table independently with per-table commits.
+    Supports partial success - if one table fails, others still proceed.
+
+    Request Body (optional):
+        {
+            "tables": ["blog-posts", "users", "roles", "minecraft"],
+            "stop_on_error": false
+        }
+
+    Returns:
+        JSON response with aggregated results
+
+    Example Response:
+        {
+            "status": "success",  // or "partial_success" or "error"
+            "results": [
+                {"table": "blog_posts", "status": "success", "new_value": 42},
+                {"table": "users", "status": "success", "new_value": 15},
+                {"table": "roles", "status": "error", "message": "..."},
+                {"table": "minecraft_commands", "status": "success", "new_value": 8}
+            ],
+            "summary": {
+                "total": 4,
+                "successful": 3,
+                "failed": 1,
+                "execution_time_ms": 423
+            }
+        }
+    """
+    import time
+    start_time = time.time()
+
+    try:
+        # Get request options
+        data = request.get_json() or {}
+        tables_to_fix = data.get('tables', list(VALID_SEQUENCE_TABLES.keys()))
+        stop_on_error = data.get('stop_on_error', False)
+
+        results = []
+        successful_count = 0
+        failed_count = 0
+
+        for table_name in tables_to_fix:
+            if table_name not in VALID_SEQUENCE_TABLES:
+                results.append({
+                    'table': table_name,
+                    'status': 'error',
+                    'message': f'Invalid table name: {table_name}'
+                })
+                failed_count += 1
+                if stop_on_error:
+                    break
+                continue
+
+            table_info = VALID_SEQUENCE_TABLES[table_name]
+            success, result = fix_single_table_sequence(table_info)
+
+            results.append(result)
+
+            if success:
+                successful_count += 1
+            else:
+                failed_count += 1
+                if stop_on_error:
+                    break
+
+        total_time = int((time.time() - start_time) * 1000)
+
+        # Determine overall status
+        if failed_count == 0:
+            overall_status = 'success'
+        elif successful_count == 0:
+            overall_status = 'error'
+        else:
+            overall_status = 'partial_success'
+
+        # Audit logging
+        current_app.logger.info(
+            f"Fix-all sequences completed by admin {current_user.username}: "
+            f"{successful_count}/{len(tables_to_fix)} successful"
+        )
+
+        return jsonify({
+            'status': overall_status,
+            'results': results,
+            'summary': {
+                'total': len(tables_to_fix),
+                'successful': successful_count,
+                'failed': failed_count,
+                'execution_time_ms': total_time
+            }
+        }), 200
+
+    except Exception as e:
+        total_time = int((time.time() - start_time) * 1000)
+        current_app.logger.error(f"Unexpected error in fix-all orchestrator: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': f'An unexpected error occurred: {str(e)}',
+            'execution_time_ms': total_time
+        }), 500
 

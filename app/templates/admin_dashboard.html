@@ -19,6 +19,9 @@
 	    <button type="button" class="clicky-primary" onclick="window.location.href='{{ url_for('mc_commands.list_commands') }}'">
 		👾 Manage MC Commands
 	    </button>
+            <button type="button" class="clicky-secondary" id="fixSequencesBtn" title="Fix database sequences if you encounter duplicate key errors">
+                🔧 Fix All Sequences
+            </button>
         </div>
     </div>
 
@@ -126,6 +129,36 @@
             {% endif %}
         </div>
     </div>
+</div>
+
+<!-- Sequence Fix Modals (jQuery UI Dialogs) -->
+<div id="sequenceConfirmDialog" style="display: none;">
+    <p>
+        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 20px 0;"></span>
+        This operation will synchronize database sequences for:
+    </p>
+    <ul class="sequence-table-list">
+        <li>blog_posts</li>
+        <li>users</li>
+        <li>roles</li>
+        <li>minecraft_commands</li>
+    </ul>
+    <p class="info-text">This is safe and prevents duplicate key errors.</p>
+    <p><strong>Continue?</strong></p>
+</div>
+
+<div id="sequenceProgressDialog" style="display: none;">
+    <p class="sequence-status-text">
+        <span class="sequence-icon">⚙️</span>
+        Processing database sequences...
+    </p>
+    <div id="sequenceProgressBar"></div>
+    <p class="sequence-current-table">Initializing...</p>
+    <p class="sequence-wait-text">Please wait...</p>
+</div>
+
+<div id="sequenceResultsDialog" style="display: none;">
+    <div id="sequenceResultsContent"></div>
 </div>
 
 <!-- Delete Confirmation Modal -->
@@ -431,57 +464,58 @@ window.onclick = function(event) {
 }
 
 // Role toggle functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const roleCheckboxes = document.querySelectorAll('.role-checkbox');
+$(document).ready(function() {
+    $('.role-checkbox').on('change', async function() {
+        const $checkbox = $(this);
+        const userId = $checkbox.data('user-id');
+        const roleName = $checkbox.data('role');
+        const csrfToken = $checkbox.data('csrf');
+        const $badge = $checkbox.next('.role-badge');
 
-    roleCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', async function() {
-            const userId = this.dataset.userId;
-            const roleName = this.dataset.role;
-            const csrfToken = this.dataset.csrf;
-            const badge = this.nextElementSibling;
+        // Disable during request
+        $checkbox.prop('disabled', true);
+        $badge.addClass('loading');
 
-            // Disable during request
-            this.disabled = true;
-            badge.classList.add('loading');
-
-            try {
-                const response = await fetch(`/admin/users/${userId}/toggle-role/${roleName}`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Update UI
-                    this.checked = data.has_role;
-                    if (data.has_role) {
-                        badge.classList.remove('unchecked');
-                    } else {
-                        badge.classList.add('unchecked');
-                    }
-
-                    // Show success feedback
-                    addFlashMessage('success', 'Role updated successfully');
-                } else {
-                    // Revert checkbox on error
-                    this.checked = !this.checked;
-                    addFlashMessage('danger', data.error || 'Failed to update role');
+        try {
+            const response = await fetch(`/admin/users/${userId}/toggle-role/${roleName}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
                 }
-            } catch (error) {
-                // Revert on network error
-                this.checked = !this.checked;
-                addFlashMessage('danger', 'Network error occurred');
-            } finally {
-                this.disabled = false;
-                badge.classList.remove('loading');
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Update UI
+                $checkbox.prop('checked', data.has_role);
+                if (data.has_role) {
+                    $badge.removeClass('unchecked');
+                } else {
+                    $badge.addClass('unchecked');
+                }
+
+                // Show success feedback
+                addFlashMessage('success', 'Role updated successfully');
+            } else {
+                // Revert checkbox on error
+                $checkbox.prop('checked', !$checkbox.prop('checked'));
+                addFlashMessage('danger', data.error || 'Failed to update role');
             }
-        });
+        } catch (error) {
+            // Revert on network error
+            $checkbox.prop('checked', !$checkbox.prop('checked'));
+            addFlashMessage('danger', 'Network error occurred');
+        } finally {
+            $checkbox.prop('disabled', false);
+            $badge.removeClass('loading');
+        }
     });
 });
 </script>
+
+<!-- TC-61: Sequence Fix Enhancement CSS and JS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-sequences.css') }}">
+<script src="{{ url_for('static', filename='js/admin-sequences.js') }}"></script>
 {% endblock %}
