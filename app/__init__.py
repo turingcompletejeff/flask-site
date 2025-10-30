@@ -7,7 +7,7 @@ from config import Config
 from app.utils.filters import register_filters
 import logging
 
-__version__ = "0.3.2" # updated styles
+__version__ = "0.3.3" # test covg++ bugfixes++
 
 db = SQLAlchemy()
 rcon = None
