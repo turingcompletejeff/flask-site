@@ -17,9 +17,9 @@ class Config:
             }
 
   LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', 'WARN')
-  RCON_PASS = os.environ.get('RCON_PASS')
-  RCON_HOST = os.environ.get('MC_HOST')
-  RCON_PORT = os.environ.get('MC_PORT')
+  RCON_PASS = os.environ.get('RCON_PASS', 'test_password')
+  RCON_HOST = os.environ.get('MC_HOST', 'localhost')
+  RCON_PORT = os.environ.get('MC_PORT', '25575')
   # Minecraft timeout configuration (seconds)
   MC_QUERY_TIMEOUT = int(os.environ.get('MC_QUERY_TIMEOUT', '5'))
   MC_RCON_TIMEOUT = int(os.environ.get('MC_RCON_TIMEOUT', '10'))
