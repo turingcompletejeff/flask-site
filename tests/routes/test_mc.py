@@ -107,7 +107,7 @@ class TestRCONConnection:
     """Test suite for RCON connection management."""
 
     @patch('app.routes.mc.RCONClient')
-    def test_rcon_init_success(self, mock_rcon_class, admin_client):
+    def test_rcon_init_success(self, mock_rcon_class, admin_client, app):
         """Test successful RCON initialization."""
         # Mock RCON client
         mock_rcon = Mock()
@@ -115,10 +115,11 @@ class TestRCONConnection:
         mock_rcon.command.return_value = "Available commands: help, stop, list"
         mock_rcon_class.return_value = mock_rcon
 
-        response = admin_client.get('/mc/init')
+        with app.app_context():
+            response = admin_client.get('/mc/init')
 
-        assert response.status_code == 200
-        assert b'Available commands' in response.data or b'help' in response.data
+            assert response.status_code == 200
+            assert b'Available commands' in response.data or b'help' in response.data
 
     @patch('app.routes.mc.rcon', None)
     @patch('app.routes.mc.RCONClient')
@@ -179,14 +180,15 @@ class TestRCONCommand:
     """Test suite for RCON command execution."""
 
     @patch('app.routes.mc.RCONClient')
-    def test_rcon_command_success(self, mock_rcon_class, admin_client):
+    def test_rcon_command_success(self, mock_rcon_class, admin_client, app):
         """Test successful RCON command execution."""
         mock_rcon = Mock()
         mock_rcon.login.return_value = True
         mock_rcon.command.return_value = "Server has 3 players online"
         mock_rcon_class.return_value = mock_rcon
 
-        with patch('app.routes.mc.rcon', None):
+        # The reset_rcon_global fixture already sets rcon to None
+        with app.app_context():
             response = admin_client.post('/mc/command', data={'command': 'list'})
 
             assert response.status_code == 200
@@ -444,14 +446,14 @@ class TestRCONConnectionManagement:
     """Test suite for RCON connection lifecycle management."""
 
     @patch('app.routes.mc.RCONClient')
-    def test_rcon_connect_creates_new_client_when_none(self, mock_rcon_class, admin_client):
+    def test_rcon_connect_creates_new_client_when_none(self, mock_rcon_class, admin_client, app):
         """Test that rconConnect creates new client when rcon is None."""
         mock_rcon = Mock()
         mock_rcon.login.return_value = True
         mock_rcon_class.return_value = mock_rcon
 
-        # Ensure rcon is None initially
-        with patch('app.routes.mc.rcon', None):
+        # The reset_rcon_global fixture already ensures rcon is None
+        with app.app_context():
             from app.routes.mc import rconConnect
             result = rconConnect()
 
@@ -465,7 +467,8 @@ class TestRCONConnectionManagement:
         mock_rcon.login.return_value = True
         mock_rcon_class.return_value = mock_rcon
 
-        with patch('app.routes.mc.rcon', None):
+        # The reset_rcon_global fixture already ensures rcon is None
+        with app.app_context():
             from app.routes.mc import rconConnect
             rconConnect()
 
@@ -473,14 +476,15 @@ class TestRCONConnectionManagement:
             mock_rcon_class.assert_called_once()
 
     @patch('app.routes.mc.RCONClient')
-    def test_rcon_multiple_commands_reuse_connection(self, mock_rcon_class, admin_client):
+    def test_rcon_multiple_commands_reuse_connection(self, mock_rcon_class, admin_client, app):
         """Test that multiple commands can reuse the same connection."""
         mock_rcon = Mock()
         mock_rcon.login.return_value = True
         mock_rcon.command.return_value = "OK"
         mock_rcon_class.return_value = mock_rcon
 
-        with patch('app.routes.mc.rcon', None):
+        # The reset_rcon_global fixture already ensures rcon is None
+        with app.app_context():
             # Execute multiple commands
             admin_client.post('/mc/command', data={'command': 'help'})
             admin_client.post('/mc/command', data={'command': 'list'})

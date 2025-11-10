@@ -629,6 +629,21 @@ def mock_invalid_file():
 # Mock RCON Fixture
 # ============================================================================
 
+@pytest.fixture(scope='function', autouse=True)
+def reset_rcon_global():
+    """
+    Reset the global rcon variable before each test to prevent state leakage.
+
+    This ensures that RCON tests start with a clean slate and don't interfere
+    with each other due to module-level global state.
+    """
+    import app.routes.mc as mc_module
+    original_rcon = mc_module.rcon
+    mc_module.rcon = None
+    yield
+    mc_module.rcon = original_rcon
+
+
 @pytest.fixture(scope='function')
 def mock_rcon():
     """
