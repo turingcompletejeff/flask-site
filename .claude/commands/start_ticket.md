@@ -18,13 +18,10 @@ Use `time:get_datetime` tool to automatically record the start time in America/N
 
 **Store the start time for later time calculation.**
 
-### 2. Search Anytype for Ticket Instructions
-Search Anytype for "Claude Instruction" objects related to this ticket:
-- Search: "{ticket-id} Claude Instruction"
-- Search: "{ticket-id} plan"
-- Search: "{ticket-id}"
-
-**Display any found instructions prominently.**
+### 2. Use sprint or ticket instructions in local directory
+ - typically look for CLAUDE-*.md
+ - CLAUDE-sprint-plan.md
+ - CLAUDE-{ticket-id}*.md
 
 ### 3. Check Git Status and Create Branch
 
