@@ -636,7 +636,7 @@ class TestLoggingBehavior:
     def test_debug_log_for_skipped_files(self, temp_upload_folder, caplog):
         """Test that debug log is created for skipped files."""
         # Arrange
-        with caplog.at_level(logging.DEBUG):
+        with caplog.at_level(logging.DEBUG, logger='app.utils.image_utils'):
             filenames = [None, '', 'image.jpg']
             Path(os.path.join(temp_upload_folder, 'image.jpg')).touch()
 
@@ -699,7 +699,7 @@ class TestLoggingBehavior:
         filename = 'image.jpg'
         Path(os.path.join(temp_upload_folder, filename)).touch()
 
-        with caplog.at_level(logging.INFO):
+        with caplog.at_level(logging.INFO, logger='app.utils.image_utils'):
             filenames = [filename]
 
             # Act
@@ -713,7 +713,7 @@ class TestLoggingBehavior:
     def test_summary_log_at_end(self, temp_upload_folder, caplog):
         """Test that summary log is created at end."""
         # Arrange
-        with caplog.at_level(logging.INFO):
+        with caplog.at_level(logging.INFO, logger='app.utils.image_utils'):
             filenames = ['nonexistent.jpg']
 
             # Act
@@ -730,7 +730,7 @@ class TestLoggingBehavior:
         # Arrange
         filenames = ['nonexistent.jpg', None]
 
-        with caplog.at_level(logging.INFO):
+        with caplog.at_level(logging.INFO, logger='app.utils.image_utils'):
             # Act
             result = delete_uploaded_images(temp_upload_folder, filenames)
 
