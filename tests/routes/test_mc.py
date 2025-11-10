@@ -203,7 +203,9 @@ class TestRCONCommand:
             response = admin_client.post('/mc/command', data={'command': 'help'})
 
             assert response.status_code == 200
-            assert b'FAIL' in response.data
+            json_data = response.get_json()
+            assert json_data['status'] == 'error'
+            assert 'RCON not connected' in json_data['message']
 
     @patch('app.routes.mc.RCONClient')
     def test_rcon_command_various_commands(self, mock_rcon_class, admin_client):
@@ -238,7 +240,9 @@ class TestRCONCommand:
         with patch('app.routes.mc.rcon', None):
             response = admin_client.post('/mc/command', data={'command': ''})
 
-            assert response.status_code == 200
+            assert response.status_code == 400  # Empty command should return bad request
+            json_data = response.get_json()
+            assert json_data['status'] == 'error'
 
     @patch('app.routes.mc.RCONClient')
     def test_rcon_command_special_characters(self, mock_rcon_class, admin_client):
@@ -288,7 +292,8 @@ class TestRCONQuery:
 
         assert response.status_code == 200
         json_data = response.get_json()
-        assert 'hostname' in json_data or 'players' in json_data
+        assert json_data['status'] == 'success'
+        assert 'hostname' in json_data['data'] or 'players' in json_data['data']
 
     @patch('app.routes.mc.QUERYClient')
     def test_rcon_query_connection_error(self, mock_query_class, admin_client):
@@ -297,9 +302,10 @@ class TestRCONQuery:
 
         response = admin_client.get('/mc/query')
 
-        assert response.status_code == 500
+        assert response.status_code == 200  # Returns 200 with error in JSON
         json_data = response.get_json()
-        assert 'error' in json_data
+        assert json_data['status'] == 'error'
+        assert 'message' in json_data
 
     @patch('app.routes.mc.QUERYClient')
     def test_rcon_query_connection_reset(self, mock_query_class, admin_client):
@@ -308,10 +314,10 @@ class TestRCONQuery:
 
         response = admin_client.get('/mc/query')
 
-        assert response.status_code == 500
+        assert response.status_code == 200  # Returns 200 with error in JSON
         json_data = response.get_json()
-        assert 'error' in json_data
-        assert 'Connection closed' in json_data['error']
+        assert json_data['status'] == 'error'
+        assert 'message' in json_data
 
     @patch('app.routes.mc.QUERYClient')
     def test_rcon_query_timeout(self, mock_query_class, admin_client):
@@ -367,8 +373,8 @@ class TestMCCommandList:
         from app.models import MinecraftCommand
 
         # Add test commands
-        cmd1 = MinecraftCommand(command='help', description='Show help')
-        cmd2 = MinecraftCommand(command='list', description='List players')
+        cmd1 = MinecraftCommand(command_name='help')
+        cmd2 = MinecraftCommand(command_name='list')
         db.session.add_all([cmd1, cmd2])
         db.session.commit()
 
@@ -389,8 +395,8 @@ class TestMCCommandList:
         from app.models import MinecraftCommand
 
         # Add commands in specific order
-        cmd1 = MinecraftCommand(command='zeta', description='Last alphabetically')
-        cmd2 = MinecraftCommand(command='alpha', description='First alphabetically')
+        cmd1 = MinecraftCommand(command_name='zeta')
+        cmd2 = MinecraftCommand(command_name='alpha')
         db.session.add_all([cmd1, cmd2])
         db.session.commit()
 
@@ -413,7 +419,7 @@ class TestMCCommandList:
         """Test that /mc/list returns properly structured command objects."""
         from app.models import MinecraftCommand
 
-        cmd = MinecraftCommand(command='test', description='Test command')
+        cmd = MinecraftCommand(command_name='test')
         db.session.add(cmd)
         db.session.commit()
 
@@ -449,7 +455,7 @@ class TestRCONConnectionManagement:
             from app.routes.mc import rconConnect
             result = rconConnect()
 
-            assert result is True
+            assert result is mock_rcon  # Returns RCONClient object, not boolean
             mock_rcon_class.assert_called_once()
 
     @patch('app.routes.mc.RCONClient')

@@ -1,6 +1,10 @@
 {% extends "layout.html" %}
 
-{% block title %}minecraf{% endblock %}
+{% block title %}Minecraft Server{% endblock %}
+
+{% block js %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mc-status.css') }}">
+{% endblock %}
 
 {% block content %}
 
@@ -8,6 +12,9 @@
 	<pre id="rcon-response">&nbsp;</pre>
 	<input id="mc-input" placeholder="type a command..."/>
 	<button id="mc-cmd" type="button" onclick="rconCommand()">send</button>
+</div>
+<div class="offline-message" id="offline-message" role="alert">
+  <strong>Server Offline:</strong> The Minecraft server is currently offline. Command input is disabled until the server comes back online.
 </div>
 <hr />
 Visit
@@ -18,7 +25,20 @@ for more info
 {% block rightsidebar %}
 <div id="right-sidebar">
 <div id="rcon-query">
-  <button id="mc-connect" onclick="runBaseRconQuery()">ping</button>
+  <!-- Status Indicator -->
+  <div class="status-container">
+    <div class="status-indicator unknown loading" id="status-indicator"
+         role="status" aria-label="Server status indicator"></div>
+    <div class="status-info">
+      <div class="status-text" id="status-text">Checking status...</div>
+      <div class="status-timestamp" id="status-timestamp"></div>
+    </div>
+    <button class="refresh-button" id="refresh-button"
+            type="button" aria-label="Refresh server status">
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
+  </div>
+
   <p id="rcon-motd"></p>
   <p id="rcon-plugins"></p>
   <p id="rcon-version"></p>
@@ -28,121 +48,15 @@ for more info
 </div>
 {% endblock %}
 
-{% block js %}
+{% block endjs %}
 <script>
-  var ansi_esc = new RegExp(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/, "g");
-  var commandList = [];
-  var queryData = {};
-  var prevCommand = "";
-  
-  function getCommandList() {
-    $.get("{{ url_for('mc.list') }}")
-      .done(function(data) {
-        commandList = data;
-      }).fail(function(err) {
-        console.warn("RCON init failed: ", err);
-      });
-  }
-  
-  function runBaseRconQuery() {
-    $.get("{{ url_for('mc.rconQuery') }}")
-      .done(function(data) {
-        queryData = data;
-        // show motd
-        $("#rcon-motd").text(data.motd.replace(ansi_esc,''));
-        // plugins and version
-        $("#rcon-plugins").text(data.plugins);
-        $("#rcon-version").text(data.version);
-        
-        // build players list
-        $("#rcon-query-players").empty();
-        if(data.numplayers === "0") {
-          $("#rcon-query-players").text("No players connected.");
-        } else {
-          let i = 0;
-          let max = parseInt(data.numplayers,10);
-          for(i; i < max; i++) {
-            let thisRow = $("<tr>");
-            // create a row that will display the player's name
-            let playerName = data.players[i].replace(ansi_esc,'');
-            let nameCell = $("<td>").text(playerName);
-            
-            let kickButton = $("<button>").addClass("rcon-kick").text("K").data("playerName",playerName);
-            let actionCell = $("<td>").append(kickButton);
-            
-            thisRow.append(nameCell);
-            thisRow.append(actionCell);
-            // append it to the players list
-            $("#rcon-query-players").append(thisRow);
-          }
-        }
-      }).fail(function(err) {
-        console.warn("RCON query failed: ", err);
-      });
-  }
-  
-  function rconCommand() {
-    let cmd = $("#mc-input").val();
-    
-    $.post("{{ url_for('mc.rconCommand') }}",
-      { 
-        "command": cmd
-      }
-    ).done(function(data) {
-      $("#rcon-response").text(data.replace(ansi_esc,''));
-      $("#mc-input").attr("placeholder",cmd);
-      $("#mc-input").val("");
-      prevCommand = cmd;
-    }).fail(function (err) {
-      console.warn("RCON Command failed: ",err);
-    });
-  }
-
-  function kickPlayer(playerName) {
-    $.post("{{ url_for('mc.rconCommand') }}",
-      { 
-        "command": "/kick " + playerName
-      }
-    ).done(function(data) {
-      // display player kicked message
-      $("#rcon-response").text(data.replace(ansi_esc,''));
-      // remove from list
-      $("button.rcon-kick").parents("tr").remove();
-      // if 0 players left, print "no players"
-      if($("#rcon-query-players tr").length === 0) {
-        $("#rcon-query-players").text("No players connected.");
-      }
-    }).fail(function (err) {
-      console.warn("RCON Command failed: ",err);
-    });
-  }
-
-/* END of Functions */
-
-$(document).ready(function() {
-  getCommandList();
-  
-  runBaseRconQuery();
-  
-  
-  $("#mc-input").on("keyup",function(e) {
-    if(e.which === 13) { // on enter key up
-      e.preventDefault();
-      rconCommand(); // call command fn as if user pressed send
-    }
-  });
-  
-  $("#mc-input").keydown(function(e) {
-    if (e.keyCode === 38) { // on up^^ key
-      e.preventDefault();
-      $("#mc-input").val(prevCommand);
-    }
-  });
-  
-  $("#rcon-query-players").on("click", "button.rcon-kick",function(e) {
-    e.preventDefault();
-    kickPlayer($(this).data("playerName"));
-  });
-});
+  // Define API endpoints for mc-status.js
+  var MC_ENDPOINTS = {
+    status: "{{ url_for('mc.mc_status') }}",
+    list: "{{ url_for('mc.list') }}",
+    query: "{{ url_for('mc.rconQuery') }}",
+    command: "{{ url_for('mc.rconCommand') }}"
+  };
 </script>
+<script src="{{ url_for('static', filename='js/mc-status.js') }}"></script>
 {% endblock %}
