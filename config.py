@@ -20,6 +20,10 @@ class Config:
   RCON_PASS = os.environ.get('RCON_PASS')
   RCON_HOST = os.environ.get('MC_HOST')
   RCON_PORT = os.environ.get('MC_PORT')
+  # Minecraft timeout configuration (seconds)
+  MC_QUERY_TIMEOUT = int(os.environ.get('MC_QUERY_TIMEOUT', '5'))
+  MC_RCON_TIMEOUT = int(os.environ.get('MC_RCON_TIMEOUT', '10'))
+  MC_STATUS_CACHE_DURATION = int(os.environ.get('MC_STATUS_CACHE_DURATION', '10'))
   SECRET_KEY = os.environ.get('SECRET_KEY')
   REGISTRATION_ENABLED = os.environ.get('REGISTRATION_ENABLED', 'True') == 'True'
   BLOG_POST_UPLOAD_FOLDER = os.path.join(os.getcwd(),'uploads/blog-posts')
