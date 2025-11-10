@@ -20,7 +20,8 @@ def create_app():
     app.config.from_object(Config)
 
     # Configure log level
-    app.logger.setLevel(app.config.get('LOGGING_LEVEL','WARN'))
+    log_level = app.config.get('LOGGING_LEVEL') or 'WARN'
+    app.logger.setLevel(log_level)
 
     # enable CSRF globally
     csrf.init_app(app)
