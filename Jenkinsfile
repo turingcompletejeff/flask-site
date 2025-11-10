@@ -9,12 +9,6 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git branch: '${env.BRANCH_NAME}', url: '${env.GIT_URL}'
-            }
-        }
-
         stage('Set up virtual environment') {
             steps {
                 sh '''
