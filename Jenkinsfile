@@ -6,6 +6,7 @@ pipeline {
         IMAGE_NAME = "flask-site"
         TAG        = "latest"
         PYTHON     = "./.venv/bin/python3"
+        PIP        = "./.venv/bin/pip"
     }
 
     stages {
@@ -20,7 +21,7 @@ pipeline {
                     fi
 
                     echo "Installing dependencies..."
-                    $PYTHON -m pip install --no-cache-dir -r requirements.txt
+                    $PIP install --no-cache-dir -r requirements.txt
                 '''
             }
         }
