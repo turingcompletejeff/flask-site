@@ -4,7 +4,6 @@ pipeline {
     environment {
         REGISTRY   = "localhost:9100"
         IMAGE_NAME = "flask-site"
-        TAG        = "latest"
         PYTHON     = "./.venv/bin/python3"
         PIP        = "./.venv/bin/pip"
     }
@@ -37,7 +36,9 @@ pipeline {
         stage('Build Docker image') {
             steps {
                 sh '''
-                    docker build -t $REGISTRY/$IMAGE_NAME:$TAG .
+                    gitShortHash=$(git rev-parse --short HEAD)
+                    
+                    docker build -t $REGISTRY/$IMAGE_NAME:$gitShortHash .
                 '''
             }
         }
@@ -45,7 +46,9 @@ pipeline {
         stage('Push image to local registry') {
             steps {
                 sh '''
-                    docker push $REGISTRY/$IMAGE_NAME:$TAG
+                    gitShortHash=$(git rev-parse --short HEAD)
+                    
+                    docker push $REGISTRY/$IMAGE_NAME:$gitShortHash
                 '''
             }
         }
