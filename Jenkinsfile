@@ -20,6 +20,8 @@ pipeline {
                     fi
 
                     echo "Installing dependencies..."
+                    pwd
+                    ls -al .venv/bin/
                     $PIP install --no-cache-dir -r requirements.txt
                 '''
             }
