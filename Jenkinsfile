@@ -6,7 +6,7 @@ pipeline {
         IMAGE_NAME   = "flask-site"
         PYTHON       = "./.venv/bin/python3"
         PIP          = "./.venv/bin/pip"
-        COMMIT_SHORT = ""
+        COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
     }
 
     stages {
@@ -22,14 +22,6 @@ pipeline {
 
                     echo "Installing dependencies..."
                     $PIP install --no-cache-dir -r requirements.txt
-                    
-                    echo "Getting tag..."
-                    tag=$(git rev-parse --short HEAD)
-                    
-                    echo "Exporting $tag to env var..."
-                    env.COMMIT_SHORT=$(git rev-parse --short HEAD)
-                    
-                    echo "Env var tag: $COMMIT_SHORT"
                 '''
             }
         }
