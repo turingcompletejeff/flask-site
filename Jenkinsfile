@@ -27,7 +27,7 @@ pipeline {
                     tag=$(git rev-parse --short HEAD)
                     
                     echo "Exporting $tag to env var..."
-                    export COMMIT_SHORT=$(git rev-parse --short HEAD)
+                    env.COMMIT_SHORT=$(git rev-parse --short HEAD)
                     
                     echo "Env var tag: $COMMIT_SHORT"
                 '''
