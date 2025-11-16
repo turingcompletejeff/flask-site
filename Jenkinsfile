@@ -29,7 +29,7 @@ pipeline {
         stage('Run tests') {
             steps {
                 sh '''#!/bin/bash
-                    # $PYTHON -m pytest
+                    $PYTHON -m pytest
                 '''
             }
         }
@@ -37,7 +37,6 @@ pipeline {
         stage('Build Docker image') {
             steps {
                 sh '''#!/bin/bash
-                    echo "Env var tag: $COMMIT_SHORT"
                     docker build -t $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT .
                 '''
             }
@@ -46,8 +45,8 @@ pipeline {
         stage('Push image to local registry') {
             steps {
                 sh '''#!/bin/bash
-                    echo "Env var tag: $COMMIT_SHORT"
                     docker push $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT
+                    docker push $REGISTRY/$IMAGE_NAME:latest
                 '''
             }
         }
@@ -55,7 +54,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and push successful! Image: $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT"
+            echo "✅ Build and push successful! Image: $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT (& latest)"
         }
         failure {
             echo "❌ Build failed. Check logs."
