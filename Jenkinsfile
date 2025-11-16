@@ -37,9 +37,8 @@ pipeline {
         stage('Build Docker image') {
             steps {
                 sh '''#!/bin/bash
-                    gitCommitShort=$(git rev-parse --short HEAD)
-                    $COMMIT_SHORT=$gitCommitShort
-                    docker build -t $REGISTRY/$IMAGE_NAME:$gitCommitShort .
+                    COMMIT_SHORT=$(git rev-parse --short HEAD)
+                    docker build -t $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT .
                 '''
             }
         }
@@ -56,7 +55,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build and push successful! Image: $REGISTRY/$IMAGE_NAME:$TAG"
+            echo "✅ Build and push successful! Image: $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT"
         }
         failure {
             echo "❌ Build failed. Check logs."
