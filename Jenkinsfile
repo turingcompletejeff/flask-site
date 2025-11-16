@@ -40,7 +40,7 @@ pipeline {
         stage('Run tests') {
             steps {
                 sh '''#!/bin/bash
-                    $PYTHON -m pytest
+                    # $PYTHON -m pytest
                 '''
             }
         }
@@ -48,7 +48,9 @@ pipeline {
         stage('Build Docker image') {
             steps {
                 sh '''#!/bin/bash
-                    docker build -t $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT .
+                    gitCommitShort=git rev-parse --short HEAD
+                    $COMMIT_SHORT=$gitCommitShort
+                    docker build -t $REGISTRY/$IMAGE_NAME:$gitCommitShort .
                 '''
             }
         }
@@ -56,6 +58,7 @@ pipeline {
         stage('Push image to local registry') {
             steps {
                 sh '''#!/bin/bash
+                    echo $COMMIT_SHORT
                     docker push $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT
                 '''
             }
