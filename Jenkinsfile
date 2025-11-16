@@ -22,6 +22,14 @@ pipeline {
 
                     echo "Installing dependencies..."
                     $PIP install --no-cache-dir -r requirements.txt
+                    
+                    echo "Getting tag..."
+                    tag=$(git rev-parse --short HEAD)
+                    
+                    echo "Exporting $tag to env var..."
+                    export COMMIT_SHORT=$(git rev-parse --short HEAD)
+                    
+                    echo "Env var tag: $COMMIT_SHORT"
                 '''
             }
         }
@@ -37,7 +45,7 @@ pipeline {
         stage('Build Docker image') {
             steps {
                 sh '''#!/bin/bash
-                    COMMIT_SHORT=$(git rev-parse --short HEAD)
+                    echo "Env var tag: $COMMIT_SHORT"
                     docker build -t $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT .
                 '''
             }
@@ -46,7 +54,7 @@ pipeline {
         stage('Push image to local registry') {
             steps {
                 sh '''#!/bin/bash
-                    echo $COMMIT_SHORT
+                    echo "Env var tag: $COMMIT_SHORT"
                     docker push $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT
                 '''
             }
