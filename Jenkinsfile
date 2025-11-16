@@ -2,16 +2,26 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY   = "localhost:9100"
-        IMAGE_NAME = "flask-site"
-        PYTHON     = "./.venv/bin/python3"
-        PIP        = "./.venv/bin/pip"
+        REGISTRY     = "localhost:9100"
+        IMAGE_NAME   = "flask-site"
+        PYTHON       = "./.venv/bin/python3"
+        PIP          = "./.venv/bin/pip"
+        COMMIT_SHORT = ""
     }
 
     stages {
+        stage('Checkout Source') {
+            steps {
+                script {
+                    // Calculate the hash and assign it to the environment variable
+                    env.COMMIT_SHORT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                }
+            }
+        }
+        
         stage('Set up virtual environment') {
             steps {
-                sh '''
+                sh '''#!/bin/bash
                     if [ ! -d ".venv" ]; then
                         echo "Creating virtual environment..."
                         python3 -m venv .venv
@@ -29,7 +39,7 @@ pipeline {
 
         stage('Run tests') {
             steps {
-                sh '''
+                sh '''#!/bin/bash
                     $PYTHON -m pytest
                 '''
             }
@@ -37,20 +47,16 @@ pipeline {
 
         stage('Build Docker image') {
             steps {
-                sh '''
-                    gitShortHash=$(git rev-parse --short HEAD)
-                    
-                    docker build -t $REGISTRY/$IMAGE_NAME:$gitShortHash .
+                sh '''#!/bin/bash
+                    docker build -t $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT .
                 '''
             }
         }
 
         stage('Push image to local registry') {
             steps {
-                sh '''
-                    gitShortHash=$(git rev-parse --short HEAD)
-                    
-                    docker push $REGISTRY/$IMAGE_NAME:$gitShortHash
+                sh '''#!/bin/bash
+                    docker push $REGISTRY/$IMAGE_NAME:$COMMIT_SHORT
                 '''
             }
         }
