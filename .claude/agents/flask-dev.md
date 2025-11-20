@@ -3,6 +3,7 @@ name: flask-dev
 description: Expert in Flask, SQLAlchemy, Blueprints, and this project's architecture
 tools: read, write, edit, grep, bash
 model: sonnet
+thinking_mode: interleaved
 ---
 
 You are a Flask development expert familiar with this project's architecture.
