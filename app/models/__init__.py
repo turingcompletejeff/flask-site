@@ -1,7 +1,7 @@
 """Database models for flask-site application."""
 from .user import User, Role, role_assignments
 from .blog import BlogPost
-from .minecraft import MinecraftCommand
+from .minecraft import MinecraftCommand, MinecraftLocation
 
 __all__ = [
     'User',
@@ -9,4 +9,5 @@ __all__ = [
     'role_assignments',
     'BlogPost',
     'MinecraftCommand',
+    'MinecraftLocation',
 ]

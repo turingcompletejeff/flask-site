@@ -28,7 +28,7 @@ os.environ['TESTING'] = 'true'
 
 # Import create_app and db for fixtures to use
 from app import create_app, db as _db
-from app.models import User, Role, BlogPost, MinecraftCommand
+from app.models import User, Role, BlogPost, MinecraftCommand, MinecraftLocation
 
 
 # Mock the database connection in app/__init__.py BEFORE importing
@@ -144,7 +144,7 @@ def db(app):
 
     Note: Now includes MinecraftCommand with StringArray type (cross-database compatible).
     """
-    from app.models import User, Role, BlogPost, MinecraftCommand, role_assignments
+    from app.models import User, Role, BlogPost, MinecraftCommand, MinecraftLocation, role_assignments
 
     with app.app_context():
         # Create all tables (MinecraftCommand now uses StringArray for SQLite compatibility)
@@ -152,6 +152,7 @@ def db(app):
         Role.__table__.create(_db.engine, checkfirst=True)
         BlogPost.__table__.create(_db.engine, checkfirst=True)
         MinecraftCommand.__table__.create(_db.engine, checkfirst=True)
+        MinecraftLocation.__table__.create(_db.engine, checkfirst=True)
         role_assignments.create(_db.engine, checkfirst=True)
 
         yield _db
@@ -160,6 +161,7 @@ def db(app):
         _db.session.remove()
 
         # Drop tables in reverse order
+        MinecraftLocation.__table__.drop(_db.engine, checkfirst=True)
         MinecraftCommand.__table__.drop(_db.engine, checkfirst=True)
         BlogPost.__table__.drop(_db.engine, checkfirst=True)
         role_assignments.drop(_db.engine, checkfirst=True)
