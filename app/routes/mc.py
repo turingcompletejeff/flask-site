@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort, current_app
 from flask_login import current_user, login_required
 from app import db, rcon
-from app.models import MinecraftCommand
+from app.models import MinecraftCommand, MinecraftLocation
+from app.forms import MinecraftLocationForm
 from config import Config
 from mctools import RCONClient, QUERYClient
 import socket
@@ -328,3 +329,213 @@ def mc_status():
     _status_cache_time = now
 
     return jsonify(status_data), 200
+
+
+# ============================================================================
+# Minecraft Fast Travel Location Routes (TC-46)
+# ============================================================================
+
+@mc_bp.route('/mc/locations', methods=['GET'])
+def list_locations():
+    """
+    Get all fast travel locations.
+    Returns JSON array of locations ordered by name.
+
+    Response:
+        JSON array of location objects with:
+        - id: Location ID
+        - name: Location name
+        - description: Location description
+        - position: {x, y, z} coordinates
+        - portrait: Portrait image filename
+        - thumbnail: Thumbnail image filename
+        - created_at: ISO 8601 timestamp
+        - created_by_id: Creator user ID
+    """
+    locations = MinecraftLocation.query.order_by(MinecraftLocation.name.asc()).all()
+    return jsonify([loc.to_dict() for loc in locations]), 200
+
+
+@mc_bp.route('/mc/locations/<int:location_id>', methods=['GET'])
+def get_location(location_id):
+    """
+    Get a single location by ID.
+
+    Args:
+        location_id: Location ID
+
+    Returns:
+        JSON object with full location data
+
+    Raises:
+        404: Location not found
+    """
+    location = db.session.get(MinecraftLocation, location_id)
+    if not location:
+        abort(404)
+
+    return jsonify(location.to_dict()), 200
+
+
+@mc_bp.route('/mc/locations/create', methods=['POST'])
+@login_required
+def create_location_ajax():
+    """
+    Create a new fast travel location via AJAX form submission.
+
+    POST: Process form submission, validate, and save location
+    Returns: JSON response with success/error status
+
+    Authorization:
+        Requires 'minecrafter' or 'admin' role (enforced by before_request)
+
+    Form Data:
+        - name: Location name (required)
+        - description: Location description (optional)
+        - position_x: X coordinate (required, float)
+        - position_y: Y coordinate (required, float)
+        - position_z: Z coordinate (required, float)
+        - portrait: Portrait image file (optional)
+        - thumbnail: Custom thumbnail (optional)
+
+    Returns:
+        201: Location created successfully
+        400: Validation errors
+    """
+    form = MinecraftLocationForm()
+
+    if form.validate_on_submit():
+        # Create location record (without image handling for now)
+        location = MinecraftLocation(
+            name=form.name.data,
+            description=form.description.data,
+            position_x=form.position_x.data,
+            position_y=form.position_y.data,
+            position_z=form.position_z.data,
+            portrait=None,  # TODO: Phase 4 - Image handling
+            thumbnail=None,  # TODO: Phase 4 - Image handling
+            created_by_id=current_user.id
+        )
+
+        db.session.add(location)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f'Location "{location.name}" created!',
+            'location': location.to_dict()
+        }), 201
+
+    # Form validation failed
+    errors = {}
+    for field_name, error_list in form.errors.items():
+        errors[field_name] = error_list
+
+    return jsonify({
+        'success': False,
+        'errors': errors
+    }), 400
+
+
+@mc_bp.route('/mc/locations/<int:location_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_location(location_id):
+    """
+    Edit an existing fast travel location.
+
+    GET: Return form pre-populated with location data (JSON)
+    POST: Update location with form data
+
+    Args:
+        location_id: Location ID to edit
+
+    Authorization:
+        Creator or admin can edit (enforced by before_request for role)
+
+    Returns:
+        GET: 200 with location data
+        POST: 200 on success, 400 on validation error
+        403: Not authorized (not creator or admin)
+        404: Location not found
+    """
+    location = db.session.get(MinecraftLocation, location_id)
+    if not location:
+        abort(404)
+
+    # Authorization check: only creator or admin can edit
+    if not current_user.is_admin() and location.created_by_id != current_user.id:
+        abort(403)
+
+    form = MinecraftLocationForm()
+
+    if request.method == 'GET':
+        # Return location data for form population
+        return jsonify(location.to_dict()), 200
+
+    if form.validate_on_submit():
+        # Update basic fields
+        location.name = form.name.data
+        location.description = form.description.data
+        location.position_x = form.position_x.data
+        location.position_y = form.position_y.data
+        location.position_z = form.position_z.data
+
+        # TODO: Phase 4 - Handle portrait/thumbnail replacement
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f'Location "{location.name}" updated!',
+            'location': location.to_dict()
+        }), 200
+
+    # Form validation failed
+    errors = {}
+    for field_name, error_list in form.errors.items():
+        errors[field_name] = error_list
+
+    return jsonify({
+        'success': False,
+        'errors': errors
+    }), 400
+
+
+@mc_bp.route('/mc/locations/<int:location_id>/delete', methods=['POST'])
+@login_required
+def delete_location(location_id):
+    """
+    Delete a fast travel location.
+    Returns JSON response for AJAX requests.
+
+    Args:
+        location_id: Location ID to delete
+
+    Authorization:
+        Creator or admin can delete (enforced by before_request for role)
+
+    Returns:
+        200: Location deleted successfully
+        403: Not authorized (not creator or admin)
+        404: Location not found
+    """
+    location = db.session.get(MinecraftLocation, location_id)
+    if not location:
+        abort(404)
+
+    # Authorization check: only creator or admin can delete
+    if not current_user.is_admin() and location.created_by_id != current_user.id:
+        abort(403)
+
+    location_name = location.name
+
+    # Delete from database
+    db.session.delete(location)
+    db.session.commit()
+
+    # TODO: Phase 4 - Clean up image files
+
+    return jsonify({
+        'success': True,
+        'message': f'Location "{location_name}" deleted!'
+    }), 200

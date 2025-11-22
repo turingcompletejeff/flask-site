@@ -315,6 +315,20 @@ def auth_client(client, regular_user):
 
 
 @pytest.fixture(scope='function')
+def regular_client(client, regular_user):
+    """
+    Provide a test client authenticated as a regular user (alias for auth_client).
+
+    Automatically logs in the regular_user before test execution.
+    """
+    client.post('/login', data={
+        'username': 'testuser',
+        'password': 'password123'
+    }, follow_redirects=True)
+    return client
+
+
+@pytest.fixture(scope='function')
 def blogger_client(client, blogger_user):
     """
     Provide a test client authenticated as a blogger.
