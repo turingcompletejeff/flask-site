@@ -61,6 +61,7 @@ def app():
         'SECRET_KEY': 'test-secret-key',
         'BLOG_POST_UPLOAD_FOLDER': '/tmp/test-blog-posts',
         'PROFILE_UPLOAD_FOLDER': '/tmp/test-profiles',
+        'MC_LOCATION_UPLOAD_FOLDER': '/tmp/test-minecraft-locations',
         'MAX_CONTENT_LENGTH': 5 * 1024 * 1024,
         'REGISTRATION_ENABLED': True,
         'SERVER_NAME': 'localhost.localdomain'  # Required for url_for outside request context
@@ -88,6 +89,7 @@ def app():
     # Create upload directories
     os.makedirs(test_app.config['BLOG_POST_UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(test_app.config['PROFILE_UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(test_app.config['MC_LOCATION_UPLOAD_FOLDER'], exist_ok=True)
 
     # Register blueprints
     from app.routes import (

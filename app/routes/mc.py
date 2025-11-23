@@ -3,11 +3,16 @@ from flask_login import current_user, login_required
 from app import db, rcon
 from app.models import MinecraftCommand, MinecraftLocation
 from app.forms import MinecraftLocationForm
+from app.utils.file_validation import validate_image_file, sanitize_filename
+from app.utils.image_utils import delete_uploaded_images
 from config import Config
 from mctools import RCONClient, QUERYClient
+from werkzeug.utils import secure_filename
+from PIL import Image
 import socket
 from datetime import datetime, timezone
 import time
+import os
 
 # Create a blueprint for main routes
 mc_bp = Blueprint('mc', __name__)
@@ -405,15 +410,98 @@ def create_location_ajax():
     form = MinecraftLocationForm()
 
     if form.validate_on_submit():
-        # Create location record (without image handling for now)
+        # Process portrait and thumbnail images
+        portrait_file = form.portrait.data
+        thumbnail_file = form.thumbnail.data
+        filename = None
+        thumbnailname = None
+
+        # Validate and save portrait
+        if portrait_file:
+            is_valid, error_msg = validate_image_file(portrait_file)
+            if not is_valid:
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Portrait upload failed: {error_msg}']}
+                }), 400
+
+            safe_filename_str = sanitize_filename(portrait_file.filename)
+            filename = secure_filename(safe_filename_str)
+            file_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], filename)
+
+            try:
+                portrait_file.save(file_path)
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Error saving portrait: {str(e)}']}
+                }), 400
+
+        # Handle thumbnail (custom or auto-generated from portrait)
+        if thumbnail_file:
+            is_valid, error_msg = validate_image_file(thumbnail_file)
+            if not is_valid:
+                # Cleanup portrait if saved
+                if portrait_file and os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                return jsonify({
+                    'success': False,
+                    'errors': {'thumbnail': [f'Thumbnail upload failed: {error_msg}']}
+                }), 400
+
+            safe_thumb_name = sanitize_filename(thumbnail_file.filename)
+            thumbnailname = f"custom_thumb_{secure_filename(safe_thumb_name)}"
+            thumb_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], thumbnailname)
+
+            try:
+                thumbnail_file.save(thumb_path)
+                img = Image.open(thumb_path)
+                img.thumbnail((300, 300))
+                img.save(thumb_path)
+            except Exception as e:
+                # Cleanup portrait if saved
+                if portrait_file and os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                return jsonify({
+                    'success': False,
+                    'errors': {'thumbnail': [f'Error processing thumbnail: {str(e)}']}
+                }), 400
+
+        elif portrait_file:
+            # Auto-generate thumbnail from portrait
+            thumbnailname = f"thumb_{filename}"
+            thumb_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], thumbnailname)
+            try:
+                img = Image.open(file_path)
+                img.thumbnail((300, 300))
+                img.save(thumb_path)
+            except Exception as e:
+                # Cleanup portrait
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Error generating thumbnail: {str(e)}']}
+                }), 400
+
+        # Create location record
         location = MinecraftLocation(
             name=form.name.data,
             description=form.description.data,
             position_x=form.position_x.data,
             position_y=form.position_y.data,
             position_z=form.position_z.data,
-            portrait=None,  # TODO: Phase 4 - Image handling
-            thumbnail=None,  # TODO: Phase 4 - Image handling
+            portrait=filename,
+            thumbnail=thumbnailname,
             created_by_id=current_user.id
         )
 
@@ -480,7 +568,48 @@ def edit_location(location_id):
         location.position_y = form.position_y.data
         location.position_z = form.position_z.data
 
-        # TODO: Phase 4 - Handle portrait/thumbnail replacement
+        # Handle portrait replacement
+        portrait_file = form.portrait.data
+        if portrait_file:
+            # Validate new portrait
+            is_valid, error_msg = validate_image_file(portrait_file)
+            if not is_valid:
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Portrait upload failed: {error_msg}']}
+                }), 400
+
+            # Store old images for cleanup
+            old_portrait = location.portrait
+            old_thumbnail = location.thumbnail
+
+            # Save new portrait
+            safe_filename_str = sanitize_filename(portrait_file.filename)
+            filename = secure_filename(safe_filename_str)
+            file_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], filename)
+
+            try:
+                portrait_file.save(file_path)
+                location.portrait = filename
+
+                # Auto-generate thumbnail
+                thumbnailname = f"thumb_{filename}"
+                thumb_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], thumbnailname)
+                img = Image.open(file_path)
+                img.thumbnail((300, 300))
+                img.save(thumb_path)
+                location.thumbnail = thumbnailname
+
+                # Clean up old files
+                delete_uploaded_images(
+                    current_app.config['MC_LOCATION_UPLOAD_FOLDER'],
+                    [old_portrait, old_thumbnail]
+                )
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Error updating images: {str(e)}']}
+                }), 400
 
         db.session.commit()
 
@@ -527,15 +656,31 @@ def delete_location(location_id):
     if not current_user.is_admin() and location.created_by_id != current_user.id:
         abort(403)
 
+    # Store images before deletion
+    portrait = location.portrait
+    thumbnail = location.thumbnail
     location_name = location.name
 
     # Delete from database
     db.session.delete(location)
     db.session.commit()
 
-    # TODO: Phase 4 - Clean up image files
+    # Clean up image files
+    result = delete_uploaded_images(
+        current_app.config['MC_LOCATION_UPLOAD_FOLDER'],
+        [portrait, thumbnail]
+    )
 
-    return jsonify({
-        'success': True,
-        'message': f'Location "{location_name}" deleted!'
-    }), 200
+    # Build JSON response
+    if result['errors']:
+        message = f'Location deleted, but {len(result["errors"])} image(s) could not be removed.'
+        return jsonify({
+            'success': True,
+            'message': message,
+            'warnings': result['errors']
+        }), 200
+    else:
+        return jsonify({
+            'success': True,
+            'message': f'Location "{location_name}" deleted!'
+        }), 200
