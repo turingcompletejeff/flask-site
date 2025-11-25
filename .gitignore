@@ -3,6 +3,7 @@ __pycache__/
 venv
 uploads/blog-posts/*
 uploads/profiles/*
+uploads/minecraft-locations/*
 *claude*.md.claude.md
 .claude/memory.md
 *CLAUDE*.md
@@ -11,3 +12,4 @@ mcp-puppeteer-*
 logs/*
 .coverage
 .coveragerc
+sub-agents/*

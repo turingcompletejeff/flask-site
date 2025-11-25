@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+{% from "macros/fields.html" import render_text_field, render_textarea, render_file_field, render_coordinate_fields %}
+
+{% block title %}Edit Location - {{ location.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Edit Fast Travel Location</h1>
+
+    {% if location.portrait %}
+    <div class="current-portrait" style="margin: 1.5rem 0;">
+        <h3>Current Image</h3>
+        <img src="{{ url_for('mc.uploaded_file', filename=location.portrait) }}"
+             alt="{{ location.name }}"
+             style="max-width: 400px; border-radius: 8px; border: 1px solid #dee2e6;">
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        {{ render_text_field(form.name, placeholder="e.g., Spawn, Farm, Castle") }}
+        {{ render_textarea(form.description, placeholder="Optional description of this location", rows=3) }}
+        {{ render_coordinate_fields(form.position_x, form.position_y, form.position_z) }}
+
+        <div class="form__group">
+            {{ form.portrait.label(class_="form__label") }}
+            {{ form.portrait(class_="form__field", id=form.portrait.name) }}
+            <small class="field-hint">Leave empty to keep current image. Upload JPG or PNG to replace.</small>
+            {%- for error in form.portrait.errors %}
+                <span class="form__error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-buttons" style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+            {{ form.submit(class_="clicky-success") }}
+            <button type="button" onclick="window.location.href='{{ url_for('mc.index') }}'" class="clicky-secondary">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

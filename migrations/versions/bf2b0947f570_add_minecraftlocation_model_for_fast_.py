@@ -27,7 +27,7 @@ def upgrade():
     sa.Column('position_z', sa.Float(), nullable=False),
     sa.Column('portrait', sa.Text(), nullable=True),
     sa.Column('thumbnail', sa.Text(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.func.now()),
     sa.Column('last_updated', sa.DateTime(), nullable=True),
     sa.Column('created_by_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['created_by_id'], ['users.id'], ),

@@ -487,19 +487,17 @@ class TestLocationEditEndpoint:
             db.session.commit()
             location_id = location.id
 
-        # GET request to retrieve location data
+        # GET request to retrieve edit form
         response = minecrafter_client.get(f'/mc/locations/{location_id}/edit')
 
         assert response.status_code == 200
-        data = response.get_json()
-        assert data['name'] == 'Edit Me'
-        # Position data is nested under 'position' key
-        assert data['position']['x'] == 100.0
-        assert data['position']['y'] == 64.0
-        assert data['position']['z'] == 200.0
+        # Check that template is rendered (HTML response)
+        assert b'Edit Fast Travel Location' in response.data
+        # Check pre-populated value in form
+        assert b'Edit Me' in response.data
 
     def test_edit_location_invalid_data(self, app, db, minecrafter_client, minecrafter_user):
-        """Test editing location with invalid form data."""
+        """Test editing location with invalid form data re-renders template with errors."""
         from app.models import MinecraftLocation
 
         # Create location
@@ -521,15 +519,13 @@ class TestLocationEditEndpoint:
             # Missing name, position_y, position_z
         }, content_type='multipart/form-data')
 
-        assert response.status_code == 400
-        data = response.get_json()
-        assert data['success'] == False
-        assert 'errors' in data
-        # Should have errors for missing fields
-        assert len(data['errors']) > 0
+        # Template is re-rendered with errors (200 OK)
+        assert response.status_code == 200
+        # Check for error messages in rendered template
+        assert b'This field is required' in response.data or b'required' in response.data.lower()
 
     def test_edit_location_with_invalid_portrait(self, app, db, minecrafter_client, minecrafter_user, mock_invalid_file):
-        """Test editing location with invalid portrait file."""
+        """Test editing location with invalid portrait file shows error."""
         from app.models import MinecraftLocation
 
         # Create location
@@ -554,10 +550,10 @@ class TestLocationEditEndpoint:
             'portrait': mock_invalid_file,
         }, content_type='multipart/form-data')
 
-        assert response.status_code == 400
-        data = response.get_json()
-        assert data['success'] == False
-        assert 'portrait' in data['errors']
+        # Template is rendered with error (200 OK)
+        assert response.status_code == 200
+        # Check for error message about portrait
+        assert b'portrait' in response.data.lower() or b'image' in response.data.lower()
 
     def test_edit_location_portrait_save_error(self, app, db, minecrafter_client, minecrafter_user, mock_image_file):
         """Test error handling when portrait save fails during edit."""

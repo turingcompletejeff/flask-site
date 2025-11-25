@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort, current_app, send_from_directory
 from flask_login import current_user, login_required
 from app import db, rcon
 from app.models import MinecraftCommand, MinecraftLocation
@@ -69,10 +69,19 @@ def rconConnect():
         current_app.logger.error(f"RCON connection unexpected error: {e}", exc_info=True)
         return None
 
+@mc_bp.route('/uploads/minecraft-locations/')
+def uploaded_files_dir():
+    return send_from_directory(current_app.config['MC_LOCATION_UPLOAD_FOLDER'])
+
+@mc_bp.route('/uploads/minecraft-locations/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], filename)
+
 # Home page
 @mc_bp.route('/mc')
 def index():
-    return render_template('mc.html', current_page="minecraft")
+    form = MinecraftLocationForm()
+    return render_template('mc.html', current_page="minecraft", form=form)
 
 @mc_bp.route('/mc/init')
 def rconInit():
@@ -557,8 +566,13 @@ def edit_location(location_id):
     form = MinecraftLocationForm()
 
     if request.method == 'GET':
-        # Return location data for form population
-        return jsonify(location.to_dict()), 200
+        # Pre-populate form with location data
+        form.name.data = location.name
+        form.description.data = location.description
+        form.position_x.data = location.position_x
+        form.position_y.data = location.position_y
+        form.position_z.data = location.position_z
+        return render_template('edit_location.html', form=form, location=location)
 
     if form.validate_on_submit():
         # Update basic fields
@@ -612,22 +626,11 @@ def edit_location(location_id):
                 }), 400
 
         db.session.commit()
+        flash(f'Location "{location.name}" updated!', 'success')
+        return redirect(url_for('mc.index'))
 
-        return jsonify({
-            'success': True,
-            'message': f'Location "{location.name}" updated!',
-            'location': location.to_dict()
-        }), 200
-
-    # Form validation failed
-    errors = {}
-    for field_name, error_list in form.errors.items():
-        errors[field_name] = error_list
-
-    return jsonify({
-        'success': False,
-        'errors': errors
-    }), 400
+    # Form validation failed - render template with errors
+    return render_template('edit_location.html', form=form, location=location)
 
 
 @mc_bp.route('/mc/locations/<int:location_id>/delete', methods=['POST'])
