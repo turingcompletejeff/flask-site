@@ -44,6 +44,12 @@ Optional:
   - Use dual submit buttons: "Save as Draft" and "Publish"
   - Draft button uses clicky-draft class, Publish uses clicky-success
   - Edit form supports both save modes via different submit buttons
+- Minecraft fast travel locations use portrait images with auto-generated thumbnails (300x300)
+  - All location uploads go to `uploads/minecraft-locations/` directory
+  - Portrait images are required for new locations
+  - Thumbnails are auto-generated from portraits on creation
+  - Custom thumbnails can be uploaded to override auto-generation
+  - Coordinate validation: Y must be between -64 and 320 (Minecraft 1.18+)
 
 ## Project Structure (Modular Architecture)
 

@@ -8,6 +8,11 @@ Modular route organization using Flask Blueprints. Each file represents a specif
 - `auth.py`: Authentication-related routes (login, logout, registration)
 - `blogpost.py`: Blog-related routes (create, read, update, delete posts)
 - `mc.py`: Minecraft server management routes
+  - RCON command execution and player management
+  - **Fast Travel Locations**: Full CRUD at `/mc/locations/*`
+    - Coordinate validation (Y: -64 to 320)
+    - Image upload handling (portrait + auto-generated thumbnail)
+    - Creator-based authorization with admin override
 - `admin.py`: Administrative routes with strict access controls
 - `health.py`: Service health check endpoints
 - `profile.py`: User profile management routes
