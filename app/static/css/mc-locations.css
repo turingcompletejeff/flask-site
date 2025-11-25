@@ -1,0 +1,310 @@
+/**
+ * Minecraft Locations Styling
+ * Matches existing clicky-buttons.css and site design patterns
+ */
+
+/* ===== Locations Section ===== */
+.minecraft-locations {
+    margin-bottom: 2rem;
+}
+
+.locations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.locations-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+/* ===== Inline Form Container ===== */
+.location-form-container {
+    background: var(--form-bg, #f8f9fa);
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+}
+
+.form-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--text-muted, #6c757d);
+    padding: 0;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-close:hover {
+    color: var(--text-dark, #212529);
+}
+
+/* ===== Form Fields (extends macros/fields.html styles) ===== */
+.field-hint {
+    display: block;
+    color: var(--text-muted, #6c757d);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.form-errors-container {
+    background: #f8d7da;
+    border: 1px solid #f5c2c7;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    color: #842029;
+}
+
+.form-errors-container strong {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.form-errors-container ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+/* ===== Coordinate Fields ===== */
+.coordinates-group {
+    margin-bottom: 1.5rem;
+}
+
+.coordinates-wrapper {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.coord-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.coord-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text-dark, #212529);
+}
+
+.coord-input {
+    width: 100%;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .coordinates-wrapper {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+
+/* ===== Locations Grid ===== */
+.locations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.loading,
+.no-locations,
+.error {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted, #6c757d);
+    font-style: italic;
+}
+
+.error {
+    color: #dc3545;
+}
+
+/* ===== Location Cards ===== */
+.location-card {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.location-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.location-thumbnail {
+    width: 100%;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--thumbnail-bg, #e9ecef);
+}
+
+.location-content {
+    padding: 1rem;
+}
+
+.location-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.location-content h3:hover {
+    color: var(--primary-color, #0066cc);
+}
+
+.expand-arrow {
+    font-size: 0.875rem;
+    transition: transform 0.2s ease;
+    color: var(--text-muted, #6c757d);
+}
+
+.location-details {
+    border-top: 1px solid var(--border-color, #dee2e6);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.location-details .description {
+    margin: 0 0 0.75rem 0;
+    color: var(--text-dark, #212529);
+}
+
+.location-details .coordinates {
+    margin: 0 0 1rem 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    color: var(--text-muted, #6c757d);
+}
+
+.location-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.location-actions button {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* ===== Flash Messages ===== */
+.flash-messages {
+    margin-bottom: 1.5rem;
+}
+
+.alert {
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-success {
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+    color: #0f5132;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+    color: #842029;
+}
+
+.alert .btn-close {
+    font-size: 1.5rem;
+    margin-left: 1rem;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 768px) {
+    .locations-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .locations-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .location-actions {
+        flex-direction: column;
+    }
+
+    .location-actions button {
+        width: 100%;
+    }
+}
+
+/* ===== Button Icon Spacing ===== */
+.btn-icon {
+    margin-right: 0.25rem;
+    font-size: 1.1em;
+}
+
+/* ===== Form Buttons ===== */
+.form-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.form-buttons button {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .form-buttons {
+        flex-direction: column;
+    }
+
+    .form-buttons button {
+        width: 100%;
+    }
+}

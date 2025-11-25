@@ -3,7 +3,7 @@ from .contact import ContactForm
 from .blog import BlogPostForm
 from .profile import ProfileEditForm, PasswordChangeForm
 from .admin import EditUserForm, CreateUserForm, DeleteUserForm, DeleteRoleForm
-from .minecraft import DeleteMinecraftCommandForm
+from .minecraft import DeleteMinecraftCommandForm, MinecraftLocationForm
 
 __all__ = [
     'ContactForm',
@@ -15,4 +15,5 @@ __all__ = [
     'DeleteUserForm',
     'DeleteRoleForm',
     'DeleteMinecraftCommandForm',
+    'MinecraftLocationForm',
 ]

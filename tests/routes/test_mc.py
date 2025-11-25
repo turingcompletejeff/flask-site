@@ -559,3 +559,113 @@ class TestMCRouteEdgeCases:
 
             # Should handle timeout
             assert response.status_code in [200, 500]
+
+
+@pytest.mark.integration
+class TestMCExceptionHandlers:
+    """Test suite for exception handlers in MC routes to improve coverage."""
+
+    @patch('app.routes.mc.RCONClient')
+    def test_rcon_connect_connection_refused_error(self, mock_rcon_class, admin_client):
+        """Test rconConnect handles ConnectionRefusedError (lines 55-56)."""
+        mock_rcon_class.side_effect = ConnectionRefusedError("Connection refused")
+
+        with patch('app.routes.mc.rcon', None):
+            response = admin_client.get('/mc/init')
+            assert response.status_code in [200, 500]
+            assert response.data == b'FAIL'
+
+    @patch('app.routes.mc.RCONClient')
+    def test_rcon_connect_connection_reset_error(self, mock_rcon_class, admin_client):
+        """Test rconConnect handles ConnectionResetError (lines 59-60)."""
+        mock_rcon_class.side_effect = ConnectionResetError("Connection reset by peer")
+
+        with patch('app.routes.mc.rcon', None):
+            response = admin_client.get('/mc/init')
+            assert response.status_code in [200, 500]
+            assert response.data == b'FAIL'
+
+    @patch('app.routes.mc.RCONClient')
+    def test_rcon_connect_socket_error(self, mock_rcon_class, admin_client):
+        """Test rconConnect handles socket.error (lines 59-60)."""
+        mock_rcon_class.side_effect = socket.error("Socket error")
+
+        with patch('app.routes.mc.rcon', None):
+            response = admin_client.get('/mc/init')
+            assert response.status_code in [200, 500]
+            assert response.data == b'FAIL'
+
+    def test_rcon_stop_socket_error(self, admin_client):
+        """Test rconStop handles socket.error during disconnect (line 92)."""
+        from app import rcon as app_rcon
+
+        mock_rcon = Mock()
+        mock_rcon.stop.side_effect = socket.error("Socket error during disconnect")
+
+        with patch('app.routes.mc.rcon', mock_rcon):
+            response = admin_client.get('/mc/stop')
+            assert response.status_code == 200
+            assert response.data == b'OK'
+
+    @patch('app.routes.mc.RCONClient')
+    def test_rcon_command_timeout_error(self, mock_rcon_class, admin_client):
+        """Test rconCommand handles socket.timeout (lines 127-128)."""
+        mock_rcon = Mock()
+        mock_rcon.login.return_value = True
+        mock_rcon.command.side_effect = socket.timeout("Command timeout")
+        mock_rcon_class.return_value = mock_rcon
+
+        with patch('app.routes.mc.rcon', None):
+            response = admin_client.post('/mc/command', data={'command': 'help'})
+            assert response.status_code == 200
+            json_data = response.get_json()
+            assert json_data['status'] == 'error'
+            assert 'timeout' in json_data['message'].lower()
+
+    @patch('app.routes.mc.RCONClient')
+    def test_rcon_command_connection_reset_error(self, mock_rcon_class, admin_client):
+        """Test rconCommand handles ConnectionResetError (lines 134-136)."""
+        mock_rcon = Mock()
+        mock_rcon.login.return_value = True
+        mock_rcon.command.side_effect = ConnectionResetError("Connection reset")
+        mock_rcon_class.return_value = mock_rcon
+
+        with patch('app.routes.mc.rcon', None):
+            response = admin_client.post('/mc/command', data={'command': 'help'})
+            assert response.status_code == 200
+            json_data = response.get_json()
+            assert json_data['status'] == 'error'
+            assert 'lost' in json_data['message'].lower() or 'shutdown' in json_data['message'].lower()
+
+    @patch('app.routes.mc.QUERYClient')
+    def test_rcon_query_connection_refused_error(self, mock_query_class, admin_client):
+        """Test rconQuery handles ConnectionRefusedError (lines 175-176)."""
+        mock_query_class.side_effect = ConnectionRefusedError("Connection refused")
+
+        response = admin_client.get('/mc/query')
+        assert response.status_code == 200
+        json_data = response.get_json()
+        assert json_data['status'] == 'error'
+        assert 'offline' in json_data['message'].lower() or 'closed' in json_data['message'].lower()
+
+    @patch('app.routes.mc.QUERYClient')
+    def test_rcon_query_os_error(self, mock_query_class, admin_client):
+        """Test rconQuery handles OSError (lines 188-197)."""
+        mock_query_class.side_effect = OSError("OS error")
+
+        response = admin_client.get('/mc/query')
+        assert response.status_code == 200
+        json_data = response.get_json()
+        assert json_data['status'] == 'error'
+        assert 'system' in json_data['message'].lower() or 'error' in json_data['message'].lower()
+
+    @patch('app.routes.mc.QUERYClient')
+    def test_rcon_query_unexpected_exception(self, mock_query_class, admin_client):
+        """Test rconQuery handles unexpected exceptions (lines 195-197)."""
+        mock_query_class.side_effect = ValueError("Unexpected error")
+
+        response = admin_client.get('/mc/query')
+        assert response.status_code == 200
+        json_data = response.get_json()
+        assert json_data['status'] == 'error'
+        assert 'failed' in json_data['message'].lower()

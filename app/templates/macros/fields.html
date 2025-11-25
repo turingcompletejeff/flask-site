@@ -65,3 +65,38 @@
     {% endfor %}
 </div>
 {% endmacro %}
+
+{% macro render_coordinate_fields(x_field, y_field, z_field) %}
+<div class="form__group coordinates-group">
+    <label class="form__label">Coordinates</label>
+    {% if x_field.flags.required %}
+        <span class="required-asterisk">*</span>
+    {% endif %}
+
+    <div class="coordinates-wrapper">
+        <div class="coord-field">
+            {{ x_field.label(text="X", class_="coord-label") }}
+            {{ x_field(class_="form__field coord-input", id=x_field.name, placeholder="0.0") }}
+            {%- for error in x_field.errors %}
+                <span class="form__error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="coord-field">
+            {{ y_field.label(text="Y", class_="coord-label") }}
+            {{ y_field(class_="form__field coord-input", id=y_field.name, placeholder="64.0") }}
+            {%- for error in y_field.errors %}
+                <span class="form__error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="coord-field">
+            {{ z_field.label(text="Z", class_="coord-label") }}
+            {{ z_field(class_="form__field coord-input", id=z_field.name, placeholder="0.0") }}
+            {%- for error in z_field.errors %}
+                <span class="form__error">{{ error }}</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endmacro %}

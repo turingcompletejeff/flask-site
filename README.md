@@ -9,6 +9,7 @@ Portfolio site to host a blog and my projects
   - Connect to Minecraft servers via RCON
   - Send server commands
   - List connected players
+  - **Fast Travel Locations**: Manage teleport destinations with coordinates (x, y, z) and images
 
 ## 📂 Project Structure
 
@@ -130,7 +131,10 @@ docker-compose restart flask-site
 - **Authentication**: Modular user registration and login system
 - **Blog Management**: Create, read, update, and delete blog posts
 - **File Uploads**: Improved file handling with validation utilities
-- **Minecraft Integration**: RCON-based server management
+- **Minecraft Integration**: RCON-based server management with fast travel location tracking
+  - Coordinate validation for Minecraft 1.18+ worlds (Y: -64 to 320)
+  - Portrait/thumbnail image support for locations
+  - Creator-based access control with admin override
 - **Responsive Design**: Mobile-friendly interface
 - **Modular Architecture**: Improved code organization with directory-based separation of concerns
 

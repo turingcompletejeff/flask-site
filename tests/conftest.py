@@ -28,7 +28,7 @@ os.environ['TESTING'] = 'true'
 
 # Import create_app and db for fixtures to use
 from app import create_app, db as _db
-from app.models import User, Role, BlogPost, MinecraftCommand
+from app.models import User, Role, BlogPost, MinecraftCommand, MinecraftLocation
 
 
 # Mock the database connection in app/__init__.py BEFORE importing
@@ -61,6 +61,7 @@ def app():
         'SECRET_KEY': 'test-secret-key',
         'BLOG_POST_UPLOAD_FOLDER': '/tmp/test-blog-posts',
         'PROFILE_UPLOAD_FOLDER': '/tmp/test-profiles',
+        'MC_LOCATION_UPLOAD_FOLDER': '/tmp/test-minecraft-locations',
         'MAX_CONTENT_LENGTH': 5 * 1024 * 1024,
         'REGISTRATION_ENABLED': True,
         'SERVER_NAME': 'localhost.localdomain'  # Required for url_for outside request context
@@ -88,6 +89,7 @@ def app():
     # Create upload directories
     os.makedirs(test_app.config['BLOG_POST_UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(test_app.config['PROFILE_UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(test_app.config['MC_LOCATION_UPLOAD_FOLDER'], exist_ok=True)
 
     # Register blueprints
     from app.routes import (
@@ -144,7 +146,7 @@ def db(app):
 
     Note: Now includes MinecraftCommand with StringArray type (cross-database compatible).
     """
-    from app.models import User, Role, BlogPost, MinecraftCommand, role_assignments
+    from app.models import User, Role, BlogPost, MinecraftCommand, MinecraftLocation, role_assignments
 
     with app.app_context():
         # Create all tables (MinecraftCommand now uses StringArray for SQLite compatibility)
@@ -152,6 +154,7 @@ def db(app):
         Role.__table__.create(_db.engine, checkfirst=True)
         BlogPost.__table__.create(_db.engine, checkfirst=True)
         MinecraftCommand.__table__.create(_db.engine, checkfirst=True)
+        MinecraftLocation.__table__.create(_db.engine, checkfirst=True)
         role_assignments.create(_db.engine, checkfirst=True)
 
         yield _db
@@ -160,6 +163,7 @@ def db(app):
         _db.session.remove()
 
         # Drop tables in reverse order
+        MinecraftLocation.__table__.drop(_db.engine, checkfirst=True)
         MinecraftCommand.__table__.drop(_db.engine, checkfirst=True)
         BlogPost.__table__.drop(_db.engine, checkfirst=True)
         role_assignments.drop(_db.engine, checkfirst=True)
@@ -302,6 +306,20 @@ def minecrafter_user(db, minecrafter_role):
 def auth_client(client, regular_user):
     """
     Provide a test client authenticated as a regular user.
+
+    Automatically logs in the regular_user before test execution.
+    """
+    client.post('/login', data={
+        'username': 'testuser',
+        'password': 'password123'
+    }, follow_redirects=True)
+    return client
+
+
+@pytest.fixture(scope='function')
+def regular_client(client, regular_user):
+    """
+    Provide a test client authenticated as a regular user (alias for auth_client).
 
     Automatically logs in the regular_user before test execution.
     """

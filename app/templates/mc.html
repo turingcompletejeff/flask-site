@@ -1,12 +1,79 @@
 {% extends "layout.html" %}
+{% from "macros/fields.html" import render_text_field, render_textarea, render_file_field, render_coordinate_fields %}
 
 {% block title %}Minecraft Server{% endblock %}
 
 {% block js %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/mc-status.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mc-locations.css') }}">
 {% endblock %}
 
 {% block content %}
+
+<!-- Minecraft Locations Section -->
+<section class="minecraft-locations" id="locations-section">
+    <div class="locations-header">
+        <h2>Fast Travel Locations</h2>
+
+        {% if current_user.is_authenticated and (current_user.has_role('minecrafter') or current_user.is_admin()) %}
+        <button type="button" id="btn-new-location" class="clicky-primary">
+            <span class="btn-icon">+</span> Add New Location
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Inline Create Form (Initially Hidden) -->
+    {% if current_user.is_authenticated and (current_user.has_role('minecrafter') or current_user.is_admin()) %}
+    <div id="new-location-form-container" class="location-form-container" style="display: none;">
+        <form id="new-location-form" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <div class="form-header">
+                <h3>Create New Location</h3>
+                <button type="button" id="btn-cancel-form" class="btn-close" aria-label="Close form">&times;</button>
+            </div>
+
+            <!-- Name Field -->
+            {{ render_text_field(form.name, placeholder="e.g., Spawn, Farm, Castle") }}
+
+            <!-- Description Field -->
+            {{ render_textarea(form.description, placeholder="Optional description of this location", rows=3) }}
+
+            <!-- Coordinates Fields (Grouped) -->
+            {{ render_coordinate_fields(form.position_x, form.position_y, form.position_z) }}
+
+            <!-- Portrait Image Field -->
+            {{ render_file_field(form.portrait) }}
+            <small class="field-hint">JPG or PNG screenshot of the location</small>
+
+            <!-- Thumbnail Image Field (Optional) -->
+            {{ render_file_field(form.thumbnail) }}
+            <small class="field-hint">Optional: Leave empty to auto-generate from portrait</small>
+
+            <!-- Form Error Display -->
+            <div id="form-errors" class="form-errors-container" style="display: none;"></div>
+
+            <!-- Submit Buttons -->
+            <div class="form-buttons">
+                <button type="submit" class="clicky-success">
+                    <span class="btn-icon">✓</span> Create Location
+                </button>
+                <button type="button" id="btn-cancel-create" class="clicky-secondary">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Locations Grid -->
+    <div class="locations-grid" id="locations-grid">
+        <!-- Locations will load here via AJAX -->
+        <p class="loading">Loading locations...</p>
+    </div>
+</section>
+
+<hr />
 
 <div id="terminal-wrapper">
 	<pre id="rcon-response">&nbsp;</pre>
@@ -50,13 +117,21 @@ for more info
 
 {% block endjs %}
 <script>
-  // Define API endpoints for mc-status.js
+  // Define API endpoints for mc-status.js and mc-locations.js
   var MC_ENDPOINTS = {
     status: "{{ url_for('mc.mc_status') }}",
     list: "{{ url_for('mc.list') }}",
     query: "{{ url_for('mc.rconQuery') }}",
-    command: "{{ url_for('mc.rconCommand') }}"
+    command: "{{ url_for('mc.rconCommand') }}",
+    locations: "{{ url_for('mc.list_locations') }}",
+    createLocation: "{{ url_for('mc.create_location_ajax') }}",
+    uploadedFiles: "{{ url_for('mc.uploaded_files_dir') }}",
+    editLocation: function(id) { return `/mc/locations/${id}/edit`; },
+    deleteLocation: function(id) { return `/mc/locations/${id}/delete`; }
   };
+
+  var IS_USER_MINECRAFTER = {% if current_user.is_authenticated and (current_user.has_role('minecrafter') or current_user.is_admin()) %}true{% else %}false{% endif %};
 </script>
 <script src="{{ url_for('static', filename='js/mc-status.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mc-locations.js') }}"></script>
 {% endblock %}

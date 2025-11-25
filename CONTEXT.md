@@ -59,6 +59,9 @@ Required in `.env` file:
 - `REGISTRATION_ENABLED` - Toggle user registration (default: True)
 - `MAIL_USER`, `MAIL_PW` - SMTP credentials for email
 
+Optional:
+- `MC_LOCATION_UPLOAD_FOLDER` - Override default uploads/minecraft-locations/ directory (auto-created)
+
 ## Patterns to Follow
 1. **Configuration**: Always use `os.environ.get()` for secrets/config
 2. **Database**: Use connection pooling with `pool_pre_ping=True` for reliability

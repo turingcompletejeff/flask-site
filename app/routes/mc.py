@@ -1,12 +1,18 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, abort, current_app, send_from_directory
 from flask_login import current_user, login_required
 from app import db, rcon
-from app.models import MinecraftCommand
+from app.models import MinecraftCommand, MinecraftLocation
+from app.forms import MinecraftLocationForm
+from app.utils.file_validation import validate_image_file, sanitize_filename
+from app.utils.image_utils import delete_uploaded_images
 from config import Config
 from mctools import RCONClient, QUERYClient
+from werkzeug.utils import secure_filename
+from PIL import Image
 import socket
 from datetime import datetime, timezone
 import time
+import os
 
 # Create a blueprint for main routes
 mc_bp = Blueprint('mc', __name__)
@@ -63,10 +69,19 @@ def rconConnect():
         current_app.logger.error(f"RCON connection unexpected error: {e}", exc_info=True)
         return None
 
+@mc_bp.route('/uploads/minecraft-locations/')
+def uploaded_files_dir():
+    return send_from_directory(current_app.config['MC_LOCATION_UPLOAD_FOLDER'])
+
+@mc_bp.route('/uploads/minecraft-locations/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], filename)
+
 # Home page
 @mc_bp.route('/mc')
 def index():
-    return render_template('mc.html', current_page="minecraft")
+    form = MinecraftLocationForm()
+    return render_template('mc.html', current_page="minecraft", form=form)
 
 @mc_bp.route('/mc/init')
 def rconInit():
@@ -328,3 +343,347 @@ def mc_status():
     _status_cache_time = now
 
     return jsonify(status_data), 200
+
+
+# ============================================================================
+# Minecraft Fast Travel Location Routes (TC-46)
+# ============================================================================
+
+@mc_bp.route('/mc/locations', methods=['GET'])
+def list_locations():
+    """
+    Get all fast travel locations.
+    Returns JSON array of locations ordered by name.
+
+    Response:
+        JSON array of location objects with:
+        - id: Location ID
+        - name: Location name
+        - description: Location description
+        - position: {x, y, z} coordinates
+        - portrait: Portrait image filename
+        - thumbnail: Thumbnail image filename
+        - created_at: ISO 8601 timestamp
+        - created_by_id: Creator user ID
+    """
+    locations = MinecraftLocation.query.order_by(MinecraftLocation.name.asc()).all()
+    return jsonify([loc.to_dict() for loc in locations]), 200
+
+
+@mc_bp.route('/mc/locations/<int:location_id>', methods=['GET'])
+def get_location(location_id):
+    """
+    Get a single location by ID.
+
+    Args:
+        location_id: Location ID
+
+    Returns:
+        JSON object with full location data
+
+    Raises:
+        404: Location not found
+    """
+    location = db.session.get(MinecraftLocation, location_id)
+    if not location:
+        abort(404)
+
+    return jsonify(location.to_dict()), 200
+
+
+@mc_bp.route('/mc/locations/create', methods=['POST'])
+@login_required
+def create_location_ajax():
+    """
+    Create a new fast travel location via AJAX form submission.
+
+    POST: Process form submission, validate, and save location
+    Returns: JSON response with success/error status
+
+    Authorization:
+        Requires 'minecrafter' or 'admin' role (enforced by before_request)
+
+    Form Data:
+        - name: Location name (required)
+        - description: Location description (optional)
+        - position_x: X coordinate (required, float)
+        - position_y: Y coordinate (required, float)
+        - position_z: Z coordinate (required, float)
+        - portrait: Portrait image file (optional)
+        - thumbnail: Custom thumbnail (optional)
+
+    Returns:
+        201: Location created successfully
+        400: Validation errors
+    """
+    form = MinecraftLocationForm()
+
+    if form.validate_on_submit():
+        # Process portrait and thumbnail images
+        portrait_file = form.portrait.data
+        thumbnail_file = form.thumbnail.data
+        filename = None
+        thumbnailname = None
+
+        # Validate and save portrait
+        if portrait_file:
+            is_valid, error_msg = validate_image_file(portrait_file)
+            if not is_valid:
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Portrait upload failed: {error_msg}']}
+                }), 400
+
+            safe_filename_str = sanitize_filename(portrait_file.filename)
+            filename = secure_filename(safe_filename_str)
+            file_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], filename)
+
+            try:
+                portrait_file.save(file_path)
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Error saving portrait: {str(e)}']}
+                }), 400
+
+        # Handle thumbnail (custom or auto-generated from portrait)
+        if thumbnail_file:
+            is_valid, error_msg = validate_image_file(thumbnail_file)
+            if not is_valid:
+                # Cleanup portrait if saved
+                if portrait_file and os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                return jsonify({
+                    'success': False,
+                    'errors': {'thumbnail': [f'Thumbnail upload failed: {error_msg}']}
+                }), 400
+
+            safe_thumb_name = sanitize_filename(thumbnail_file.filename)
+            thumbnailname = f"custom_thumb_{secure_filename(safe_thumb_name)}"
+            thumb_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], thumbnailname)
+
+            try:
+                thumbnail_file.save(thumb_path)
+                img = Image.open(thumb_path)
+                img.thumbnail((300, 300))
+                img.save(thumb_path)
+            except Exception as e:
+                # Cleanup portrait if saved
+                if portrait_file and os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                return jsonify({
+                    'success': False,
+                    'errors': {'thumbnail': [f'Error processing thumbnail: {str(e)}']}
+                }), 400
+
+        elif portrait_file:
+            # Auto-generate thumbnail from portrait
+            thumbnailname = f"thumb_{filename}"
+            thumb_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], thumbnailname)
+            try:
+                img = Image.open(file_path)
+                img.thumbnail((300, 300))
+                img.save(thumb_path)
+            except Exception as e:
+                # Cleanup portrait
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Error generating thumbnail: {str(e)}']}
+                }), 400
+
+        # Create location record
+        location = MinecraftLocation(
+            name=form.name.data,
+            description=form.description.data,
+            position_x=form.position_x.data,
+            position_y=form.position_y.data,
+            position_z=form.position_z.data,
+            portrait=filename,
+            thumbnail=thumbnailname,
+            created_by_id=current_user.id
+        )
+
+        db.session.add(location)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': f'Location "{location.name}" created!',
+            'location': location.to_dict()
+        }), 201
+
+    # Form validation failed
+    errors = {}
+    for field_name, error_list in form.errors.items():
+        errors[field_name] = error_list
+
+    return jsonify({
+        'success': False,
+        'errors': errors
+    }), 400
+
+
+@mc_bp.route('/mc/locations/<int:location_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_location(location_id):
+    """
+    Edit an existing fast travel location.
+
+    GET: Return form pre-populated with location data (JSON)
+    POST: Update location with form data
+
+    Args:
+        location_id: Location ID to edit
+
+    Authorization:
+        Creator or admin can edit (enforced by before_request for role)
+
+    Returns:
+        GET: 200 with location data
+        POST: 200 on success, 400 on validation error
+        403: Not authorized (not creator or admin)
+        404: Location not found
+    """
+    location = db.session.get(MinecraftLocation, location_id)
+    if not location:
+        abort(404)
+
+    # Authorization check: only creator or admin can edit
+    if not current_user.is_admin() and location.created_by_id != current_user.id:
+        abort(403)
+
+    form = MinecraftLocationForm()
+
+    if request.method == 'GET':
+        # Pre-populate form with location data
+        form.name.data = location.name
+        form.description.data = location.description
+        form.position_x.data = location.position_x
+        form.position_y.data = location.position_y
+        form.position_z.data = location.position_z
+        return render_template('edit_location.html', form=form, location=location)
+
+    if form.validate_on_submit():
+        # Update basic fields
+        location.name = form.name.data
+        location.description = form.description.data
+        location.position_x = form.position_x.data
+        location.position_y = form.position_y.data
+        location.position_z = form.position_z.data
+
+        # Handle portrait replacement
+        portrait_file = form.portrait.data
+        if portrait_file:
+            # Validate new portrait
+            is_valid, error_msg = validate_image_file(portrait_file)
+            if not is_valid:
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Portrait upload failed: {error_msg}']}
+                }), 400
+
+            # Store old images for cleanup
+            old_portrait = location.portrait
+            old_thumbnail = location.thumbnail
+
+            # Save new portrait
+            safe_filename_str = sanitize_filename(portrait_file.filename)
+            filename = secure_filename(safe_filename_str)
+            file_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], filename)
+
+            try:
+                portrait_file.save(file_path)
+                location.portrait = filename
+
+                # Auto-generate thumbnail
+                thumbnailname = f"thumb_{filename}"
+                thumb_path = os.path.join(current_app.config['MC_LOCATION_UPLOAD_FOLDER'], thumbnailname)
+                img = Image.open(file_path)
+                img.thumbnail((300, 300))
+                img.save(thumb_path)
+                location.thumbnail = thumbnailname
+
+                # Clean up old files
+                delete_uploaded_images(
+                    current_app.config['MC_LOCATION_UPLOAD_FOLDER'],
+                    [old_portrait, old_thumbnail]
+                )
+            except Exception as e:
+                return jsonify({
+                    'success': False,
+                    'errors': {'portrait': [f'Error updating images: {str(e)}']}
+                }), 400
+
+        db.session.commit()
+        flash(f'Location "{location.name}" updated!', 'success')
+        return redirect(url_for('mc.index'))
+
+    # Form validation failed - render template with errors
+    return render_template('edit_location.html', form=form, location=location)
+
+
+@mc_bp.route('/mc/locations/<int:location_id>/delete', methods=['POST'])
+@login_required
+def delete_location(location_id):
+    """
+    Delete a fast travel location.
+    Returns JSON response for AJAX requests.
+
+    Args:
+        location_id: Location ID to delete
+
+    Authorization:
+        Creator or admin can delete (enforced by before_request for role)
+
+    Returns:
+        200: Location deleted successfully
+        403: Not authorized (not creator or admin)
+        404: Location not found
+    """
+    location = db.session.get(MinecraftLocation, location_id)
+    if not location:
+        abort(404)
+
+    # Authorization check: only creator or admin can delete
+    if not current_user.is_admin() and location.created_by_id != current_user.id:
+        abort(403)
+
+    # Store images before deletion
+    portrait = location.portrait
+    thumbnail = location.thumbnail
+    location_name = location.name
+
+    # Delete from database
+    db.session.delete(location)
+    db.session.commit()
+
+    # Clean up image files
+    result = delete_uploaded_images(
+        current_app.config['MC_LOCATION_UPLOAD_FOLDER'],
+        [portrait, thumbnail]
+    )
+
+    # Build JSON response
+    if result['errors']:
+        message = f'Location deleted, but {len(result["errors"])} image(s) could not be removed.'
+        return jsonify({
+            'success': True,
+            'message': message,
+            'warnings': result['errors']
+        }), 200
+    else:
+        return jsonify({
+            'success': True,
+            'message': f'Location "{location_name}" deleted!'
+        }), 200

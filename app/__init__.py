@@ -55,6 +55,7 @@ def create_app():
     import os
     os.makedirs(app.config.get('PROFILE_UPLOAD_FOLDER', 'uploads/profiles'), exist_ok=True)
     os.makedirs(app.config.get('UPLOAD_FOLDER', 'uploads/blog-posts'), exist_ok=True)
+    os.makedirs(app.config.get('MC_LOCATION_UPLOAD_FOLDER', 'uploads/minecraft-locations'), exist_ok=True)
 
     # Register blueprints
     from app.routes import (
